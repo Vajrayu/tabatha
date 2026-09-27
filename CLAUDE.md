@@ -7,7 +7,8 @@ Chrome extension (Manifest V3). Press Alt+Q to get an Alt+Tab-style switcher sho
 
 ## Status
 - **Current version:** 1.3.0 (first public release)
-- **Chrome Web Store:** not yet submitted. Everything needed is in `releases/v1.3.0/store-listing.md`.
+- **Chrome Web Store:** 1.3.0 submitted 27 Sep 2026, **in review** (expect a slow, in-depth review because of `<all_urls>`). Listing text is in `releases/v1.3.0/store-listing.md`. When it goes live: add the store link to README.md and PROJECTS.md, and set its status to Live.
+- **Next:** v1.4 "save window" stash. **Read `ROADMAP.md` before planning any new feature.** It has the prioritised ideas, the reasoning and the constraints.
 - **GitHub:** https://github.com/Vajrayu/tabatha (public, MIT). Commits use the GitHub no-reply email `54944373+Vajrayu@users.noreply.github.com`, never the personal Gmail.
 
 ## Where things live
@@ -18,6 +19,7 @@ releases/v1.3.0/           tabatha-1.3.0.zip (exact file submitted), store-listi
                            store-assets/{screenshots/, promo-small-440x280.png, promo-marquee-1400x560.png}
 tools/screenshots/         regenerates store screenshots (fictional demo sites + Playwright), see run.sh
 PRIVACY.md                 privacy policy; the store links to it on GitHub
+ROADMAP.md                 future feature ideas, priorities, constraints (read before planning)
 README.md, LICENSE, CLAUDE.md
 ```
 **Versioning convention:** source lives once in `extension/` (git history + tags handle versions). Each release gets its own `releases/v<x.y.z>/` folder with the zip, store text, assets and notes. Git tag `v<x.y.z>` on the commit that was zipped.
@@ -40,7 +42,22 @@ README.md, LICENSE, CLAUDE.md
 5. If permissions or data handling changed, update `PRIVACY.md` **and** the store's Privacy tab.
 6. Commit, `git tag v<new>`, push with tags.
 
+## Product principles (from ROADMAP.md, don't break these)
+- **Nothing leaves the computer.** No cloud calls with tab or page data. Anything off-device must be opt-in and disclosed.
+- **No analytics/tracking.** Feedback comes via store reviews and GitHub issues.
+- Features must fit "find / switch / keep your tabs". Other ideas become separate extensions.
+- Any change to data handling (e.g. writing to disk, reading page text) → update PRIVACY.md **and** the store's Privacy tab answers in the same release.
+
+## Project tracker
+Yuvaraj tracks all builds in `../Projects.xlsx` (main tracker: Projects + Release Log sheets) and `../PROJECTS.md` (markdown mirror). Update **both** when status, version or next step changes, and add a Release Log row per release.
+
+## Git / GitHub
+- Remote: https://github.com/Vajrayu/tabatha (public, MIT). Author email is the GitHub no-reply address. **Never commit with the personal Gmail.**
+- Pushing from Claude's cloud session: add the repo with push access, bundle the local repo (`git bundle create`), stage the bundle, clone it in the container and push. Branch pushes work. **Tag pushes were rejected by the session's git proxy**, so tags get created on GitHub (Releases → new release) or pushed from Yuvaraj's Mac.
+- The v1.3.0 tag exists locally. On GitHub it still needs to be created via Releases.
+
 ## Gotchas
+- Chrome does not allow **Ctrl+Alt** shortcuts for extension commands (AltGr clash). Max 4 suggested shortcuts per extension.
 - `<all_urls>` + content scripts on all URLs means the Web Store does an in-depth review (slow). Don't add permissions casually.
 - Chrome may leave Alt+Q unassigned if another extension has it. That's why `hotkey.js` exists. Users can rebind at `chrome://extensions/shortcuts`.
 - Tabs never shown since the browser started have no preview ("Inactive"). This is a Chrome limit: only the visible tab can be captured.
@@ -49,3 +66,4 @@ README.md, LICENSE, CLAUDE.md
 
 ## Log
 - **2026-09-27**: Restructured the folder (`tabatha-1.3.0/` → `extension/`, zip → `releases/v1.3.0/`). Generated store screenshots (raw + captioned) and promo tiles. Wrote store-listing.md, PRIVACY.md, README, MIT LICENSE. Git init, tagged v1.3.0, pushed to GitHub. Next: submit to the Chrome Web Store and then add the store link to README + PROJECTS.md.
+- **2026-09-27 (later)**: 1.3.0 submitted to the Chrome Web Store and in review. Pushed to GitHub (Vajrayu/tabatha, no-reply email). Discussed the next features (stash, content search, smarter find) and wrote ROADMAP.md with priorities and constraints. Updated Projects.xlsx + PROJECTS.md.
