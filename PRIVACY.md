@@ -50,3 +50,6 @@ If this policy changes, the new version will be published here with a new date. 
 ## Contact
 
 Questions or concerns: open an issue at https://github.com/Vajrayu/tabatha/issues, or use the contact email shown on the Chrome Web Store listing.
+
+## Store
+https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_source=item-share-cb
