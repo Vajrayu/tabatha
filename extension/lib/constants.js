@@ -40,7 +40,9 @@ export const LIMITS = Object.freeze({
   POINTER_VISIBLE_MS: 300,      // overlay must be fully visible this long before clicks count
   KEYS_GRACE_MS: 800,           // keys work right away (quick Alt+Q flick) until visibility is known
   LAUNCH_WAIT_MS: 5000,         // how long an overlay waits for its launch token
-  RECENTLY_CLOSED: 8,
+  RECENTLY_CLOSED: 8,           // most "Recently closed" entries shown
+  RECENTLY_CLOSED_WINDOWS: 2,   // of which at most this many whole windows
+  RECENTLY_CLOSED_MAX_AGE_S: 4 * 3600, // only things closed in the last 4 hours
 });
 
 export const SWITCHER_PAGE = 'switcher.html';

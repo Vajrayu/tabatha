@@ -7,11 +7,12 @@
 ## Features
 
 - **Live previews**: a screenshot of every tab, not just a favicon and a title.
-- **Hold-and-release switching**: hold Alt, tap Q to move through tabs in most-recently-used order, let go to switch. It works like Alt+Tab.
+- **Tap to open**: tap <kbd>Alt</kbd>+<kbd>Q</kbd> and the switcher stays open. No need to keep holding Alt: use the arrows, type to search, or use the mouse.
+- **Or hold and release**: hold Alt and tap Q again to move through tabs in most-recently-used order, let go to switch, like Alt+Tab.
 - **Search**: type to filter open and recently closed tabs by title or URL.
-- **Every window in one view**: filter to one window with <kbd>Alt</kbd>+<kbd>W</kbd>.
-- **Recently closed**: reopen closed tabs and windows, with their last preview.
-- **Close from the switcher**: <kbd>Del</kbd> or middle-click.
+- **Every window in one view**: each card shows the site and which window it's in. Filter to one window with <kbd>Alt</kbd>+<kbd>W</kbd> or the window chips.
+- **Recently closed**: reopen tabs and windows closed in the last 4 hours, with their last preview.
+- **Close from the switcher**: <kbd>Del</kbd> (<kbd>⌘</kbd>+<kbd>⌫</kbd> on a Mac) or middle-click.
 - **Works everywhere**: on pages extensions can't draw on (New Tab, `chrome://`, the Web Store) it opens in a small popup window instead.
 - **Private**: previews stay in memory on your computer and are wiped when Chrome closes. The extension makes no network requests. See [PRIVACY.md](PRIVACY.md).
 
@@ -19,12 +20,13 @@
 
 | Keys | Action |
 |---|---|
-| <kbd>Alt</kbd>+<kbd>Q</kbd> / <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> | Open, next / previous tab |
+| <kbd>Alt</kbd>+<kbd>Q</kbd> / <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> | Open (stays open), then next / previous tab |
 | <kbd>Alt</kbd>+<kbd>W</kbd> | Cycle window filter |
 | Arrows, <kbd>Tab</kbd> | Move selection |
-| <kbd>Enter</kbd> or release <kbd>Alt</kbd> | Switch to selected tab |
-| <kbd>Del</kbd> | Close selected tab |
-| <kbd>Esc</kbd> | Clear search / close |
+| <kbd>Enter</kbd> or click | Switch to selected tab |
+| Release <kbd>Alt</kbd> after pressing Q again | Switch to selected tab (Alt+Tab style) |
+| <kbd>Del</kbd> / <kbd>⌘</kbd>+<kbd>⌫</kbd> (Mac) | Close selected tab |
+| <kbd>Esc</kbd> or click outside | Clear search / close |
 
 On macOS, Alt is <kbd>Option</kbd>. To change the shortcut, go to `chrome://extensions/shortcuts`.
 

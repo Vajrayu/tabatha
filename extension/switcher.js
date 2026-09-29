@@ -29,7 +29,11 @@ const el = {
   windows: $('windows'), scroller: $('scroller'), newtab: $('newtab'),
   openGrid: $('open-grid'), openEmpty: $('open-empty'),
   closedSection: $('closed-section'), closedGrid: $('closed-grid'),
+  winHint: $('hint-win'),
 };
+
+// Mac keyboards: Option instead of Alt, and the "delete" key is Backspace.
+const IS_MAC = /mac/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '');
 
 // -------------------------------------------------------------------- state
 const state = {
@@ -43,6 +47,7 @@ const state = {
   openCount: 0,
   sel: 0,
   holding: true,   // Alt still held since the shortcut that opened us?
+  cycled: false,   // Q pressed again while holding: releasing Alt then switches
   done: false,
   mouseReady: false,
 };
@@ -93,16 +98,19 @@ async function load() {
 
   state.previews = await getPreviews(tabs.map((t) => t.id));
 
-  // Windows in "most recently used" order, the current one first.
+  // Windows in "most recently used" order, the current one first. Numbers
+  // follow the order the windows were opened in, so "Window 2" stays
+  // "Window 2" however you move between them.
   const order = [CTX.srcWin];
   for (const t of tabs) if (!order.includes(t.windowId)) order.push(t.windowId);
+  const byAge = order.filter((id) => id !== CTX.srcWin).sort((a, b) => a - b);
   state.windows = order
-    .map((id, i) => {
+    .map((id) => {
       const wt = tabs.filter((t) => t.windowId === id);
       const active = wt.find((t) => t.active) || wt[0];
       return {
         id,
-        label: id === CTX.srcWin ? 'This window' : 'Window ' + (i + 1),
+        label: id === CTX.srcWin ? 'This window' : 'Window ' + (byAge.indexOf(id) + 2),
         count: wt.length,
         activeTitle: active ? active.title || '' : '',
       };
@@ -116,8 +124,14 @@ async function loadClosed(closedPreviews) {
   if (!closedPreviews) closedPreviews = await getClosedPreviews();
   let sessions = [];
   try { sessions = await chrome.sessions.getRecentlyClosed({ maxResults: 25 }); } catch {}
+  // Chrome's list survives restarts and has no age limit; keep only the last
+  // few hours, and don't let whole closed windows crowd out single tabs.
+  const cutoff = Date.now() / 1000 - LIMITS.RECENTLY_CLOSED_MAX_AGE_S;
+  let windows = 0;
   state.closed = sessions
+    .filter((s) => !s.lastModified || s.lastModified >= cutoff)
     .filter((s) => (s.tab ? isWorthReopening(urlOf(s.tab)) : !!(s.window && s.window.tabs && s.window.tabs.length)))
+    .filter((s) => s.tab || ++windows <= LIMITS.RECENTLY_CLOSED_WINDOWS)
     .slice(0, LIMITS.RECENTLY_CLOSED)
     .map((session) => {
       const url = session.tab ? urlOf(session.tab) : urlOf(session.window.tabs[0]);
@@ -168,6 +182,7 @@ function cardWidth(n) {
 function renderWindows() {
   const multi = state.windows.length > 1;
   el.windows.hidden = !multi;
+  el.winHint.hidden = !multi;
   el.windows.textContent = '';
   if (!multi) return;
   const chips = [{ id: 'all', label: 'All windows', count: state.tabs.length, activeTitle: '' }, ...state.windows];
@@ -236,7 +251,9 @@ function renderCard(entry, index) {
     const t = entry.tab;
     entry.url = urlOf(t);
     fav.src = favicon(entry.url);
-    head.append(fav, h('span', 'title', t.title || hostOf(entry.url) || 'Untitled'));
+    const host = hostOf(entry.url);
+    head.append(fav, h('span', 'title', t.title || host || 'Untitled'));
+    if (t.title && host) head.append(h('span', 'host', host.replace(/^www\./, '')));
     const tag = windowTag(t);
     if (tag) head.append(tag);
     if (t.audible) { const b = h('span', 'badge'); b.innerHTML = ICON.speaker; head.append(b); }
@@ -434,12 +451,17 @@ function onKeyDown(e) {
   // had already let go of the shortcut: from now on it's "tap" mode.
   if ((MODIFIERS.has(k) && !e.repeat) || (!e.altKey && !e.ctrlKey && !e.metaKey)) state.holding = false;
 
+  // Close the selected tab: Del, or Cmd+Backspace on a Mac (its "delete"
+  // key is Backspace, which the search box needs).
+  const closeKey = !typing && (k === 'Delete' || (IS_MAC && e.metaKey && k === 'Backspace'));
+
   // Hidden or covered by the page: don't act on keys the user can't see the
   // effect of - just get out of the way.
-  const acts = k === 'Enter' || (k === 'Delete' && !typing) || (altOnly && (e.code === 'KeyQ' || e.code === 'KeyW'));
+  const acts = k === 'Enter' || closeKey || (altOnly && (e.code === 'KeyQ' || e.code === 'KeyW'));
   if (acts && !keysAllowed()) { e.preventDefault(); finish('cancel'); return; }
 
-  if (altOnly && e.code === 'KeyQ') { e.preventDefault(); return cycle(e.shiftKey ? -1 : 1); }
+  if (closeKey) { e.preventDefault(); return closeTab(state.entries[state.sel]); }
+  if (altOnly && e.code === 'KeyQ') { e.preventDefault(); return qPress(e.shiftKey ? -1 : 1); }
   if (altOnly && e.code === 'KeyW') { e.preventDefault(); return cycleScope(e.shiftKey ? -1 : 1); }
   if (e.ctrlKey && (k === 'ArrowLeft' || k === 'ArrowRight')) { e.preventDefault(); return cycleScope(k === 'ArrowRight' ? 1 : -1); }
   if ((e.ctrlKey || e.metaKey) && e.code === 'KeyF') { e.preventDefault(); el.search.focus(); el.search.select(); return; }
@@ -457,24 +479,29 @@ function onKeyDown(e) {
     case 'ArrowLeft': if (!typing) { e.preventDefault(); moveSpatial(-1, 0); } return;
     case 'ArrowDown': e.preventDefault(); return moveSpatial(0, 1);
     case 'ArrowUp': e.preventDefault(); return moveSpatial(0, -1);
-    case 'Delete':
-      if (!typing) { e.preventDefault(); closeTab(state.entries[state.sel]); }
-      return;
     default:
       if (MODIFIERS.has(k)) { e.preventDefault(); return; }
+      // Option/Alt + a key types symbols on a Mac (Option+Shift+4 is "›").
+      // With Alt still down from the shortcut, that's a slip, not a search.
+      if (altOnly && k.length === 1 && !el.search.value) { e.preventDefault(); return; }
       if (document.activeElement !== el.search && k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         el.search.focus(); // typing anywhere goes into the search box
       }
   }
 }
 
-// Releasing the modifier that is still held from the opening shortcut opens
-// the selection (like Alt+Tab in Windows). In tap mode, or while a search is
-// typed, releasing Alt does nothing - use Enter or click.
+// Alt+Q is only a trigger: tap it and the switcher stays open for arrows,
+// typing, the mouse, Enter and Esc. Holding Alt and pressing Q again cycles
+// like Alt+Tab, and then releasing Alt opens the selection.
+function qPress(d) {
+  if (state.holding) state.cycled = true;
+  cycle(d);
+}
+
 function onKeyUp(e) {
   if (state.done || !MODIFIERS.has(e.key)) return;
   e.preventDefault();
-  const commit = state.holding && !el.search.value && state.entries.length;
+  const commit = state.holding && state.cycled && !el.search.value && state.entries.length;
   state.holding = false;
   if (commit) keysAllowed() ? choose(state.sel) : finish('cancel');
 }
@@ -543,7 +570,7 @@ function listen() {
   // scripts always have sender.tab; the worker doesn't).
   chrome.runtime.onMessage.addListener((msg, sender, respond) => {
     if (state.done || sender.id !== chrome.runtime.id || sender.tab) return;
-    if (msg && msg.type === MSG.CYCLE) { cycle(msg.dir === -1 ? -1 : 1); respond({ ok: true }); }
+    if (msg && msg.type === MSG.CYCLE) { qPress(msg.dir === -1 ? -1 : 1); respond({ ok: true }); }
   });
   chrome.tabs.onRemoved.addListener((id) => { if (!state.done) forgetTab(id); });
 }
@@ -579,6 +606,9 @@ function getLaunch() {
   CTX = await getLaunch();
   if (!CTX) return;
   document.documentElement.classList.add(CTX.mode);
+  if (IS_MAC) {
+    document.querySelectorAll('kbd[data-mac]').forEach((k) => { k.textContent = k.dataset.mac; });
+  }
   listen();
   watchVisibility();
   await load();
@@ -592,6 +622,6 @@ function getLaunch() {
   try {
     const r = await chrome.runtime.sendMessage({ type: MSG.READY });
     const extra = r && Number.isInteger(r.extra) ? r.extra : 0;
-    for (let i = 0; i < Math.abs(extra); i++) cycle(Math.sign(extra));
+    for (let i = 0; i < Math.abs(extra); i++) qPress(Math.sign(extra));
   } catch {}
 })();
