@@ -4,6 +4,9 @@
 
 ![Tabatha showing previews of open tabs](releases/v1.3.0/store-assets/screenshots/raw-01-overview.png)
 
+## Store
+https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_source=item-share-cb
+
 ## Features
 
 - **Live previews**: a screenshot of every tab, not just a favicon and a title.
