@@ -46,3 +46,4 @@ export const LIMITS = Object.freeze({
 });
 
 export const SWITCHER_PAGE = 'switcher.html';
+export const COFFEE_URL = 'https://buymeacoffee.com/vey9utb';

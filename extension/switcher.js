@@ -17,7 +17,7 @@
 //     action keys close it instead of acting on something you can't see;
 //   - all page-provided text (titles, URLs) is rendered with textContent.
 
-import { MSG, FRAME_MSG, LIMITS } from './lib/constants.js';
+import { MSG, FRAME_MSG, LIMITS, COFFEE_URL } from './lib/constants.js';
 import { getMru, getPreviews, getClosedPreviews, consumeLaunch } from './lib/store.js';
 import { isOwnUrl } from './lib/ext.js';
 
@@ -29,7 +29,7 @@ const el = {
   windows: $('windows'), scroller: $('scroller'), newtab: $('newtab'),
   openGrid: $('open-grid'), openEmpty: $('open-empty'),
   closedSection: $('closed-section'), closedGrid: $('closed-grid'),
-  winHint: $('hint-win'),
+  winHint: $('hint-win'), coffee: $('coffee'),
 };
 
 // Mac keyboards: Option instead of Alt, and the "delete" key is Backspace.
@@ -546,6 +546,13 @@ function listen() {
     e.stopPropagation();
     if (!pointerAllowed()) return;
     try { await chrome.tabs.create({ windowId: CTX.srcWin, active: true }); } catch {}
+    finish('switch');
+  });
+  // "Buy me a coffee" opens in a new tab next to where you were.
+  el.coffee.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!pointerAllowed()) return;
+    try { await chrome.tabs.create({ url: COFFEE_URL, windowId: CTX.srcWin, active: true }); } catch {}
     finish('switch');
   });
   // Clicking empty space (not a card, chip, button or the search box) cancels.

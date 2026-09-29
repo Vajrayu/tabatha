@@ -26,6 +26,29 @@ html.overlay body {
 [hidden] { display: none !important; }
 button { font: inherit; color: inherit; }
 
+/* ---------- buy me a coffee (Yuvsualy pixel button) ---------- */
+.coffee {
+  --ink: #1B2A4A; --shade: #B7791F; --px: 2px; --sh: 3px; /* amber shadow: an ink one vanishes on the dark overlay */
+  position: fixed; right: calc(44px + var(--sh)); bottom: calc(22px + var(--sh)); z-index: 2;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px 8px 9px; border: 0; cursor: pointer; overflow: visible;
+  font-size: 12.5px; font-weight: 700; color: var(--ink); background: #FFD166;
+  box-shadow:
+    0 calc(var(--px) * -1) 0 0 var(--ink), 0 var(--px) 0 0 var(--ink),
+    calc(var(--px) * -1) 0 0 0 var(--ink), var(--px) 0 0 0 var(--ink),
+    calc(var(--px) + var(--sh)) var(--sh) 0 0 var(--shade), var(--sh) calc(var(--px) + var(--sh)) 0 0 var(--shade);
+  transition: transform 90ms steps(2), box-shadow 90ms steps(2);
+}
+.coffee::after { /* dithered bottom band, like 16-bit buttons */
+  content: ''; position: absolute; inset: auto 0 0 0; height: 8px; pointer-events: none; background: #FFB60D;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Cg fill='white'%3E%3Crect x='0' y='0' width='4' height='4'/%3E%3Crect x='4' y='4' width='4' height='4'/%3E%3Crect x='12' y='4' width='4' height='4'/%3E%3Crect x='0' y='8' width='12' height='4'/%3E%3Crect x='0' y='12' width='16' height='4'/%3E%3C/g%3E%3C/svg%3E") repeat-x 0 0 / 8px 8px;
+}
+.coffee > * { position: relative; z-index: 1; }
+.coffee svg { image-rendering: pixelated; }
+.coffee:hover, .coffee:focus-visible { outline: none; transform: translate(-1px, -1px); --sh: 4px; }
+.coffee:active { transform: translate(2px, 2px); --sh: 1px; }
+html.window .coffee { right: 20px; bottom: 16px; }
+
 /* ---------- header ---------- */
 .bar { display: flex; align-items: center; gap: 16px; padding: 20px 44px 10px; }
 .ghost {
@@ -75,7 +98,7 @@ kbd + kbd { margin-left: 2px; }
 /* ---------- content ---------- */
 main {
   position: absolute; inset: var(--top, 72px) 0 0 0; overflow-y: auto; overflow-x: hidden;
-  padding: 8px 40px 48px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent;
+  padding: 8px 40px 80px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent;
 }
 section { max-width: 1640px; margin: 0 auto; }
 .section-h {

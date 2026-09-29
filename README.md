@@ -17,6 +17,7 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 - **Recently closed**: reopen tabs and windows closed in the last 4 hours, with their last preview.
 - **Close from the switcher**: <kbd>Del</kbd> (<kbd>⌘</kbd>+<kbd>⌫</kbd> on a Mac) or middle-click.
 - **Works everywhere**: on pages extensions can't draw on (New Tab, `chrome://`, the Web Store) it opens in a small popup window instead.
+- **Free**: a small Buy Me a Coffee button sits in the corner of the switcher, if you want to say thanks.
 - **Private**: previews stay in memory on your computer and are wiped when Chrome closes. The extension makes no network requests. See [PRIVACY.md](PRIVACY.md).
 
 ## Shortcuts
