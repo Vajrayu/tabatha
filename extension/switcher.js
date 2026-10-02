@@ -50,6 +50,7 @@ const state = {
   cycled: false,   // Q pressed again while holding: releasing Alt then switches
   done: false,
   mouseReady: false,
+  cardW: 320,      // current open-card width (px), set by render()
 };
 
 // ---------------------------------------------------------------- icons
@@ -58,6 +59,7 @@ const ICON = {
   history: '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9M2.5 2.5v2.8h2.8M8 5v3.2l2.2 1.4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   speaker: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 6h2.5L8 3v10L4.5 10H2z" fill="currentColor"/><path d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.3 3.8a6 6 0 0 1 0 8.4" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>',
   close: '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  camera: '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M2.5 5.5h2.2l1.2-1.8h4.2l1.2 1.8h2.2v7h-11z" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linejoin="round"/><circle cx="8" cy="8.8" r="2" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>',
   window: '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M2 6h12" stroke="currentColor" stroke-width="1.3"/></svg>',
 };
 
@@ -238,7 +240,10 @@ function thumbFor(entry, { label, sub, icon }) {
 }
 
 function renderCard(entry, index) {
-  const card = h('div', 'card' + (entry.kind === 'closed' ? ' closed' : ''));
+  // "Inactive" means what it means in Chrome: Memory Saver has unloaded the
+  // tab (tab.discarded). It reloads when you open it.
+  const asleep = entry.kind === 'tab' && entry.tab.discarded;
+  const card = h('div', 'card' + (entry.kind === 'closed' ? ' closed' : '') + (asleep ? ' asleep' : ''));
   card.id = 'opt-' + entry.key;
   card.setAttribute('role', 'option');
   card.setAttribute('aria-selected', String(index === state.sel));
@@ -253,7 +258,9 @@ function renderCard(entry, index) {
     fav.src = favicon(entry.url);
     const host = hostOf(entry.url);
     head.append(fav, h('span', 'title', t.title || host || 'Untitled'));
-    if (t.title && host) head.append(h('span', 'host', host.replace(/^www\./, '')));
+    // The site name only fits next to the title on wider cards; narrow ones
+    // keep the title readable (the full URL is in the tooltip).
+    if (t.title && host && state.cardW >= 300) head.append(h('span', 'host', host.replace(/^www\./, '')));
     const tag = windowTag(t);
     if (tag) head.append(tag);
     if (t.audible) { const b = h('span', 'badge'); b.innerHTML = ICON.speaker; head.append(b); }
@@ -264,11 +271,13 @@ function renderCard(entry, index) {
     x.innerHTML = ICON.close;
     x.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) closeTab(entry); });
     head.append(x);
-    card.title = (t.title || '') + '\n' + entry.url;
+    card.title = (t.title || '') + '\n' + entry.url + (asleep ? '\nInactive: Chrome unloaded this tab to save memory. It reloads when you open it.' : '');
     const sub = t.title || hostOf(entry.url);
-    card.append(head, thumbFor(entry, t.discarded
-      ? { label: entry.preview ? 'Sleeping' : 'Inactive · sleeping', sub, icon: ICON.moon }
-      : { label: entry.preview ? '' : 'Inactive', sub, icon: ICON.moon }));
+    // No screenshot yet just means we haven't seen the tab since Chrome
+    // started (only the visible tab can be captured); it's still running.
+    card.append(head, thumbFor(entry, asleep
+      ? { label: 'Inactive', sub, icon: ICON.moon }
+      : { label: entry.preview ? '' : 'No preview yet', sub, icon: ICON.camera }));
   } else {
     const s = entry.session;
     const first = s.tab || s.window.tabs[0];
@@ -298,7 +307,8 @@ function render() {
   const open = state.entries.slice(0, state.openCount);
   const closed = state.entries.slice(state.openCount);
 
-  el.openGrid.style.setProperty('--w', Math.floor(cardWidth(open.length)) + 'px');
+  state.cardW = Math.floor(cardWidth(open.length));
+  el.openGrid.style.setProperty('--w', state.cardW + 'px');
   el.openGrid.replaceChildren(...open.map((e, i) => renderCard(e, i)));
   el.closedGrid.replaceChildren(...closed.map((e, i) => renderCard(e, i + state.openCount)));
   el.openEmpty.hidden = open.length > 0;
@@ -442,11 +452,21 @@ function forgetTab(id, keepKey) {
 // ------------------------------------------------------------------ input
 const MODIFIERS = new Set(['Alt', 'Control', 'Meta']);
 
+// Is Option/Alt down right now (without Ctrl, so AltGr typing still works)?
+// On a Mac, Option+letter types a symbol (Option+W is "∑") through the
+// system's text input, which can slip past a cancelled keydown and even
+// start a composition. So the search box also refuses text while it's down.
+let altDown = false;
+function trackAlt(e) { altDown = e.altKey && !e.ctrlKey; }
+
 function onKeyDown(e) {
-  if (state.done || e.isComposing) return;
+  if (state.done) return;
+  trackAlt(e);
   const typing = document.activeElement === el.search && el.search.value !== '';
   const k = e.key;
   const altOnly = e.altKey && !e.ctrlKey && !e.metaKey;
+  // Our Alt shortcuts must work even if the text system thinks it's composing.
+  if (e.isComposing && !(altOnly && (e.code === 'KeyQ' || e.code === 'KeyW'))) return;
   // A fresh modifier press, or any key without a modifier, means the user
   // had already let go of the shortcut: from now on it's "tap" mode.
   if ((MODIFIERS.has(k) && !e.repeat) || (!e.altKey && !e.ctrlKey && !e.metaKey)) state.holding = false;
@@ -499,7 +519,10 @@ function qPress(d) {
 }
 
 function onKeyUp(e) {
-  if (state.done || !MODIFIERS.has(e.key)) return;
+  if (state.done) return;
+  trackAlt(e);
+  if (e.key === 'Alt') altDown = false;
+  if (!MODIFIERS.has(e.key)) return;
   e.preventDefault();
   const commit = state.holding && state.cycled && !el.search.value && state.entries.length;
   state.holding = false;
@@ -541,7 +564,11 @@ function keysAllowed() {
 function listen() {
   window.addEventListener('keydown', onKeyDown, true);
   window.addEventListener('keyup', onKeyUp, true);
-  el.search.addEventListener('input', () => { state.query = el.search.value; state.sel = 0; refresh({ keepKey: '-' }); });
+  el.search.addEventListener('beforeinput', (e) => { if (altDown) e.preventDefault(); });
+  el.search.addEventListener('input', () => {
+    if (altDown && el.search.value !== state.query) { el.search.value = state.query; return; } // slipped through anyway
+    state.query = el.search.value; state.sel = 0; refresh({ keepKey: '-' });
+  });
   el.newtab.addEventListener('click', async (e) => {
     e.stopPropagation();
     if (!pointerAllowed()) return;
@@ -567,7 +594,7 @@ function listen() {
   // Only once we actually had focus, so a window that opens unfocused (or a
   // focus hiccup while it opens) doesn't make the switcher vanish instantly.
   let hadFocus = document.hasFocus();
-  window.addEventListener('focus', () => { hadFocus = true; });
+  window.addEventListener('focus', () => { hadFocus = true; altDown = false; });
   window.addEventListener('blur', () => setTimeout(() => {
     if (hadFocus && !document.hasFocus()) finish('blur');
   }, 80));

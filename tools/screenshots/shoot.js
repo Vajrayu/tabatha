@@ -6,13 +6,14 @@ const fs = require('fs');
 const EXT = process.env.EXT || path.resolve(__dirname, '../../extension');
 const OUT = process.env.OUT || path.resolve(__dirname, 'out');
 const W = 1280, H = 800;
+const PORT = process.env.PORT || 80; // must match serve.py
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const U = (h) => `http://${h}/`;
 
 const WIN1 = ['app.pulse.example', 'mail.mailpost.example', 'board.stackboard.example', 'code.gitforge.example',
   'cal.dayplan.example', 'read.longform.example', 'notes.northwind.example', 'docs.northwind.example'];
 const WIN2 = ['maps.wayfare.example', 'shop.hearth.example', 'skycast.example', 'play.tunebox.example', 'team.parley.example'];
-const INACTIVE = new Set(['cal.dayplan.example', 'skycast.example']); // never shown -> "Inactive" tile
+const INACTIVE = new Set(['cal.dayplan.example', 'skycast.example']); // never shown -> "No preview yet" tile (1.3.1+)
 const CLOSED = ['flights.skyroute.example', 'tokens.northwind.example'];
 
 (async () => {
@@ -21,7 +22,7 @@ const CLOSED = ['flights.skyroute.example', 'tokens.northwind.example'];
   const ctx = await chromium.launchPersistentContext(profile, {
     channel: 'chromium', headless: true, viewport: null,
     args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`, `--window-size=${W},${H}`,
-      '--no-proxy-server', '--host-resolver-rules=MAP *.example 127.0.0.1, MAP skycast.example 127.0.0.1',
+      '--no-proxy-server', `--host-resolver-rules=MAP *.example 127.0.0.1:${PORT}, MAP skycast.example 127.0.0.1:${PORT}`,
       '--screen-info={1920x1200}', '--hide-scrollbars', '--force-device-scale-factor=1'],
   });
   let sw = ctx.serviceWorkers().find((w) => w.url().endsWith('/background.js'));
@@ -64,7 +65,7 @@ const CLOSED = ['flights.skyroute.example', 'tokens.northwind.example'];
   console.log('viewport', await page.evaluate(() => [innerWidth, innerHeight]));
   const shot = async (name) => { await sleep(700); await page.screenshot({ path: path.join(OUT, name) }); console.log('saved', name); };
 
-  // 1. Hero: overlay opened with Alt+Q, Alt still held.
+  // 1. Hero: overlay opened with Alt+Q (1.3.1+: it stays open after Alt is released).
   await page.keyboard.down('Alt');
   await page.keyboard.press('KeyQ');
   await sleep(1800);

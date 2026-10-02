@@ -1,6 +1,27 @@
-# Tabatha 1.3.0: Chrome Web Store submission
+# Tabatha 1.3.1: Chrome Web Store update
 
-Everything to paste into the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole), tab by tab. Checked against the code in `extension/` at v1.3.0.
+Everything to paste into the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole), tab by tab. Checked against the code in `extension/` at v1.3.1.
+
+## Listing history (newest first)
+
+Only the text that changed is listed; the old wording is quoted so nothing is lost. The full 1.3.0 listing is also kept in `../v1.3.0/store-listing.md`.
+
+**1.3.1** (30 Sep 2026, update)
+- *How it works*: was "Hold Alt and tap Q to move through your tabs, most recently used first. Let go of Alt to jump to the selected tab." / "Or tap Alt+Q once and use the arrow keys, Tab, Enter or the mouse." Now leads with tap-to-open; hold-and-release is the alternative.
+- *All your windows*: added "each labelled with its site and window".
+- *Recently closed*: was "reopen tabs and windows you just closed"; now "closed in the last few hours".
+- *Tidy up fast*: added "(Cmd+Backspace on a Mac)".
+- *Sleeping tabs* → *Inactive tabs*: was "tabs Chrome has put to sleep, or that you haven't opened since starting Chrome, are clearly marked." Now matches Chrome: only unloaded tabs are Inactive; uncaptured tabs say "No preview yet".
+- New line: Buy Me a Coffee button.
+- *Keyboard shortcuts*: "Alt+Q: next tab" → "Alt+Q: open Tabatha / next tab"; added "Arrow keys" and the Mac close key.
+- *Private by design* and *Test instructions*: added the coffee-link sentence (the extension still makes no network requests itself).
+- *Test instructions*: shortened to fit the dashboard's 500-character limit (the 1.3.0 text is in `../v1.3.0/store-listing.md`).
+- *Test instructions step 2*: was "hold Alt and tap Q … release Alt to switch"; now "press Alt+Q and let go … stays open".
+- *Screenshots and promo tiles*: regenerated from 1.3.1 (tap-to-open hint bar, site labels, window tags, No preview yet, coffee button). The 1.3.0 images are kept in `../v1.3.0/store-assets/`.
+- Privacy tab answers and permission justifications: **unchanged** (no new permissions, same data handling).
+
+**1.3.0** (27 Sep 2026, first submission): original listing.
+
 
 
 ---
@@ -9,14 +30,15 @@ Everything to paste into the [Chrome Web Store Developer Dashboard](https://chro
 
 - **Developer account**: one-time US$5 registration fee, and 2-step verification must be on for the Google account.
 - **Contact email**: must be set and verified under *Account* before you can publish.
-- **Upload**: `tabatha-1.3.0.zip` in this folder. It has `manifest.json` at the root and no `.DS_Store` or other junk.
-- **Expect a longer review.** Tabatha asks for access to all sites (`<all_urls>`) and runs a content script on every page. That triggers Google's in-depth review, which can take anywhere from a few days to a couple of weeks. The justifications below are written to answer the reviewer's questions up front.
+- **Upload**: `tabatha-1.3.1.zip` in this folder. It has `manifest.json` at the root and no `.DS_Store` or other junk.
+- **Review:** this is an update with no new permissions, so it's usually quicker than the first review, but `<all_urls>` can still trigger the in-depth one.
+- **Before submitting:** check the release blocker in `audit.md` (tap-to-open on Windows).
 
 ---
 
 ## 1. Package tab
 
-Upload `tabatha-1.3.0.zip`. The dashboard reads name, version (1.3.0), description and icons from the manifest.
+Upload `tabatha-1.3.1.zip`. The dashboard reads name, version (1.3.1), description and icons from the manifest.
 
 ---
 
@@ -49,7 +71,8 @@ FEATURES
 • All your windows: tabs from every Chrome window in one view, each labelled with its site and window. Press Alt+W (or click a window chip) to narrow it to one window.
 • Recently closed: reopen tabs and windows you closed in the last few hours, with a preview of what they looked like.
 • Tidy up fast: press Delete (Cmd+Backspace on a Mac) or middle-click to close tabs straight from the switcher.
-• Sleeping tabs: tabs Chrome has put to sleep, or that you haven't opened since starting Chrome, are clearly marked.
+• Inactive tabs, just like Chrome shows them: tabs Chrome has unloaded to save memory are marked Inactive. Tabs Tabatha hasn't seen yet say No preview yet.
+• Free, with a small Buy Me a Coffee button in the corner if you want to say thanks.
 • Works everywhere: on pages extensions can't draw on (New Tab, Chrome settings, the Web Store) Tabatha opens in its own small window instead.
 
 KEYBOARD SHORTCUTS
@@ -67,7 +90,7 @@ On a Mac, Alt is the Option key. You can change the shortcut at chrome://extensi
 PRIVATE BY DESIGN
 • Previews never leave your computer. They are stored in memory only, never written to disk, and wiped when you close Chrome.
 • Previews of closed tabs are forgotten after 30 minutes.
-• No accounts, no analytics, no tracking, no ads. The extension is blocked from making any network requests at all.
+• No accounts, no analytics, no tracking, no ads. The extension is blocked from making any network requests at all. (The optional Buy Me a Coffee button simply opens buymeacoffee.com in a new tab when you click it.)
 • Tabatha does not run in Incognito windows.
 
 WHY IT ASKS FOR ACCESS TO ALL SITES
@@ -86,7 +109,7 @@ English
 | Field | File | Size | Required? |
 |---|---|---|---|
 | Store icon | `extension/icons/icon128.png` | 128×128 | Yes |
-| Screenshots (1–5) | `store-assets/screenshots/`, choose one set (see below) | 1280×800 | At least 1 |
+| Screenshots (1–5) | `store-assets/screenshots/` (new for 1.3.1), choose one set (see below) | 1280×800 | At least 1 |
 | Small promo tile | `store-assets/promo-small-440x280.png` | 440×280 | Yes, in practice: without it the extension can't be featured |
 | Marquee promo tile | `store-assets/promo-marquee-1400x560.png` | 1400×560 | Optional |
 
@@ -180,14 +203,15 @@ https://github.com/Vajrayu/tabatha/blob/main/PRIVACY.md
 - **Visibility**: Public (or *Unlisted* first if you want to try the store install before announcing it)
 - **Regions**: All regions
 
-## 5. Test instructions tab (optional, but it helps the reviewer)
+## 5. Test instructions tab (optional, but it helps the reviewer; max 500 characters, this is 485)
 ```
-1. Open three or four ordinary websites in separate tabs and click through them once, so each gets a preview.
-2. On any https page, press Alt+Q and let go. The switcher appears over the page with previews of all tabs and stays open. Use the arrow keys and Enter to switch, or click a tab. (Holding Alt and tapping Q again, then releasing Alt, also switches.)
-3. Press Alt+Q, then type part of a tab title to search. Enter opens it, Esc closes the switcher.
-4. Close a tab, press Alt+Q again: it appears under "Recently closed" and clicking it reopens it.
-5. On a chrome:// page or the New Tab page, Alt+Q opens the switcher in a small popup window instead (extensions cannot draw on those pages).
-No account or login is needed. The extension makes no network requests.
+1. Open 3-4 websites in tabs and view each once so it gets a preview.
+2. On any https page, tap Alt+Q. The switcher opens and stays open. Use arrows + Enter or click a tab to switch.
+3. Type to search. Esc closes.
+4. Close a tab, press Alt+Q: it shows under "Recently closed"; click to reopen.
+5. On chrome:// or New Tab, it opens in a small popup window.
+6. "Buy me a coffee" opens buymeacoffee.com in a new tab (plain link).
+No login needed. The extension makes no network requests.
 ```
 
 ---

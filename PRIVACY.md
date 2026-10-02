@@ -1,6 +1,6 @@
 # Tabatha Privacy Policy
 
-_Last updated: 27 September 2026_
+_Last updated: 30 September 2026 (version 1.3.1). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
 
 Tabatha is a Chrome extension that shows previews of your open tabs when you press Alt+Q. This policy explains what it handles and what it doesn't. In short: **nothing ever leaves your computer.**
 
@@ -22,6 +22,7 @@ The shortcut listener that runs on web pages only checks whether you pressed Alt
 ## What Tabatha does not do
 
 - It does **not** send any data anywhere. The extension has no server, and its security policy (`connect-src 'none'`) blocks all network requests.
+- The switcher has an optional **Buy Me a Coffee** button. Only if you click it, Chrome opens buymeacoffee.com in a new tab, like any link. Tabatha sends nothing to that site and loads nothing from it before you click.
 - It does **not** use analytics, tracking, advertising or third-party code.
 - It does **not** sell, share or transfer your data to anyone.
 - It does **not** use your data for anything other than showing you your tabs.
@@ -53,3 +54,12 @@ Questions or concerns: open an issue at https://github.com/Vajrayu/tabatha/issue
 
 ## Store
 https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_source=item-share-cb
+
+## Changes to this policy (newest first)
+
+**30 September 2026 (1.3.1)**
+- Added: the paragraph about the optional Buy Me a Coffee button.
+- No change to what data Tabatha handles, where it's kept, or for how long. No new permissions.
+
+**27 September 2026 (1.3.0)**
+- First version of this policy.

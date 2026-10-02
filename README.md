@@ -15,12 +15,15 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 - **Search**: type to filter open and recently closed tabs by title or URL.
 - **Every window in one view**: each card shows the site and which window it's in. Filter to one window with <kbd>Alt</kbd>+<kbd>W</kbd> or the window chips.
 - **Recently closed**: reopen tabs and windows closed in the last 4 hours, with their last preview.
+- **Inactive tabs, like Chrome shows them**: tabs Chrome has unloaded to save memory are marked *Inactive*. Tabs Tabatha hasn't seen yet say *No preview yet*.
 - **Close from the switcher**: <kbd>Del</kbd> (<kbd>⌘</kbd>+<kbd>⌫</kbd> on a Mac) or middle-click.
 - **Works everywhere**: on pages extensions can't draw on (New Tab, `chrome://`, the Web Store) it opens in a small popup window instead.
 - **Free**: a small Buy Me a Coffee button sits in the corner of the switcher, if you want to say thanks.
-- **Private**: previews stay in memory on your computer and are wiped when Chrome closes. The extension makes no network requests. See [PRIVACY.md](PRIVACY.md).
+- **Private**: previews stay in memory on your computer and are wiped when Chrome closes. The extension itself makes no network requests; the coffee button just opens buymeacoffee.com in a new tab when you click it. See [PRIVACY.md](PRIVACY.md).
 
 ## Shortcuts
+
+_Current: 1.3.1. Older versions are kept below under "Shortcut history"._
 
 | Keys | Action |
 |---|---|
@@ -33,6 +36,32 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 | <kbd>Esc</kbd> or click outside | Clear search / close |
 
 On macOS, Alt is <kbd>Option</kbd>. To change the shortcut, go to `chrome://extensions/shortcuts`.
+
+### Shortcut history (newest first)
+
+**1.3.1** (30 Sep 2026)
+- <kbd>Alt</kbd>+<kbd>Q</kbd> now only *opens* Tabatha; it stays open after you let go. In 1.3.0, letting go of Alt switched straight away.
+- Letting go of <kbd>Alt</kbd> switches only if you pressed Q *again* while holding it.
+- New: arrow keys and the mouse work without holding anything; <kbd>Esc</kbd> or clicking outside closes.
+- New on Mac: <kbd>⌘</kbd>+<kbd>⌫</kbd> closes the selected tab (the Mac "delete" key is Backspace, so <kbd>Del</kbd> didn't work).
+- <kbd>Alt</kbd>+<kbd>W</kbd> unchanged, but no longer types "∑" on a Mac and is only shown in the hint bar when you have more than one window.
+
+**1.3.0** (27 Sep 2026, first release)
+
+| Keys | Action |
+|---|---|
+| <kbd>Alt</kbd>+<kbd>Q</kbd> / <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> | Open, next / previous tab |
+| <kbd>Alt</kbd>+<kbd>W</kbd> | Cycle window filter |
+| Arrows, <kbd>Tab</kbd> | Move selection |
+| <kbd>Enter</kbd> or release <kbd>Alt</kbd> | Switch to selected tab |
+| <kbd>Del</kbd> | Close selected tab |
+| <kbd>Esc</kbd> | Clear search / close |
+
+## What's new (newest first)
+
+**1.3.1** (30 Sep 2026): tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; "Inactive" now means unloaded by Chrome, with "No preview yet" for uncaptured tabs; Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
+
+**1.3.0** (27 Sep 2026): first public release. Live previews, hold-and-release switching, search, window filter, recently closed, close from the switcher, popup fallback. Notes: [releases/v1.3.0/release-notes.md](releases/v1.3.0/release-notes.md).
 
 ## Install from source
 

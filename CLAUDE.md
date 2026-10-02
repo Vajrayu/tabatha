@@ -6,7 +6,8 @@ Read this first whenever working on Tabatha. Keep it up to date: add a line to t
 Chrome extension (Manifest V3). Press Alt+Q to get an Alt+Tab-style switcher showing live screenshot previews of all open tabs. It can search, filter by window (Alt+W), close tabs (Del), and reopen recently closed tabs. Owner: Yuvaraj (building it as a personal/portfolio project; tracked as project #2 in `../PROJECTS.md`).
 
 ## Status
-- **Current version:** 1.3.2 built 29 Sep 2026 (zip in `releases/v1.3.2/`, listing text there), waiting to be uploaded. 1.3.1 was never submitted; 1.3.2 = 1.3.1 + Buy Me a Coffee button (`COFFEE_URL` in constants.js). 1.3.0 is live on the Chrome Web Store since 29 Sep 2026.
+- **Current version:** 1.3.1 built 30 Sep 2026 (zip, listing, release notes and `audit.md` in `releases/v1.3.1/`), waiting to be uploaded. It contains everything since 1.3.0 (tap-to-open, Mac fixes, recently-closed limits, Inactive label, Buy Me a Coffee). Builds were briefly numbered 1.3.2/1.3.3; those were never submitted and were folded back into 1.3.1. GitHub still has stale tags `v1.3.1` (older commit) and `v1.3.2`: fix them when pushing, with Yuvaraj's OK.
+- **Before submitting 1.3.1:** release blocker in `releases/v1.3.1/audit.md` (verify tap-to-open on Windows). Recommended small fixes there: M1 (ignore key repeat on the close key), L10.
 - **Interaction model (1.3.1):** Alt+Q is only a trigger; the switcher stays open (arrows, typing, mouse, Enter, Esc, click outside). Releasing Alt switches only if Q was pressed *again* while Alt was held (`state.cycled`). Mac: close key is Cmd+Backspace, hint shows Mac keys (`IS_MAC`, `kbd[data-mac]`).
 - **Later: tab group names (needs `tabGroups` permission → slower review).
 - **Next:** v1.4 "save window" stash. **Read `ROADMAP.md` before planning any new feature.** It has the prioritised ideas, the reasoning and the constraints.
@@ -24,6 +25,8 @@ ROADMAP.md                 future feature ideas, priorities, constraints (read b
 README.md, LICENSE, CLAUDE.md
 ```
 **Versioning convention:** source lives once in `extension/` (git history + tags handle versions). Each release gets its own `releases/v<x.y.z>/` folder with the zip, store text, assets and notes. Git tag `v<x.y.z>` on the commit that was zipped.
+- **One version number per store upload, not per fix.** Bump only when starting a new upload after the previous one was submitted; fixes before submission stay on the same number (the store only needs each upload to be higher than the live one). Tag only when submitting.
+- **Docs keep their own history, newest first:** README ("Shortcut history", "What's new"), PRIVACY.md ("Changes to this policy"), store listing ("Listing history" quoting the old wording). Never overwrite old wording without recording it there.
 
 ## Architecture (extension/)
 - `manifest.json`: MV3, permissions `tabs storage scripting favicon sessions`, host `<all_urls>`, content script `hotkey.js` on all URLs/all frames, commands `open-switcher` (Alt+Q) and `open-switcher-reverse` (Alt+Shift+Q), `switcher.html` web-accessible with `use_dynamic_url`, strict CSP (`connect-src 'none'`), `incognito: not_allowed`, min Chrome 116.
@@ -66,6 +69,7 @@ Yuvaraj tracks all builds in `../Projects.xlsx` (main tracker: Projects + Releas
 - Screenshot tooling: headless Chromium needs `--screen-info` for window bounds, and the overlay is shot at a 1280×800 viewport. Store images must be 24-bit (no alpha).
 
 ## Log
+- **2026-09-30**: Option+W fix (Mac text input slipped past keydown; search now refuses text while Option is held), "Inactive" = `tab.discarded` only, "No preview yet" otherwise. Production audit written (`releases/v1.3.1/audit.md`: 1 blocker = Windows verification, 1 medium = held Delete closes several tabs). Versions folded back to a single 1.3.1; docs updated with in-doc version history.
 - **2026-09-29 (later)**: 1.3.2 adds the Buy Me a Coffee chip (bottom-right, Yuvsualy pixel button with amber shadow so it reads on the dark overlay). Opens in a new tab, closes the switcher.
 - **2026-09-29**: 1.3.1 from launch-day feedback: tap-to-open, recently closed limited (4 h / 8 items / 2 windows), domain + window tag on cards, stable window numbers, Alt+W and Option+key fixes, Mac Cmd+Backspace. Tested in Playwright Chromium on macOS (tap, arrows+Enter, hold-cycle, search, Esc, click outside, Cmd+Backspace, closed-window cap). Windows tap behaviour still to check by hand.
 - **2026-09-27**: Restructured the folder (`tabatha-1.3.0/` → `extension/`, zip → `releases/v1.3.0/`). Generated store screenshots (raw + captioned) and promo tiles. Wrote store-listing.md, PRIVACY.md, README, MIT LICENSE. Git init, tagged v1.3.0, pushed to GitHub. Next: submit to the Chrome Web Store and then add the store link to README + PROJECTS.md.

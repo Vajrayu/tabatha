@@ -29,7 +29,7 @@ button { font: inherit; color: inherit; }
 /* ---------- buy me a coffee (Yuvsualy pixel button) ---------- */
 .coffee {
   --ink: #1B2A4A; --shade: #B7791F; --px: 2px; --sh: 3px; /* amber shadow: an ink one vanishes on the dark overlay */
-  position: fixed; right: calc(44px + var(--sh)); bottom: calc(22px + var(--sh)); z-index: 2;
+  position: fixed; right: calc(44px + var(--sh)); bottom: calc(16px + var(--sh)); z-index: 2;
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 12px 8px 9px; border: 0; cursor: pointer; overflow: visible;
   font-size: 12.5px; font-weight: 700; color: var(--ink); background: #FFD166;
@@ -47,7 +47,7 @@ button { font: inherit; color: inherit; }
 .coffee svg { image-rendering: pixelated; }
 .coffee:hover, .coffee:focus-visible { outline: none; transform: translate(-1px, -1px); --sh: 4px; }
 .coffee:active { transform: translate(2px, 2px); --sh: 1px; }
-html.window .coffee { right: 20px; bottom: 16px; }
+html.window .coffee { right: 20px; bottom: 14px; }
 
 /* ---------- header ---------- */
 .bar { display: flex; align-items: center; gap: 16px; padding: 20px 44px 10px; }
@@ -97,8 +97,9 @@ kbd + kbd { margin-left: 2px; }
 
 /* ---------- content ---------- */
 main {
-  position: absolute; inset: var(--top, 72px) 0 0 0; overflow-y: auto; overflow-x: hidden;
-  padding: 8px 40px 80px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent;
+  /* Bottom strip is kept free for the coffee button, so it never covers a card. */
+  position: absolute; inset: var(--top, 72px) 0 64px 0; overflow-y: auto; overflow-x: hidden;
+  padding: 8px 40px 24px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent;
 }
 section { max-width: 1640px; margin: 0 auto; }
 .section-h {
@@ -172,3 +173,10 @@ section { max-width: 1640px; margin: 0 auto; }
 .inactive .label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); }
 .inactive .sub { font-size: 11.5px; color: var(--fg-3); max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .small .inactive .sub { display: none; }
+/* Tabs that are still running but have no screenshot: plain favicon. */
+.card:not(.asleep) .inactive .tile img { filter: none; opacity: 1; }
+/* Inactive (unloaded by Chrome's Memory Saver): faded, with a dashed ring
+   round the favicon, like Chrome's own inactive-tab look. */
+.card.asleep .shot { filter: grayscale(.6) brightness(.6); }
+.card.asleep .fav { opacity: .6; border-radius: 50%; outline: 1.5px dashed rgba(255,255,255,.55); outline-offset: 2px; }
+.card.asleep .title { color: var(--fg-2); }

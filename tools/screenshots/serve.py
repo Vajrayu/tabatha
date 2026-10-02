@@ -8,4 +8,5 @@ class H(http.server.SimpleHTTPRequestHandler):
         return os.path.join(ROOT, host, p.lstrip("/"))
     def log_message(self, *a): pass
 socketserver.TCPServer.allow_reuse_address = True
-socketserver.ThreadingTCPServer(("127.0.0.1", 80), H).serve_forever()
+# PORT=8080 avoids needing admin rights for port 80 (shoot.js maps *.example to the same port).
+socketserver.ThreadingTCPServer(("127.0.0.1", int(os.environ.get("PORT", "80"))), H).serve_forever()
