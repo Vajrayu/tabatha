@@ -1,6 +1,6 @@
 # Tabatha Privacy Policy
 
-_Last updated: 30 September 2026 (version 1.3.1). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
+_Last updated: 2 October 2026 (version 1.3.1). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
 
 Tabatha is a Chrome extension that shows previews of your open tabs when you press Alt+Q. This policy explains what it handles and what it doesn't. In short: **nothing ever leaves your computer.**
 
@@ -11,7 +11,7 @@ To work, Tabatha uses the following on your device:
 | Data | Why | Where it's kept | How long |
 |---|---|---|---|
 | **Tab titles and URLs** of your open tabs | To show and search them in the switcher | Read from Chrome when the switcher opens. Not stored. | Only while the switcher is open |
-| **Screenshots of tabs** (downscaled JPEG thumbnails, max 560 px) | To show a preview of each tab | `chrome.storage.session`: in memory only, never written to disk | Until the tab is closed or Chrome quits. Previews of closed tabs are deleted after 30 minutes. |
+| **Screenshots of tabs** (downscaled JPEG thumbnails, max 560 px), saved together with the page address (URL) they belong to | To show a preview of each tab, including after you restart Chrome | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Deleted automatically after 7 days, and the oldest are removed beyond 300 previews or about 6 MB. Uninstalling Tabatha deletes them. |
 | **Order in which you used your tabs** (tab ID numbers only) | To list the most recently used tabs first | `chrome.storage.session` | Until Chrome quits |
 | **Recently closed tabs and windows** | To show them in "Recently closed" and reopen them | Read from Chrome's own history when the switcher opens. Not stored. | Only while the switcher is open |
 
@@ -27,14 +27,14 @@ The shortcut listener that runs on web pages only checks whether you pressed Alt
 - It does **not** sell, share or transfer your data to anyone.
 - It does **not** use your data for anything other than showing you your tabs.
 - It does **not** have accounts or require sign-in.
-- It does **not** save anything to disk. Everything is gone when you close Chrome.
+- It does **not** upload or share the previews it saves on your disk. They stay in your Chrome profile folder on your computer.
 
 ## Permissions
 
 | Permission | Used for |
 |---|---|
 | `tabs` | Listing, switching to, closing and screenshotting your tabs |
-| `storage` | Keeping previews in memory (`storage.session`) while Chrome is open |
+| `storage` | Keeping previews on your computer (`storage.local`) and a little temporary state in memory (`storage.session`) |
 | `scripting` | Showing the switcher on top of the current page |
 | `favicon` | Showing site icons from Chrome's local icon cache |
 | `sessions` | Showing and reopening recently closed tabs |
@@ -57,9 +57,15 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 
 ## Changes to this policy (newest first)
 
+**2 October 2026 (1.3.1): tab previews are now saved on disk**
+- Changed: tab screenshots used to be kept in memory only and wiped when Chrome closed. They are now saved on your computer (`chrome.storage.local`, keyed by page address) so previews are still there after you restart Chrome. They are deleted after 7 days, capped at 300 previews / about 6 MB, and removed when you uninstall Tabatha.
+- Replaced: "It does **not** save anything to disk. Everything is gone when you close Chrome." and "Previews of closed tabs are deleted after 30 minutes." Both no longer apply.
+- Unchanged: nothing is sent anywhere, there are no analytics, and no new permissions.
+
 **30 September 2026 (1.3.1)**
 - Added: the paragraph about the optional Buy Me a Coffee button.
-- No change to what data Tabatha handles, where it's kept, or for how long. No new permissions.
+- (Superseded by the 2 October entry above: previews are now kept on disk.)
+- No new permissions.
 
 **27 September 2026 (1.3.0)**
 - First version of this policy.

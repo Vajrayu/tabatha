@@ -14,8 +14,8 @@
 
 import { MSG, FRAME_MSG, LIMITS, SWITCHER_PAGE, WINDOW_STATES, CLOSE_REASONS } from './lib/constants.js';
 import {
-  touchMru, removeFromMru, replaceInMru, seedMru, getPreview,
-  dropPreview, movePreview, setOverlayTab, clearOverlayTab, createLaunch,
+  touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews,
+  setOverlayTab, clearOverlayTab, createLaunch,
 } from './lib/store.js';
 import { scheduleCapture, cancelCapture, captureWindow } from './lib/capture.js';
 import { isOwnUrl } from './lib/ext.js';
@@ -42,14 +42,14 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (info.status === 'complete' && tab.active) scheduleCapture(tab.windowId, 450);
 });
 
+// Previews are keyed by URL, so a closed or replaced tab keeps its preview
+// (it's what "Recently closed" shows); old ones expire in cleanupPreviews().
 chrome.tabs.onRemoved.addListener((tabId) => {
   removeFromMru(tabId);
-  dropPreview(tabId, { keepAsClosed: true });
 });
 
 chrome.tabs.onReplaced.addListener((addedId, removedId) => {
   replaceInMru(removedId, addedId);
-  movePreview(removedId, addedId);
 });
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
@@ -65,6 +65,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 
 // ------------------------------------------------------------- setup (idempotent)
 async function setup() {
+  cleanupPreviews().catch(() => {}); // expire + cap the on-disk previews
   const active = await chrome.tabs.query({ active: true, windowType: 'normal' });
   await seedMru(active.map((t) => t.id));
   const [focused] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -117,8 +118,8 @@ async function openSwitcher(dir, fromTab) {
 
   // 3. Refresh the current tab's screenshot before anything covers it.
   cancelCapture(tab.windowId);
-  const prev = await getPreview(tab.id);
-  if (!prev || prev.url !== tab.url || Date.now() - prev.t > 1500) {
+  const prev = await getPreview(tab.url);
+  if (!prev || Date.now() - prev.t > 1500) {
     await Promise.race([
       captureWindow(tab.windowId, { force: true }).catch(() => {}),
       new Promise((r) => setTimeout(r, 900)),

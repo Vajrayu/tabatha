@@ -8,3 +8,18 @@ const ORIGINS = [...new Set([chrome.runtime.getURL(''), `chrome-extension://${ch
 export function isOwnUrl(url, path = '') {
   return typeof url === 'string' && ORIGINS.some((o) => url.startsWith(o + path));
 }
+
+// Key for the on-disk preview cache. Tab IDs don't survive a restart, URLs do.
+// Drops the #fragment and any trailing slash, so https://a.com, https://a.com/
+// and https://a.com/#top share one preview. Returns '' for anything unusable.
+export function normalizeUrl(url) {
+  if (typeof url !== 'string' || !url) return '';
+  try {
+    const u = new URL(url);
+    u.hash = '';
+    if (u.pathname.length > 1) u.pathname = u.pathname.replace(/\/+$/, '') || '/';
+    return u.href;
+  } catch {
+    return '';
+  }
+}

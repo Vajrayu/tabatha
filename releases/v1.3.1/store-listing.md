@@ -18,7 +18,9 @@ Only the text that changed is listed; the old wording is quoted so nothing is lo
 - *Test instructions*: shortened to fit the dashboard's 500-character limit (the 1.3.0 text is in `../v1.3.0/store-listing.md`).
 - *Test instructions step 2*: was "hold Alt and tap Q … release Alt to switch"; now "press Alt+Q and let go … stays open".
 - *Screenshots and promo tiles*: regenerated from 1.3.1 (tap-to-open hint bar, site labels, window tags, No preview yet, coffee button). The 1.3.0 images are kept in `../v1.3.0/store-assets/`.
-- Privacy tab answers and permission justifications: **unchanged** (no new permissions, same data handling).
+- *Private by design*: was "They are stored in memory only, never written to disk, and wiped when you close Chrome." and "Previews of closed tabs are forgotten after 30 minutes." Previews are now saved on disk for 7 days.
+- *Privacy tab, `storage` permission justification*: **must be replaced** (old text: "Uses chrome.storage.session only: an in-memory store (never written to disk, cleared when the browser closes) …"). Other answers unchanged.
+- Privacy tab data-usage ticks and other permission justifications: **unchanged** (no new permissions, same data handling).
 
 **1.3.0** (27 Sep 2026, first submission): original listing.
 
@@ -88,8 +90,8 @@ Ctrl+F: jump to search
 On a Mac, Alt is the Option key. You can change the shortcut at chrome://extensions/shortcuts.
 
 PRIVATE BY DESIGN
-• Previews never leave your computer. They are stored in memory only, never written to disk, and wiped when you close Chrome.
-• Previews of closed tabs are forgotten after 30 minutes.
+• Previews never leave your computer. They are saved on your computer for up to 7 days, so they are still there after a restart, and are never uploaded anywhere.
+• Old previews are deleted automatically, and uninstalling Tabatha removes them.
 • No accounts, no analytics, no tracking, no ads. The extension is blocked from making any network requests at all. (The optional Buy Me a Coffee button simply opens buymeacoffee.com in a new tab when you click it.)
 • Tabatha does not run in Incognito windows.
 
@@ -148,7 +150,7 @@ Needed to list the user's open tabs across all windows with their titles and URL
 
 **storage**
 ```
-Uses chrome.storage.session only: an in-memory store (never written to disk, cleared when the browser closes) that holds the tab previews, the most-recently-used tab order, and a one-time token used to open the switcher securely. This keeps that state available when Chrome suspends the service worker. Nothing is synced or sent anywhere.
+Uses chrome.storage.local to save the small tab-preview thumbnails (downscaled JPEGs, keyed by page URL) on the user's own computer for up to 7 days, so previews are still there after a browser restart; they are capped at 300 items / about 6 MB and deleted automatically when older. Uses chrome.storage.session (in memory only, cleared when the browser closes) for the most-recently-used tab order and a one-time token used to open the switcher securely. Nothing is synced or sent anywhere: the extension's Content Security Policy blocks all network requests.
 ```
 
 **scripting**

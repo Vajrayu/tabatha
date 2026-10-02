@@ -14,13 +14,12 @@ export const FRAME_MSG = Object.freeze({ LAUNCH: 'launch', READY: 'ready', CLOSE
 
 export const KEY = Object.freeze({
   MRU: 'mru',                 // number[] tab ids, most recent first
-  PREVIEW_INDEX: 'pidx',      // { [tabId]: capturedAt }
-  CLOSED_PREVIEWS: 'closed',  // [{ url, img, t }] previews of recently closed tabs
+  PREVIEW_INDEX: 'pvidx',     // storage.local: { [normalizedUrl]: { t, n } } captured-at and size of each stored preview
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
   LAUNCH: 'launch',           // { token, t, ctx } one-time launch for the next switcher
 });
 
-export const previewKey = (tabId) => 'p:' + tabId;
+export const previewKey = (url) => 'pv:' + url; // storage.local, `url` already normalized
 export const PREVIEW_PREFIX = 'data:image/jpeg;base64,';
 
 export const WINDOW_STATES = Object.freeze(['normal', 'maximized', 'fullscreen']);
@@ -29,9 +28,10 @@ export const CLOSE_REASONS = Object.freeze(['cancel', 'switch', 'restore', 'blur
 
 export const LIMITS = Object.freeze({
   THUMB_MAX: 560,               // px, longest side of a stored thumbnail
-  MAX_PREVIEWS: 150,            // keeps storage.session (10 MB) comfortably under quota
-  MAX_CLOSED_PREVIEWS: 12,
-  CLOSED_PREVIEW_TTL_MS: 30 * 60 * 1000, // screenshots of closed tabs are forgotten after 30 min
+  MAX_PREVIEWS: 300,            // most previews kept on disk (storage.local)
+  MAX_PREVIEW_BYTES: 6 * 1024 * 1024, // ...and in total, well under storage.local's 10 MB quota
+  PREVIEW_TTL_MS: 7 * 24 * 60 * 60 * 1000, // previews older than 7 days are deleted
+  MAX_URL_KEY: 2048,            // longer URLs are not used as preview keys
   MAX_MRU: 500,
   CAPTURE_GAP_MS: 520,          // Chrome allows ~2 captureVisibleTab calls per second
   LAUNCH_TTL_MS: 15000,         // how long a launch token stays valid

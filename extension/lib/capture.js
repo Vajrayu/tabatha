@@ -1,7 +1,8 @@
 // Thumbnail capture. Chrome can only screenshot the *visible* tab of a
 // window, so we grab one whenever a tab becomes visible or finishes loading.
 // Tabs never shown since the browser started have no preview ("inactive").
-// Images never leave the device: they go straight into storage.session.
+// Images never leave the device: they go straight into storage.local (on disk,
+// keyed by URL, deleted after 7 days) and are never sent anywhere.
 
 import { LIMITS, PREVIEW_PREFIX } from './constants.js';
 import { savePreview, isOverlayTab } from './store.js';
@@ -56,7 +57,7 @@ export async function captureWindow(windowId, { force = false } = {}) {
   if (!still || still.id !== tab.id || still.url !== tab.url) return;
 
   const img = await shrink(dataUrl);
-  if (img) await savePreview(tab.id, { img, url: tab.url, t: Date.now() });
+  if (img) await savePreview(tab.url, { img, t: Date.now() });
 }
 
 // Downscale to at most THUMB_MAX px on the longest side. Decodes the data URL

@@ -1,15 +1,20 @@
-// All state lives in chrome.storage.session: it survives the service worker
-// being suspended, is kept in memory only (never written to disk), is wiped
-// when the browser closes, and is readable only by extension pages - never by
-// content scripts or websites (Chrome's default access level for this area).
+// Two storage areas, on purpose:
+//   - chrome.storage.session: MRU order, overlay flag, launch token. Kept in
+//     memory only, wiped when the browser closes, readable only by extension
+//     pages - never by content scripts or websites.
+//   - chrome.storage.local: tab previews, keyed by normalized URL (tab IDs
+//     don't survive a restart). Written to disk, kept 7 days, capped by count
+//     and size. Images never leave the device: nothing here touches the network.
 //
 // Values are still validated on every read. Nothing untrusted can write here
 // today, but a bug elsewhere shouldn't be able to turn bad data into bad
 // behaviour.
 
 import { KEY, LIMITS, previewKey, PREVIEW_PREFIX, WINDOW_STATES, MODES } from './constants.js';
+import { normalizeUrl } from './ext.js';
 
 const S = chrome.storage.session;
+const L = chrome.storage.local;
 
 // Every read-modify-write goes through one queue so concurrent events
 // (e.g. onActivated + onRemoved firing together) can't lose updates.
@@ -23,21 +28,19 @@ function serial(fn) {
 // ---------- validation ----------
 const isId = (v) => Number.isInteger(v) && v >= 0;
 const isTime = (v) => Number.isFinite(v) && v > 0;
-const isUrl = (v) => typeof v === 'string' && v.length < 8192;
 const isImage = (v) => typeof v === 'string' && v.startsWith(PREVIEW_PREFIX) && v.length < 4 * 1024 * 1024;
-const isPreview = (p) => !!p && typeof p === 'object' && isImage(p.img) && isUrl(p.url) && isTime(p.t);
+const isPreview = (p) => !!p && typeof p === 'object' && isImage(p.img) && isTime(p.t);
+const isFresh = (p) => Date.now() - p.t < LIMITS.PREVIEW_TTL_MS;
 
+// The preview index: { [normalizedUrl]: { t: capturedAt, n: imageLength } }.
 function cleanIndex(v) {
   const out = {};
   if (v && typeof v === 'object' && !Array.isArray(v)) {
-    for (const [k, t] of Object.entries(v)) if (/^\d{1,12}$/.test(k) && isTime(t)) out[k] = t;
+    for (const [k, e] of Object.entries(v)) {
+      if (k && k.length <= LIMITS.MAX_URL_KEY && e && isTime(e.t) && Number.isFinite(e.n) && e.n >= 0) out[k] = { t: e.t, n: e.n };
+    }
   }
   return out;
-}
-
-function cleanClosed(v) {
-  const cutoff = Date.now() - LIMITS.CLOSED_PREVIEW_TTL_MS;
-  return Array.isArray(v) ? v.filter((p) => isPreview(p) && p.t > cutoff).slice(0, LIMITS.MAX_CLOSED_PREVIEWS) : [];
 }
 
 // ---------- MRU ----------
@@ -69,76 +72,85 @@ export function seedMru(tabIds) {
   });
 }
 
-// ---------- previews ----------
-export async function getPreview(tabId) {
-  const k = previewKey(tabId);
-  const p = (await S.get(k))[k];
-  return isPreview(p) ? p : null;
+// ---------- previews (storage.local, keyed by normalized URL) ----------
+const keyOf = (url) => {
+  const k = normalizeUrl(url);
+  return k && k.length <= LIMITS.MAX_URL_KEY ? k : '';
+};
+
+export async function getPreview(url) {
+  const k = keyOf(url);
+  if (!k) return null;
+  const p = (await L.get(previewKey(k)))[previewKey(k)];
+  return isPreview(p) && isFresh(p) ? p : null;
 }
 
-export async function getPreviews(tabIds) {
-  const got = await S.get(tabIds.map(previewKey));
+// Returns { [normalizedUrl]: { img, t } } for the URLs that have a fresh
+// preview. Look entries up with normalizeUrl(url).
+export async function getPreviews(urls) {
+  const keys = [...new Set(urls.map(keyOf).filter(Boolean))];
+  if (!keys.length) return {};
+  const got = await L.get(keys.map(previewKey));
   const out = {};
-  for (const id of tabIds) if (isPreview(got[previewKey(id)])) out[id] = got[previewKey(id)];
+  for (const k of keys) {
+    const p = got[previewKey(k)];
+    if (isPreview(p) && isFresh(p)) out[k] = p;
+  }
   return out;
 }
 
-export function savePreview(tabId, data) {
-  if (!isId(tabId) || !isPreview(data)) return Promise.resolve();
+// Keys to delete so the cache fits both caps, oldest first.
+function overflow(idx) {
+  const byAge = Object.keys(idx).sort((a, b) => idx[a].t - idx[b].t);
+  let count = byAge.length;
+  let bytes = byAge.reduce((sum, k) => sum + idx[k].n, 0);
+  const out = [];
+  for (const k of byAge) {
+    if (count <= LIMITS.MAX_PREVIEWS && bytes <= LIMITS.MAX_PREVIEW_BYTES) break;
+    out.push(k);
+    count--;
+    bytes -= idx[k].n;
+  }
+  return out;
+}
+
+export function savePreview(url, data) {
+  const k = keyOf(url);
+  if (!k || !isPreview(data)) return Promise.resolve();
   return serial(async () => {
-    const idx = cleanIndex((await S.get(KEY.PREVIEW_INDEX))[KEY.PREVIEW_INDEX]);
-    idx[tabId] = data.t;
-    const byAge = Object.keys(idx).sort((a, b) => idx[b] - idx[a]);
-    const evict = byAge.slice(LIMITS.MAX_PREVIEWS);
-    evict.forEach((id) => delete idx[id]);
-    if (evict.length) await S.remove(evict.map(previewKey));
+    const idx = cleanIndex((await L.get(KEY.PREVIEW_INDEX))[KEY.PREVIEW_INDEX]);
+    idx[k] = { t: data.t, n: data.img.length };
+    const evict = overflow(idx);
+    evict.forEach((u) => delete idx[u]);
+    if (evict.length) await L.remove(evict.map(previewKey));
+    const write = () => L.set({ [previewKey(k)]: { img: data.img, t: data.t }, [KEY.PREVIEW_INDEX]: idx });
     try {
-      await S.set({ [previewKey(tabId)]: data, [KEY.PREVIEW_INDEX]: idx });
+      await write();
     } catch {
       // Quota exceeded: drop the older half, then try once more.
-      const old = byAge.slice(Math.floor(byAge.length / 2)).filter((id) => id !== String(tabId));
-      old.forEach((id) => delete idx[id]);
-      await S.remove(old.map(previewKey));
-      await S.set({ [previewKey(tabId)]: data, [KEY.PREVIEW_INDEX]: idx });
+      const byAge = Object.keys(idx).filter((u) => u !== k).sort((a, b) => idx[a].t - idx[b].t);
+      const old = byAge.slice(0, Math.ceil(byAge.length / 2));
+      old.forEach((u) => delete idx[u]);
+      await L.remove(old.map(previewKey));
+      await write();
     }
   });
 }
 
-// Removes a tab's preview. If `keepAsClosed`, the image is kept for a while
-// (keyed by URL) so the "Recently closed" section can still show it.
-export function dropPreview(tabId, { keepAsClosed = false } = {}) {
+// Run once at browser start and after install/update (not on every write):
+// delete previews older than 7 days, then trim to the count and size caps.
+export function cleanupPreviews() {
   return serial(async () => {
-    const k = previewKey(tabId);
-    const got = await S.get([k, KEY.PREVIEW_INDEX, KEY.CLOSED_PREVIEWS]);
-    const idx = cleanIndex(got[KEY.PREVIEW_INDEX]);
-    delete idx[tabId];
-    const writes = { [KEY.PREVIEW_INDEX]: idx };
-    let closed = cleanClosed(got[KEY.CLOSED_PREVIEWS]);
-    if (keepAsClosed && isPreview(got[k])) {
-      closed = closed.filter((c) => c.url !== got[k].url);
-      closed.unshift({ url: got[k].url, img: got[k].img, t: Date.now() });
-    }
-    writes[KEY.CLOSED_PREVIEWS] = closed.slice(0, LIMITS.MAX_CLOSED_PREVIEWS);
-    await S.remove(k);
-    await S.set(writes);
+    const idx = cleanIndex((await L.get(KEY.PREVIEW_INDEX))[KEY.PREVIEW_INDEX]);
+    const cutoff = Date.now() - LIMITS.PREVIEW_TTL_MS;
+    const drop = Object.keys(idx).filter((u) => idx[u].t <= cutoff);
+    drop.forEach((u) => delete idx[u]);
+    const extra = overflow(idx);
+    extra.forEach((u) => delete idx[u]);
+    drop.push(...extra);
+    if (drop.length) await L.remove(drop.map(previewKey));
+    await L.set({ [KEY.PREVIEW_INDEX]: idx });
   });
-}
-
-export function movePreview(fromId, toId) {
-  return serial(async () => {
-    const from = previewKey(fromId);
-    const got = await S.get([from, KEY.PREVIEW_INDEX]);
-    if (!isPreview(got[from]) || !isId(toId)) return;
-    const idx = cleanIndex(got[KEY.PREVIEW_INDEX]);
-    idx[toId] = idx[fromId] || Date.now();
-    delete idx[fromId];
-    await S.set({ [previewKey(toId)]: got[from], [KEY.PREVIEW_INDEX]: idx });
-    await S.remove(from);
-  });
-}
-
-export async function getClosedPreviews() {
-  return cleanClosed((await S.get(KEY.CLOSED_PREVIEWS))[KEY.CLOSED_PREVIEWS]);
 }
 
 // ---------- overlay bookkeeping ----------

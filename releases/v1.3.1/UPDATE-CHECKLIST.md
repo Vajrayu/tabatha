@@ -20,7 +20,7 @@ The text to paste is in `store-listing.md` in this folder.
   - "Sleeping tabs" line reworded: only tabs Chrome unloaded are Sleeping; awake tabs with no screenshot say "No preview yet"
   - New line: Buy Me a Coffee
   - Keyboard shortcuts: "Alt+Q: open Tabatha / next tab", new "Arrow keys" line, Mac close key
-  - Private by design: coffee-link sentence added
+  - Private by design: coffee-link sentence added; the two bullets about memory-only previews / 30 minutes replaced (previews are now on disk for 7 days)
 - Summary: **unchanged** (comes from the manifest).
 - Category, language, homepage and support URLs: **unchanged**.
 - [ ] **Screenshots**: delete the 3 old ones, upload the new ones from `store-assets/screenshots/` in this order: `captioned-01-overview.png`, `captioned-02-search.png`, `captioned-03-windows.png`.
@@ -28,7 +28,8 @@ The text to paste is in `store-listing.md` in this folder.
 - [ ] **Marquee promo tile** (if you set one): replace with `store-assets/promo-marquee-1400x560.png`.
 
 ## 3. Privacy
-- **No changes.** Single purpose, all permission justifications, remote code ("No"), data usage ticks (Web history + Website content) and the three certifications stay the same: no new permissions, same data handling.
+- [ ] **`storage` permission justification: replace** with the new text in `store-listing.md` (previews are now saved on disk for 7 days, not memory-only).
+- Everything else is unchanged: single purpose, the other permission justifications, remote code ("No"), data usage ticks (Web history + Website content), the three certifications. No new permissions.
 - Privacy policy URL: **unchanged** (`https://github.com/Vajrayu/tabatha/blob/main/PRIVACY.md`), but its content must be pushed first (see above).
 
 ## 4. Distribution

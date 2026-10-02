@@ -18,8 +18,8 @@
 //   - all page-provided text (titles, URLs) is rendered with textContent.
 
 import { MSG, FRAME_MSG, LIMITS, COFFEE_URL } from './lib/constants.js';
-import { getMru, getPreviews, getClosedPreviews, consumeLaunch } from './lib/store.js';
-import { isOwnUrl } from './lib/ext.js';
+import { getMru, getPreviews, consumeLaunch } from './lib/store.js';
+import { isOwnUrl, normalizeUrl } from './lib/ext.js';
 
 let CTX = null; // set once the launch token has been verified (see boot)
 
@@ -85,10 +85,9 @@ function h(tag, cls, text) {
 
 // ------------------------------------------------------------------- data
 async function load() {
-  const [allTabs, mru, closedPreviews] = await Promise.all([
+  const [allTabs, mru] = await Promise.all([
     chrome.tabs.query({ windowType: 'normal' }),
     getMru(),
-    getClosedPreviews(),
   ]);
   const tabs = allTabs.filter((t) => !isOwnUrl(urlOf(t)));
 
@@ -98,7 +97,13 @@ async function load() {
   tabs.sort((a, b) => r(a) - r(b) || inSrc(a) - inSrc(b) || a.windowId - b.windowId || a.index - b.index);
   state.tabs = tabs;
 
-  state.previews = await getPreviews(tabs.map((t) => t.id));
+  // Previews are stored by URL; hand each tab the one for its current URL.
+  const byUrl = await getPreviews(tabs.map(urlOf));
+  state.previews = {};
+  for (const t of tabs) {
+    const p = byUrl[normalizeUrl(urlOf(t))];
+    if (p) state.previews[t.id] = p;
+  }
 
   // Windows in "most recently used" order, the current one first. Numbers
   // follow the order the windows were opened in, so "Window 2" stays
@@ -119,26 +124,24 @@ async function load() {
     })
     .filter((w) => w.count > 0);
 
-  await loadClosed(closedPreviews);
+  await loadClosed();
 }
 
-async function loadClosed(closedPreviews) {
-  if (!closedPreviews) closedPreviews = await getClosedPreviews();
+async function loadClosed() {
   let sessions = [];
   try { sessions = await chrome.sessions.getRecentlyClosed({ maxResults: 25 }); } catch {}
   // Chrome's list survives restarts and has no age limit; keep only the last
   // few hours, and don't let whole closed windows crowd out single tabs.
   const cutoff = Date.now() / 1000 - LIMITS.RECENTLY_CLOSED_MAX_AGE_S;
   let windows = 0;
-  state.closed = sessions
+  const shown = sessions
     .filter((s) => !s.lastModified || s.lastModified >= cutoff)
     .filter((s) => (s.tab ? isWorthReopening(urlOf(s.tab)) : !!(s.window && s.window.tabs && s.window.tabs.length)))
     .filter((s) => s.tab || ++windows <= LIMITS.RECENTLY_CLOSED_WINDOWS)
-    .slice(0, LIMITS.RECENTLY_CLOSED)
-    .map((session) => {
-      const url = session.tab ? urlOf(session.tab) : urlOf(session.window.tabs[0]);
-      return { session, preview: closedPreviews.find((p) => p.url === url) || null };
-    });
+    .slice(0, LIMITS.RECENTLY_CLOSED);
+  const urlOfSession = (s) => urlOf(s.tab || s.window.tabs[0]);
+  const previews = await getPreviews(shown.map(urlOfSession));
+  state.closed = shown.map((session) => ({ session, preview: previews[normalizeUrl(urlOfSession(session))] || null }));
 }
 
 // Blank pages, New Tab pages and our own pages aren't worth listing as "recently closed".

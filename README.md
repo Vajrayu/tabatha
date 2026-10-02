@@ -19,7 +19,7 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 - **Close from the switcher**: <kbd>Del</kbd> (<kbd>⌘</kbd>+<kbd>⌫</kbd> on a Mac) or middle-click.
 - **Works everywhere**: on pages extensions can't draw on (New Tab, `chrome://`, the Web Store) it opens in a small popup window instead.
 - **Free**: a small Buy Me a Coffee button sits in the corner of the switcher, if you want to say thanks.
-- **Private**: previews stay in memory on your computer and are wiped when Chrome closes. The extension itself makes no network requests; the coffee button just opens buymeacoffee.com in a new tab when you click it. See [PRIVACY.md](PRIVACY.md).
+- **Private**: previews are saved on your computer (not uploaded) for up to 7 days, so they survive a restart; uninstalling Tabatha deletes them. The extension itself makes no network requests; the coffee button just opens buymeacoffee.com in a new tab when you click it. See [PRIVACY.md](PRIVACY.md).
 
 ## Shortcuts
 
@@ -59,7 +59,7 @@ On macOS, Alt is <kbd>Option</kbd>. To change the shortcut, go to `chrome://exte
 
 ## What's new (newest first)
 
-**1.3.1** (30 Sep 2026): tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; only tabs Chrome has unloaded are marked "Sleeping", with "No preview yet" for awake tabs we haven't captured (briefly labelled "Inactive" during development, never released); Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
+**1.3.1** (30 Sep 2026, updated 2 Oct): tab previews are kept on disk for 7 days so they survive restarts (they used to be memory-only); tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; only tabs Chrome has unloaded are marked "Sleeping", with "No preview yet" for awake tabs we haven't captured (briefly labelled "Inactive" during development, never released); Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
 
 **1.3.0** (27 Sep 2026): first public release. Live previews, hold-and-release switching, search, window filter, recently closed, close from the switcher, popup fallback. Notes: [releases/v1.3.0/release-notes.md](releases/v1.3.0/release-notes.md).
 
@@ -85,7 +85,7 @@ PRIVACY.md            privacy policy (linked from the Chrome Web Store)
 - `background.js` (service worker) tracks tab usage order, captures a downscaled screenshot whenever a tab becomes visible, and opens the switcher.
 - The switcher (`switcher.html/js/css`) is injected as a full-page iframe over the current tab. On pages where that's impossible, it opens in a popup window.
 - `hotkey.js` is a tiny content-script fallback for Alt+Q, in case Chrome's shortcut is taken by another app.
-- All state lives in `chrome.storage.session` (in memory only).
+- Tab previews live in `chrome.storage.local` (on disk, keyed by URL, 7 days, max 300 / ~6 MB). Everything else (tab order, one-time tokens) lives in `chrome.storage.session` (memory only).
 - The switcher only renders when it gets a one-time launch token from the background worker. Clicks only count while the overlay is actually visible, which guards against clickjacking by hostile pages.
 
 ## License
