@@ -10,8 +10,8 @@
 // today, but a bug elsewhere shouldn't be able to turn bad data into bad
 // behaviour.
 
-import { KEY, LIMITS, previewKey, PREVIEW_PREFIX, WINDOW_STATES, MODES } from './constants.js';
-import { normalizeUrl } from './ext.js';
+import { KEY, LIMITS, previewKey, tabMetaKey, PREVIEW_PREFIX, WINDOW_STATES, MODES } from './constants.js';
+import { normalizeUrl, isWorthReopening } from './ext.js';
 
 const S = chrome.storage.session;
 const L = chrome.storage.local;
@@ -150,6 +150,81 @@ export function cleanupPreviews() {
     drop.push(...extra);
     if (drop.length) await L.remove(drop.map(previewKey));
     await L.set({ [KEY.PREVIEW_INDEX]: idx });
+  });
+}
+
+// ---------- closed-tab log (storage.local) ----------
+// chrome.sessions only remembers the last 25 closed items, so we keep our own
+// 7-day log. tabs.onRemoved doesn't say what the tab was, so we remember each
+// open tab's url/title/icon in storage.session (memory only) as it changes,
+// and move it into the log when the tab closes.
+const isLoggableUrl = (u) => typeof u === 'string' && u.length <= LIMITS.MAX_URL_KEY && /^(https?|file|ftp|chrome):/.test(u);
+const isClosedEntry = (e) => !!e && typeof e === 'object' && isLoggableUrl(e.url) && typeof e.title === 'string'
+  && typeof e.favIconUrl === 'string' && isTime(e.closedAt);
+
+function cleanLog(v) {
+  const cutoff = Date.now() - LIMITS.CLOSED_LOG_TTL_MS;
+  return Array.isArray(v) ? v.filter((e) => isClosedEntry(e) && e.closedAt > cutoff).slice(0, LIMITS.MAX_CLOSED_LOG) : [];
+}
+
+export async function getClosedLog() {
+  return cleanLog((await L.get(KEY.CLOSED_LOG))[KEY.CLOSED_LOG]);
+}
+
+const lastMeta = new Map(); // tabId -> last JSON written, to skip repeat writes (lost on worker restart: harmless)
+const metaOf = (tab) => {
+  const url = (tab && (tab.url || tab.pendingUrl)) || '';
+  if (!tab || !isId(tab.id) || tab.incognito || !isLoggableUrl(url) || !isWorthReopening(url)) return null;
+  const icon = typeof tab.favIconUrl === 'string' && /^https?:/.test(tab.favIconUrl) && tab.favIconUrl.length <= 512 ? tab.favIconUrl : '';
+  return { u: url, ti: String(tab.title || '').slice(0, 300), f: icon };
+};
+
+// Call whenever a tab's url, title or icon may have changed.
+export function rememberTab(tab) {
+  const m = metaOf(tab);
+  if (!m) return Promise.resolve();
+  const json = JSON.stringify(m);
+  if (lastMeta.get(tab.id) === json) return Promise.resolve();
+  lastMeta.set(tab.id, json);
+  return serial(() => S.set({ [tabMetaKey(tab.id)]: m }));
+}
+
+export function rememberTabs(tabs) {
+  const writes = {};
+  for (const tab of tabs) {
+    const m = metaOf(tab);
+    if (m) { writes[tabMetaKey(tab.id)] = m; lastMeta.set(tab.id, JSON.stringify(m)); }
+  }
+  return serial(() => S.set(writes));
+}
+
+export function forgetTabMeta(tabId) {
+  lastMeta.delete(tabId);
+  return serial(() => S.remove(tabMetaKey(tabId)));
+}
+
+// A tab was closed: add it to the log (newest first, one entry per page).
+export function logClosedTab(tabId) {
+  lastMeta.delete(tabId);
+  return serial(async () => {
+    const k = tabMetaKey(tabId);
+    const m = (await S.get(k))[k];
+    if (!m) return; // never saw it (opened and closed instantly), or a blank/own page
+    await S.remove(k);
+    if (!m || typeof m !== 'object' || !isLoggableUrl(m.u)) return;
+    const key = normalizeUrl(m.u);
+    const log = cleanLog((await L.get(KEY.CLOSED_LOG))[KEY.CLOSED_LOG]).filter((e) => normalizeUrl(e.url) !== key);
+    log.unshift({ url: m.u, title: typeof m.ti === 'string' ? m.ti : '', favIconUrl: typeof m.f === 'string' ? m.f : '', closedAt: Date.now() });
+    await L.set({ [KEY.CLOSED_LOG]: log.slice(0, LIMITS.MAX_CLOSED_LOG) });
+  });
+}
+
+// Run once at browser start and after install/update: drop entries older than 7 days, cap the size.
+export function cleanupClosedLog() {
+  return serial(async () => {
+    const raw = (await L.get(KEY.CLOSED_LOG))[KEY.CLOSED_LOG];
+    const log = cleanLog(raw);
+    if (!Array.isArray(raw) || log.length !== raw.length) await L.set({ [KEY.CLOSED_LOG]: log });
   });
 }
 

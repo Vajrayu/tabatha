@@ -18,7 +18,8 @@ Only the text that changed is listed; the old wording is quoted so nothing is lo
 - *Test instructions*: shortened to fit the dashboard's 500-character limit (the 1.3.0 text is in `../v1.3.0/store-listing.md`).
 - *Test instructions step 2*: was "hold Alt and tap Q … release Alt to switch"; now "press Alt+Q and let go … stays open".
 - *Screenshots and promo tiles*: regenerated from 1.3.1 (tap-to-open hint bar, site labels, window tags, No preview yet, coffee button). The 1.3.0 images are kept in `../v1.3.0/store-assets/`.
-- *Private by design*: was "They are stored in memory only, never written to disk, and wiped when you close Chrome." and "Previews of closed tabs are forgotten after 30 minutes." Previews are now saved on disk for 7 days.
+- *Search / Recently closed*: now "tabs you closed in the last 7 days" (Tabatha keeps its own 7-day list of closed tabs, up to 200, so search goes beyond Chrome's 25-item list).
+- *Private by design*: added the bullet about the 7-day closed-tab list; was "They are stored in memory only, never written to disk, and wiped when you close Chrome." and "Previews of closed tabs are forgotten after 30 minutes." Previews are now saved on disk for 7 days.
 - *Privacy tab, `storage` permission justification*: **must be replaced** (old text: "Uses chrome.storage.session only: an in-memory store (never written to disk, cleared when the browser closes) …"). Other answers unchanged.
 - Privacy tab data-usage ticks and other permission justifications: **unchanged** (no new permissions, same data handling).
 
@@ -69,9 +70,9 @@ HOW IT WORKS
 
 FEATURES
 • Live previews: see a screenshot of each tab, not just its title.
-• Search: start typing to filter open and recently closed tabs by title or address.
+• Search: start typing to filter open tabs and tabs you closed in the last 7 days, by title or address.
 • All your windows: tabs from every Chrome window in one view, each labelled with its site and window. Press Alt+W (or click a window chip) to narrow it to one window.
-• Recently closed: reopen tabs and windows you closed in the last few hours, with a preview of what they looked like.
+• Recently closed: reopen tabs and windows you closed in the last few hours, with a preview of what they looked like. Search reaches back 7 days, further than Chrome's own list.
 • Tidy up fast: press Delete (Cmd+Backspace on a Mac) or middle-click to close tabs straight from the switcher.
 • Sleeping tabs: tabs Chrome has unloaded to save memory are marked Sleeping. Awake tabs Tabatha can't screenshot yet say No preview yet.
 • Free, with a small Buy Me a Coffee button in the corner if you want to say thanks.
@@ -91,7 +92,8 @@ On a Mac, Alt is the Option key. You can change the shortcut at chrome://extensi
 
 PRIVATE BY DESIGN
 • Previews never leave your computer. They are saved on your computer for up to 7 days, so they are still there after a restart, and are never uploaded anywhere.
-• Old previews are deleted automatically, and uninstalling Tabatha removes them.
+• The titles and addresses of tabs you closed are kept on your computer for 7 days (never uploaded) so you can find them again.
+• Old previews and entries are deleted automatically, and uninstalling Tabatha removes them.
 • No accounts, no analytics, no tracking, no ads. The extension is blocked from making any network requests at all. (The optional Buy Me a Coffee button simply opens buymeacoffee.com in a new tab when you click it.)
 • Tabatha does not run in Incognito windows.
 
@@ -142,6 +144,7 @@ Tabatha is a visual tab switcher: pressing Alt+Q shows live previews of the user
 ```
 
 ### Permission justifications
+_(Dashboard fields have length limits; the `storage` text below is 515 characters.)_
 
 **tabs**
 ```
@@ -150,7 +153,7 @@ Needed to list the user's open tabs across all windows with their titles and URL
 
 **storage**
 ```
-Uses chrome.storage.local to save the small tab-preview thumbnails (downscaled JPEGs, keyed by page URL) on the user's own computer for up to 7 days, so previews are still there after a browser restart; they are capped at 300 items / about 6 MB and deleted automatically when older. Uses chrome.storage.session (in memory only, cleared when the browser closes) for the most-recently-used tab order and a one-time token used to open the switcher securely. Nothing is synced or sent anywhere: the extension's Content Security Policy blocks all network requests.
+Saves, on the user's own computer (chrome.storage.local): small tab-preview thumbnails keyed by page URL (kept 7 days, max 300 / about 6 MB), and the title and address of tabs the user closed in the last 7 days (max 200), so they can be found and reopened beyond Chrome's own 25-item list. Uses chrome.storage.session (memory only) for tab order, the title and address of open tabs (so a closed tab can be listed) and a one-time launch token. Nothing is synced or sent anywhere; the CSP blocks all network requests.
 ```
 
 **scripting**

@@ -18,8 +18,8 @@
 //   - all page-provided text (titles, URLs) is rendered with textContent.
 
 import { MSG, FRAME_MSG, LIMITS, COFFEE_URL } from './lib/constants.js';
-import { getMru, getPreviews, consumeLaunch } from './lib/store.js';
-import { isOwnUrl, normalizeUrl } from './lib/ext.js';
+import { getMru, getPreviews, getClosedLog, consumeLaunch } from './lib/store.js';
+import { isOwnUrl, normalizeUrl, isWorthReopening } from './lib/ext.js';
 
 let CTX = null; // set once the launch token has been verified (see boot)
 
@@ -39,11 +39,11 @@ const IS_MAC = /mac/i.test((navigator.userAgentData && navigator.userAgentData.p
 const state = {
   tabs: [],        // chrome.tabs.Tab[], most recently used first
   previews: {},    // tabId -> { img, url, t }
-  closed: [],      // [{ session, preview }]
+  closed: [],      // every closed tab/window we know of, newest first: [{ id, kind: 'tab'|'window', url, title, ts, count, session, fields, preview }]
   windows: [],     // [{ id, label, count, activeTitle }]
   scope: 'all',    // 'all' or a windowId
   query: '',
-  entries: [],     // derived: [{ kind: 'tab'|'closed', key, tab?, session?, preview }]
+  entries: [],     // derived: [{ kind: 'tab'|'closed', key, tab?, item?, preview }]
   openCount: 0,
   sel: 0,
   holding: true,   // Alt still held since the shortcut that opened us?
@@ -128,27 +128,68 @@ async function load() {
   await loadClosed();
 }
 
+// "Recently closed" merges Chrome's list (only the last 25, restores a tab with
+// its history) with our own 7-day log (survives Chrome's cap and restarts).
+const hashOf = (str) => { let x = 5381; for (let i = 0; i < str.length; i++) x = ((x << 5) + x + str.charCodeAt(i)) | 0; return (x >>> 0).toString(36); };
+
 async function loadClosed() {
   let sessions = [];
   try { sessions = await chrome.sessions.getRecentlyClosed({ maxResults: 25 }); } catch {}
-  // Chrome's list survives restarts and has no age limit; keep only the last
-  // few hours, and don't let whole closed windows crowd out single tabs.
-  const cutoff = Date.now() / 1000 - LIMITS.RECENTLY_CLOSED_MAX_AGE_S;
-  let windows = 0;
-  const shown = sessions
-    .filter((s) => !s.lastModified || s.lastModified >= cutoff)
-    .filter((s) => (s.tab ? isWorthReopening(urlOf(s.tab)) : !!(s.window && s.window.tabs && s.window.tabs.length)))
-    .filter((s) => s.tab || ++windows <= LIMITS.RECENTLY_CLOSED_WINDOWS)
-    .slice(0, LIMITS.RECENTLY_CLOSED);
-  const urlOfSession = (s) => urlOf(s.tab || s.window.tabs[0]);
-  const previews = await getPreviews(shown.map(urlOfSession));
-  state.closed = shown.map((session) => ({ session, preview: previews[normalizeUrl(urlOfSession(session))] || null }));
+  const log = await getClosedLog().catch(() => []);
+  const now = Date.now();
+  const stamp = (s) => (s.lastModified > 0 ? s.lastModified * 1000 : 0); // 0 = Chrome gave no time (e.g. some closed windows)
+  const rank = (c) => c.ts || now;                                         // ...which we treat as "just now" for sorting
+
+  const items = [];
+  const covered = new Set(); // pages inside a closed window that Chrome still lists as one "Window" card
+  for (const s of sessions) {
+    if (s.tab) {
+      const url = urlOf(s.tab);
+      if (!isWorthReopening(url)) continue;
+      items.push({ id: 's' + s.tab.sessionId, kind: 'tab', url, title: s.tab.title || '', ts: stamp(s), count: 1, session: s, fields: [[s.tab.title, url]] });
+    } else if (s.window && s.window.tabs && s.window.tabs.length) {
+      const tabs = s.window.tabs;
+      tabs.forEach((t) => covered.add(normalizeUrl(urlOf(t))));
+      items.push({
+        id: 's' + s.window.sessionId, kind: 'window', url: urlOf(tabs[0]), title: `Window · ${tabs.length} tab${tabs.length === 1 ? '' : 's'}`,
+        ts: stamp(s), count: tabs.length, session: s, fields: tabs.map((t) => [t.title, urlOf(t)]),
+      });
+    }
+  }
+  const open = new Set(state.tabs.map((t) => normalizeUrl(urlOf(t))));
+  for (const e of log) {
+    const key = normalizeUrl(e.url);
+    // Already open again, or part of a closed window shown as one card: skip.
+    if (!isWorthReopening(e.url) || covered.has(key) || open.has(key)) continue;
+    items.push({ id: 'l' + e.closedAt + hashOf(e.url), kind: 'tab', url: e.url, title: e.title, ts: e.closedAt, count: 1, session: null, fields: [[e.title, e.url]] });
+  }
+
+  // One entry per page: the most recent wins; within 5 s it's the same closing, so keep Chrome's (restores history).
+  const best = new Map();
+  for (const it of items) {
+    if (it.kind === 'window') continue;
+    const k = normalizeUrl(it.url) || it.url;
+    const cur = best.get(k);
+    const d = cur ? rank(it) - rank(cur) : 1;
+    if (!cur || d > 5000 || (d >= -5000 && it.session)) best.set(k, it);
+  }
+  const merged = [...items.filter((it) => it.kind === 'window'), ...best.values()].sort((a, b) => rank(b) - rank(a));
+
+  const previews = await getPreviews(merged.slice(0, LIMITS.CLOSED_PREVIEW_LOOKUP).map((it) => it.url));
+  for (const it of merged) it.preview = previews[normalizeUrl(it.url)] || null;
+  state.closed = merged;
 }
 
-// Blank pages, New Tab pages and our own pages aren't worth listing as "recently closed".
-function isWorthReopening(url) {
-  if (!url || isOwnUrl(url)) return false;
-  return !/^(about:blank|chrome:\/\/newtab|chrome-search:|edge:\/\/newtab|brave:\/\/newtab)/.test(url);
+// What the "Recently closed" section shows. Normally the last few hours, a few
+// entries, few whole windows; while searching, anything from the last 7 days.
+function closedFor(q) {
+  if (q) return state.closed.filter((c) => c.fields.some(([title, url]) => matches(q, title, url))).slice(0, LIMITS.RECENTLY_CLOSED_SEARCH);
+  const cutoff = Date.now() - LIMITS.RECENTLY_CLOSED_MAX_AGE_S * 1000;
+  let windows = 0;
+  return state.closed
+    .filter((c) => !c.ts || c.ts >= cutoff)
+    .filter((c) => c.kind !== 'window' || ++windows <= LIMITS.RECENTLY_CLOSED_WINDOWS)
+    .slice(0, LIMITS.RECENTLY_CLOSED);
 }
 
 // ------------------------------------------------------------ derive/filter
@@ -165,13 +206,7 @@ function derive() {
     .filter((t) => !q || matches(q, t.title, urlOf(t)))
     .map((tab) => ({ kind: 'tab', key: 't' + tab.id, tab, preview: state.previews[tab.id] || null }));
 
-  const closed = state.closed
-    .filter(({ session: s }) => !q || (s.tab
-      ? matches(q, s.tab.title, urlOf(s.tab))
-      : s.window.tabs.some((t) => matches(q, t.title, urlOf(t)))))
-    .map(({ session, preview }) => ({
-      kind: 'closed', key: 'c' + (session.tab || session.window).sessionId, session, preview,
-    }));
+  const closed = closedFor(q).map((item) => ({ kind: 'closed', key: 'c' + item.id, item, preview: item.preview }));
 
   state.entries = [...open, ...closed];
   state.openCount = open.length;
@@ -284,16 +319,15 @@ function renderCard(entry, index) {
       ? { label: 'Sleeping', sub, icon: ICON.moon }
       : { label: entry.preview ? '' : 'No preview yet', sub, icon: ICON.camera }));
   } else {
-    const s = entry.session;
-    const first = s.tab || s.window.tabs[0];
-    entry.url = urlOf(first);
+    const c = entry.item;
+    entry.url = c.url;
     fav.src = favicon(entry.url);
-    const title = s.tab ? (s.tab.title || hostOf(entry.url)) : `Window · ${s.window.tabs.length} tabs`;
-    // Some entries (e.g. closed windows) come without lastModified: no time tag then.
-    const ago = timeAgo(s.lastModified);
+    const title = c.title || hostOf(c.url);
+    // Some entries (e.g. closed windows) come without a time: no time tag then.
+    const ago = timeAgo(c.ts / 1000);
     head.append(fav, h('span', 'title', title));
     if (ago) head.append(h('span', 'tag', ago));
-    card.title = 'Reopen: ' + title + (s.tab ? '\n' + entry.url : '');
+    card.title = 'Reopen: ' + title + (c.kind === 'tab' ? '\n' + c.url : '');
     card.append(head, thumbFor(entry, { label: 'Closed', sub: hostOf(entry.url), icon: ICON.history }));
   }
 
@@ -427,7 +461,9 @@ async function choose(i) {
     }
     // Recently closed: restore into the window the user came from.
     if (CTX.mode === 'window') await chrome.windows.update(CTX.srcWin, { focused: true }).catch(() => {});
-    await chrome.sessions.restore((entry.session.tab || entry.session.window).sessionId);
+    const c = entry.item;
+    if (c.session) await chrome.sessions.restore((c.session.tab || c.session.window).sessionId);
+    else await chrome.tabs.create({ url: c.url, windowId: CTX.srcWin, active: true }); // from our own log: reopen the page
     return finish('restore');
   } catch (e) {
     console.warn('[Tabatha] could not open entry:', e && e.message);

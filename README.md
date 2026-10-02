@@ -12,9 +12,9 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 - **Live previews**: a screenshot of every tab, not just a favicon and a title.
 - **Tap to open**: tap <kbd>Alt</kbd>+<kbd>Q</kbd> and the switcher stays open. No need to keep holding Alt: use the arrows, type to search, or use the mouse.
 - **Or hold and release**: hold Alt and tap Q again to move through tabs in most-recently-used order, let go to switch, like Alt+Tab.
-- **Search**: type to filter open and recently closed tabs by title or URL.
+- **Search**: type to filter open tabs and tabs closed in the last 7 days by title or URL.
 - **Every window in one view**: each card shows the site and which window it's in. Filter to one window with <kbd>Alt</kbd>+<kbd>W</kbd> or the window chips.
-- **Recently closed**: reopen tabs and windows closed in the last 4 hours, with their last preview.
+- **Recently closed**: reopen tabs and windows closed in the last 4 hours, with their last preview. Tabatha also keeps its own 7-day list (up to 200 tabs, on your computer), so searching finds tabs that Chrome's own 25-item list has already forgotten.
 - **Sleeping tabs**: tabs Chrome has unloaded to save memory are marked *Sleeping*. Awake tabs Tabatha hasn't been able to screenshot yet say *No preview yet*.
 - **Close from the switcher**: <kbd>Del</kbd> (<kbd>⌘</kbd>+<kbd>⌫</kbd> on a Mac) or middle-click.
 - **Works everywhere**: on pages extensions can't draw on (New Tab, `chrome://`, the Web Store) it opens in a small popup window instead.
@@ -59,7 +59,7 @@ On macOS, Alt is <kbd>Option</kbd>. To change the shortcut, go to `chrome://exte
 
 ## What's new (newest first)
 
-**1.3.1** (30 Sep 2026, updated 2 Oct): tab previews are kept on disk for 7 days so they survive restarts (they used to be memory-only); tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; only tabs Chrome has unloaded are marked "Sleeping", with "No preview yet" for awake tabs we haven't captured (briefly labelled "Inactive" during development, never released); Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
+**1.3.1** (30 Sep 2026, updated 2 Oct): tab previews are kept on disk for 7 days so they survive restarts (they used to be memory-only); a 7-day closed-tab list (200 tabs) beyond Chrome's 25-item limit, searchable; no more nonsense time on closed windows; tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; only tabs Chrome has unloaded are marked "Sleeping", with "No preview yet" for awake tabs we haven't captured (briefly labelled "Inactive" during development, never released); Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
 
 **1.3.0** (27 Sep 2026): first public release. Live previews, hold-and-release switching, search, window filter, recently closed, close from the switcher, popup fallback. Notes: [releases/v1.3.0/release-notes.md](releases/v1.3.0/release-notes.md).
 

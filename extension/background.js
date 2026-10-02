@@ -15,6 +15,7 @@
 import { MSG, FRAME_MSG, LIMITS, SWITCHER_PAGE, WINDOW_STATES, CLOSE_REASONS } from './lib/constants.js';
 import {
   touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews,
+  rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
   setOverlayTab, clearOverlayTab, createLaunch,
 } from './lib/store.js';
 import { scheduleCapture, cancelCapture, captureWindow } from './lib/capture.js';
@@ -38,18 +39,27 @@ chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
   scheduleCapture(windowId);
 });
 
+chrome.tabs.onCreated.addListener((tab) => { rememberTab(tab).catch(() => {}); });
+
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
+  if (info.url || info.title || info.favIconUrl) rememberTab(tab).catch(() => {});
   if (info.status === 'complete' && tab.active) scheduleCapture(tab.windowId, 450);
 });
 
 // Previews are keyed by URL, so a closed or replaced tab keeps its preview
 // (it's what "Recently closed" shows); old ones expire in cleanupPreviews().
+// Every closed tab goes into our own 7-day log, including tabs that close with
+// their window (isWindowClosing): the switcher drops those from the list when
+// Chrome still holds the whole window as one "Window" card.
 chrome.tabs.onRemoved.addListener((tabId) => {
   removeFromMru(tabId);
+  logClosedTab(tabId).catch(() => {});
 });
 
 chrome.tabs.onReplaced.addListener((addedId, removedId) => {
   replaceInMru(removedId, addedId);
+  forgetTabMeta(removedId).catch(() => {});
+  chrome.tabs.get(addedId).then((t) => rememberTab(t)).catch(() => {});
 });
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
@@ -66,6 +76,8 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 // ------------------------------------------------------------- setup (idempotent)
 async function setup() {
   cleanupPreviews().catch(() => {}); // expire + cap the on-disk previews
+  cleanupClosedLog().catch(() => {}); // ...and the 7-day closed-tab log
+  chrome.tabs.query({ windowType: 'normal' }).then(rememberTabs).catch(() => {}); // what each open tab is, for the log
   const active = await chrome.tabs.query({ active: true, windowType: 'normal' });
   await seedMru(active.map((t) => t.id));
   const [focused] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });

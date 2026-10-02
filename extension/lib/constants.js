@@ -14,12 +14,14 @@ export const FRAME_MSG = Object.freeze({ LAUNCH: 'launch', READY: 'ready', CLOSE
 
 export const KEY = Object.freeze({
   MRU: 'mru',                 // number[] tab ids, most recent first
+  CLOSED_LOG: 'closedlog',    // storage.local: [{ url, title, favIconUrl, closedAt }] tabs closed in the last 7 days
   PREVIEW_INDEX: 'pvidx',     // storage.local: { [normalizedUrl]: { t, n } } captured-at and size of each stored preview
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
   LAUNCH: 'launch',           // { token, t, ctx } one-time launch for the next switcher
 });
 
 export const previewKey = (url) => 'pv:' + url; // storage.local, `url` already normalized
+export const tabMetaKey = (tabId) => 'm:' + tabId; // storage.session: { u, ti, f } last known url/title/icon of an open tab
 export const PREVIEW_PREFIX = 'data:image/jpeg;base64,';
 
 export const WINDOW_STATES = Object.freeze(['normal', 'maximized', 'fullscreen']);
@@ -32,6 +34,9 @@ export const LIMITS = Object.freeze({
   MAX_PREVIEW_BYTES: 6 * 1024 * 1024, // ...and in total, well under storage.local's 10 MB quota
   PREVIEW_TTL_MS: 7 * 24 * 60 * 60 * 1000, // previews older than 7 days are deleted
   MAX_URL_KEY: 2048,            // longer URLs are not used as preview keys
+  CLOSED_LOG_TTL_MS: 7 * 24 * 60 * 60 * 1000, // our own closed-tab log keeps 7 days
+  MAX_CLOSED_LOG: 200,          // ...and at most this many entries
+  CLOSED_PREVIEW_LOOKUP: 60,    // previews are looked up for the newest this-many closed entries
   MAX_MRU: 500,
   CAPTURE_GAP_MS: 520,          // Chrome allows ~2 captureVisibleTab calls per second
   LAUNCH_TTL_MS: 15000,         // how long a launch token stays valid
@@ -41,6 +46,7 @@ export const LIMITS = Object.freeze({
   KEYS_GRACE_MS: 800,           // keys work right away (quick Alt+Q flick) until visibility is known
   LAUNCH_WAIT_MS: 5000,         // how long an overlay waits for its launch token
   RECENTLY_CLOSED: 8,           // most "Recently closed" entries shown
+  RECENTLY_CLOSED_SEARCH: 24,   // ...or this many while searching (search reaches the whole 7-day log)
   RECENTLY_CLOSED_WINDOWS: 2,   // of which at most this many whole windows
   RECENTLY_CLOSED_MAX_AGE_S: 4 * 3600, // only things closed in the last 4 hours
 });

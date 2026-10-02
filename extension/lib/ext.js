@@ -23,3 +23,9 @@ export function normalizeUrl(url) {
     return '';
   }
 }
+
+// Blank pages, New Tab pages and our own pages aren't worth listing as "recently closed".
+export function isWorthReopening(url) {
+  if (!url || isOwnUrl(url)) return false;
+  return !/^(about:blank|chrome:\/\/newtab|chrome-search:|edge:\/\/newtab|brave:\/\/newtab)/.test(url);
+}
