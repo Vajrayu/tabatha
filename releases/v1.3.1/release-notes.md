@@ -13,7 +13,7 @@ _First update after launch, from early user feedback. No new permissions, no cha
 
 ## Bug fixes
 - Mac: Option+W (window filter) no longer types "∑" into the search box, and keeps switching windows on every press.
-- "Inactive" now means what it means in Chrome: the tab was unloaded by Memory Saver (faded card, dashed ring round the icon). Tabs that are running but haven't been captured yet say "No preview yet".
+- "Sleeping" now means what it means in Chrome: the tab was unloaded (faded card, dashed ring round the icon). Awake tabs that haven't been captured yet say "No preview yet".
 - Alt+W (window filter) followed by letting go of Alt no longer switches to a tab by surprise.
 - Option/Alt + a key (e.g. Option+Shift+4 on a Mac) no longer types symbols into the search box.
 - Mac: the "delete" key is Backspace, so closing the selected tab is now Cmd+Backspace; the hint bar shows Mac keys (⌘⌫, ⌥W).

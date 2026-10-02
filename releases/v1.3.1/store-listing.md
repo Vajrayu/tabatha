@@ -11,7 +11,7 @@ Only the text that changed is listed; the old wording is quoted so nothing is lo
 - *All your windows*: added "each labelled with its site and window".
 - *Recently closed*: was "reopen tabs and windows you just closed"; now "closed in the last few hours".
 - *Tidy up fast*: added "(Cmd+Backspace on a Mac)".
-- *Sleeping tabs* → *Inactive tabs*: was "tabs Chrome has put to sleep, or that you haven't opened since starting Chrome, are clearly marked." Now matches Chrome: only unloaded tabs are Inactive; uncaptured tabs say "No preview yet".
+- *Sleeping tabs*: was "tabs Chrome has put to sleep, or that you haven't opened since starting Chrome, are clearly marked." Now only tabs Chrome has unloaded are called Sleeping; awake tabs with no screenshot yet say "No preview yet".
 - New line: Buy Me a Coffee button.
 - *Keyboard shortcuts*: "Alt+Q: next tab" → "Alt+Q: open Tabatha / next tab"; added "Arrow keys" and the Mac close key.
 - *Private by design* and *Test instructions*: added the coffee-link sentence (the extension still makes no network requests itself).
@@ -71,7 +71,7 @@ FEATURES
 • All your windows: tabs from every Chrome window in one view, each labelled with its site and window. Press Alt+W (or click a window chip) to narrow it to one window.
 • Recently closed: reopen tabs and windows you closed in the last few hours, with a preview of what they looked like.
 • Tidy up fast: press Delete (Cmd+Backspace on a Mac) or middle-click to close tabs straight from the switcher.
-• Inactive tabs, just like Chrome shows them: tabs Chrome has unloaded to save memory are marked Inactive. Tabs Tabatha hasn't seen yet say No preview yet.
+• Sleeping tabs: tabs Chrome has unloaded to save memory are marked Sleeping. Awake tabs Tabatha can't screenshot yet say No preview yet.
 • Free, with a small Buy Me a Coffee button in the corner if you want to say thanks.
 • Works everywhere: on pages extensions can't draw on (New Tab, Chrome settings, the Web Store) Tabatha opens in its own small window instead.
 

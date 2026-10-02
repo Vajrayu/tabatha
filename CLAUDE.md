@@ -64,7 +64,7 @@ Yuvaraj tracks all builds in `../Projects.xlsx` (main tracker: Projects + Releas
 - Chrome does not allow **Ctrl+Alt** shortcuts for extension commands (AltGr clash). Max 4 suggested shortcuts per extension.
 - `<all_urls>` + content scripts on all URLs means the Web Store does an in-depth review (slow). Don't add permissions casually.
 - Chrome may leave Alt+Q unassigned if another extension has it. That's why `hotkey.js` exists. Users can rebind at `chrome://extensions/shortcuts`.
-- Tabs never shown since the browser started have no preview ("Inactive"). This is a Chrome limit: only the visible tab can be captured.
+- Tabs never shown since the browser started have no preview (labelled "No preview yet", not asleep). This is a Chrome limit: only the visible tab can be captured. "Sleeping" is only for `tab.discarded` tabs.
 - The Web Store requires disclosure of locally-handled data too. We tick *Web history* + *Website content*.
 - Screenshot tooling: headless Chromium needs `--screen-info` for window bounds, and the overlay is shot at a 1280×800 viewport. Store images must be 24-bit (no alpha).
 

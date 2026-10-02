@@ -17,7 +17,7 @@ The text to paste is in `store-listing.md` in this folder.
   - All your windows: "each labelled with its site and window"
   - Recently closed: "closed in the last few hours"
   - Tidy up fast: "(Cmd+Backspace on a Mac)"
-  - "Sleeping tabs" line → "Inactive tabs, just like Chrome shows them…"
+  - "Sleeping tabs" line reworded: only tabs Chrome unloaded are Sleeping; awake tabs with no screenshot say "No preview yet"
   - New line: Buy Me a Coffee
   - Keyboard shortcuts: "Alt+Q: open Tabatha / next tab", new "Arrow keys" line, Mac close key
   - Private by design: coffee-link sentence added

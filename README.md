@@ -15,7 +15,7 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 - **Search**: type to filter open and recently closed tabs by title or URL.
 - **Every window in one view**: each card shows the site and which window it's in. Filter to one window with <kbd>Alt</kbd>+<kbd>W</kbd> or the window chips.
 - **Recently closed**: reopen tabs and windows closed in the last 4 hours, with their last preview.
-- **Inactive tabs, like Chrome shows them**: tabs Chrome has unloaded to save memory are marked *Inactive*. Tabs Tabatha hasn't seen yet say *No preview yet*.
+- **Sleeping tabs**: tabs Chrome has unloaded to save memory are marked *Sleeping*. Awake tabs Tabatha hasn't been able to screenshot yet say *No preview yet*.
 - **Close from the switcher**: <kbd>Del</kbd> (<kbd>⌘</kbd>+<kbd>⌫</kbd> on a Mac) or middle-click.
 - **Works everywhere**: on pages extensions can't draw on (New Tab, `chrome://`, the Web Store) it opens in a small popup window instead.
 - **Free**: a small Buy Me a Coffee button sits in the corner of the switcher, if you want to say thanks.
@@ -59,7 +59,7 @@ On macOS, Alt is <kbd>Option</kbd>. To change the shortcut, go to `chrome://exte
 
 ## What's new (newest first)
 
-**1.3.1** (30 Sep 2026): tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; "Inactive" now means unloaded by Chrome, with "No preview yet" for uncaptured tabs; Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
+**1.3.1** (30 Sep 2026): tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; only tabs Chrome has unloaded are marked "Sleeping", with "No preview yet" for awake tabs we haven't captured (briefly labelled "Inactive" during development, never released); Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
 
 **1.3.0** (27 Sep 2026): first public release. Live previews, hold-and-release switching, search, window filter, recently closed, close from the switcher, popup fallback. Notes: [releases/v1.3.0/release-notes.md](releases/v1.3.0/release-notes.md).
 

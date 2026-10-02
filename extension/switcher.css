@@ -153,30 +153,30 @@ section { max-width: 1640px; margin: 0 auto; }
   background: rgba(0,0,0,.62); font-size: 11px; display: inline-flex; gap: 5px; align-items: center;
 }
 
-.inactive {
+.nopreview {
   position: absolute; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 14px;
   background: linear-gradient(160deg, #2a2e38, #1b1d23); color: var(--fg-2);
 }
-.inactive .tile {
+.nopreview .tile {
   width: 60px; height: 60px; border-radius: 16px; position: relative;
   background: var(--fill); display: flex; align-items: center; justify-content: center;
 }
-.small .inactive .tile { width: 44px; height: 44px; border-radius: 12px; }
-.inactive .tile img { width: 30px; height: 30px; filter: grayscale(.6); opacity: .85; }
-.small .inactive .tile img { width: 22px; height: 22px; }
-.inactive .icon {
+.small .nopreview .tile { width: 44px; height: 44px; border-radius: 12px; }
+.nopreview .tile img { width: 30px; height: 30px; filter: grayscale(.6); opacity: .85; }
+.small .nopreview .tile img { width: 22px; height: 22px; }
+.nopreview .icon {
   position: absolute; right: -8px; bottom: -8px; width: 26px; height: 26px; border-radius: 50%;
   background: #3a3f4c; border: 2px solid #1f2229; display: flex; align-items: center; justify-content: center;
   color: #c7d2ff;
 }
-.inactive .label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); }
-.inactive .sub { font-size: 11.5px; color: var(--fg-3); max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.small .inactive .sub { display: none; }
-/* Tabs that are still running but have no screenshot: plain favicon. */
-.card:not(.asleep) .inactive .tile img { filter: none; opacity: 1; }
-/* Inactive (unloaded by Chrome's Memory Saver): faded, with a dashed ring
-   round the favicon, like Chrome's own inactive-tab look. */
+.nopreview .label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); }
+.nopreview .sub { font-size: 11.5px; color: var(--fg-3); max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.small .nopreview .sub { display: none; }
+/* Awake tabs with no screenshot yet: plain, full-colour favicon (not asleep). */
+.card:not(.asleep) .nopreview .tile img { filter: none; opacity: 1; }
+/* Sleeping (unloaded by Chrome, tab.discarded): faded, with a dashed ring
+   round the favicon, like Chrome's own faded-tab look. */
 .card.asleep .shot { filter: grayscale(.6) brightness(.6); }
 .card.asleep .fav { opacity: .6; border-radius: 50%; outline: 1.5px dashed rgba(255,255,255,.55); outline-offset: 2px; }
 .card.asleep .title { color: var(--fg-2); }

@@ -225,7 +225,7 @@ function thumbFor(entry, { label, sub, icon }) {
       thumb.append(pill);
     }
   } else {
-    const box = h('div', 'inactive');
+    const box = h('div', 'nopreview');
     const tile = h('div', 'tile');
     const img = h('img');
     img.src = favicon(entry.url);
@@ -233,15 +233,15 @@ function thumbFor(entry, { label, sub, icon }) {
     const badge = h('span', 'icon');
     badge.innerHTML = icon;
     tile.append(img, badge);
-    box.append(tile, h('div', 'label', label || 'Inactive'), h('div', 'sub', sub || ''));
+    box.append(tile, h('div', 'label', label || 'No preview yet'), h('div', 'sub', sub || ''));
     thumb.append(box);
   }
   return thumb;
 }
 
 function renderCard(entry, index) {
-  // "Inactive" means what it means in Chrome: Memory Saver has unloaded the
-  // tab (tab.discarded). It reloads when you open it.
+  // "Sleeping" is only for tabs Chrome has unloaded (tab.discarded, e.g. Memory
+  // Saver). They reload when opened. A tab with no preview is not asleep.
   const asleep = entry.kind === 'tab' && entry.tab.discarded;
   const card = h('div', 'card' + (entry.kind === 'closed' ? ' closed' : '') + (asleep ? ' asleep' : ''));
   card.id = 'opt-' + entry.key;
@@ -271,12 +271,13 @@ function renderCard(entry, index) {
     x.innerHTML = ICON.close;
     x.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) closeTab(entry); });
     head.append(x);
-    card.title = (t.title || '') + '\n' + entry.url + (asleep ? '\nInactive: Chrome unloaded this tab to save memory. It reloads when you open it.' : '');
-    const sub = t.title || hostOf(entry.url);
-    // No screenshot yet just means we haven't seen the tab since Chrome
-    // started (only the visible tab can be captured); it's still running.
+    card.title = (t.title || '') + '\n' + entry.url + (asleep ? '\nSleeping: Chrome unloaded this tab to save memory. It reloads when you open it.' : '');
+    // No preview just means Chrome only lets us screenshot the visible tab and
+    // we haven't seen this one yet; it's an awake background tab, not asleep.
+    // The placeholder shows the domain, since narrow cards hide it in the header.
+    const sub = host;
     card.append(head, thumbFor(entry, asleep
-      ? { label: 'Inactive', sub, icon: ICON.moon }
+      ? { label: 'Sleeping', sub, icon: ICON.moon }
       : { label: entry.preview ? '' : 'No preview yet', sub, icon: ICON.camera }));
   } else {
     const s = entry.session;
