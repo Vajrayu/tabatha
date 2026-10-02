@@ -70,6 +70,7 @@ function hostOf(url) {
   try { const u = new URL(url); return u.host || u.protocol.replace(':', ''); } catch { return ''; }
 }
 function timeAgo(sec) {
+  if (!Number.isFinite(sec) || sec <= 0) return ''; // no timestamp: say nothing rather than "20000 d ago"
   const s = Math.max(0, Date.now() / 1000 - sec);
   if (s < 60) return 'just now';
   if (s < 3600) return Math.round(s / 60) + ' min ago';
@@ -288,7 +289,10 @@ function renderCard(entry, index) {
     entry.url = urlOf(first);
     fav.src = favicon(entry.url);
     const title = s.tab ? (s.tab.title || hostOf(entry.url)) : `Window · ${s.window.tabs.length} tabs`;
-    head.append(fav, h('span', 'title', title), h('span', 'tag', timeAgo(s.lastModified)));
+    // Some entries (e.g. closed windows) come without lastModified: no time tag then.
+    const ago = timeAgo(s.lastModified);
+    head.append(fav, h('span', 'title', title));
+    if (ago) head.append(h('span', 'tag', ago));
     card.title = 'Reopen: ' + title + (s.tab ? '\n' + entry.url : '');
     card.append(head, thumbFor(entry, { label: 'Closed', sub: hostOf(entry.url), icon: ICON.history }));
   }
