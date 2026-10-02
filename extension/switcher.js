@@ -18,7 +18,7 @@
 //   - all page-provided text (titles, URLs) is rendered with textContent.
 
 import { MSG, FRAME_MSG, LIMITS, COFFEE_URL } from './lib/constants.js';
-import { getMru, getPreviews, getClosedLog, consumeLaunch } from './lib/store.js';
+import { getMru, getPreviews, getClosedLog, getSlept, consumeLaunch } from './lib/store.js';
 import { isOwnUrl, normalizeUrl, isWorthReopening } from './lib/ext.js';
 
 let CTX = null; // set once the launch token has been verified (see boot)
@@ -51,6 +51,7 @@ const state = {
   done: false,
   mouseReady: false,
   cardW: 320,      // current open-card width (px), set by render()
+  slept: new Set(), // ids of tabs we saw Chrome discard in this browser session
 };
 
 // ---------------------------------------------------------------- icons
@@ -86,10 +87,12 @@ function h(tag, cls, text) {
 
 // ------------------------------------------------------------------- data
 async function load() {
-  const [allTabs, mru] = await Promise.all([
+  const [allTabs, mru, slept] = await Promise.all([
     chrome.tabs.query({ windowType: 'normal' }),
     getMru(),
+    getSlept().catch(() => []),
   ]);
+  state.slept = new Set(slept);
   const tabs = allTabs.filter((t) => !isOwnUrl(urlOf(t)));
 
   const rank = new Map(mru.map((id, i) => [id, i]));
@@ -279,9 +282,11 @@ function thumbFor(entry, { label, sub, icon }) {
 }
 
 function renderCard(entry, index) {
-  // "Sleeping" is only for tabs Chrome has unloaded (tab.discarded, e.g. Memory
-  // Saver). They reload when opened. A tab with no preview is not asleep.
-  const asleep = entry.kind === 'tab' && entry.tab.discarded;
+  // "Sleeping" is only for tabs Chrome unloaded while we were watching (Memory Saver
+  // etc.): discarded now AND seen being discarded in this browser session. A tab that
+  // is merely discarded because Chrome restored it lazily after a restart is not
+  // sleeping: it shows its stored preview normally. Neither is a tab with no preview.
+  const asleep = entry.kind === 'tab' && !!entry.tab.discarded && state.slept.has(entry.tab.id);
   const card = h('div', 'card' + (entry.kind === 'closed' ? ' closed' : '') + (asleep ? ' asleep' : ''));
   card.id = 'opt-' + entry.key;
   card.setAttribute('role', 'option');

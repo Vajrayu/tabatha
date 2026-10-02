@@ -14,8 +14,11 @@ export const FRAME_MSG = Object.freeze({ LAUNCH: 'launch', READY: 'ready', CLOSE
 
 export const KEY = Object.freeze({
   MRU: 'mru',                 // number[] tab ids, most recent first
+  BOOT_AT: 'bootAt',          // storage.session: when this browser session started (set on onStartup)
+  PREVIEW_CLEAN: 'pvclean',   // storage.local: when preview cleanup last ran
+  SLEPT: 'slept',             // storage.session: number[] ids of tabs we saw Chrome discard in this browser session
   CLOSED_LOG: 'closedlog',    // storage.local: [{ url, title, favIconUrl, closedAt }] tabs closed in the last 7 days
-  PREVIEW_INDEX: 'pvidx',     // storage.local: { [normalizedUrl]: { t, n } } captured-at and size of each stored preview
+  PREVIEW_INDEX: 'pvidx',     // storage.local: { [normalizedUrl]: { t, n, s } } captured-at, size, and when an open tab last had this URL
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
   LAUNCH: 'launch',           // { token, t, ctx } one-time launch for the next switcher
 });
@@ -32,7 +35,10 @@ export const LIMITS = Object.freeze({
   THUMB_MAX: 560,               // px, longest side of a stored thumbnail
   MAX_PREVIEWS: 300,            // most previews kept on disk (storage.local)
   MAX_PREVIEW_BYTES: 6 * 1024 * 1024, // ...and in total, well under storage.local's 10 MB quota
-  PREVIEW_TTL_MS: 7 * 24 * 60 * 60 * 1000, // previews older than 7 days are deleted
+  PREVIEW_TTL_MS: 7 * 24 * 60 * 60 * 1000, // a preview no open tab uses is deleted 7 days after it was last captured or used
+  CLEANUP_EVERY_MS: 6 * 60 * 60 * 1000,    // preview cleanup runs at most this often (from the save path, no alarms permission)
+  CLEANUP_BOOT_DELAY_MS: 60 * 1000,        // ...and not in the first minute after browser start, while Chrome is still restoring tabs
+  MAX_SLEPT: 2000,              // most discarded-tab ids remembered
   MAX_URL_KEY: 2048,            // longer URLs are not used as preview keys
   CLOSED_LOG_TTL_MS: 7 * 24 * 60 * 60 * 1000, // our own closed-tab log keeps 7 days
   MAX_CLOSED_LOG: 200,          // ...and at most this many entries

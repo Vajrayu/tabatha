@@ -8,6 +8,19 @@ Ideas Yuvaraj proposed on 27 Sep 2026, right after 1.3.0 went into Chrome Web St
 - **Tabatha = never lose a tab.** Features should fit "find / switch / keep your tabs". Anything else is probably a separate extension.
 - **Don't add permissions casually.** `<all_urls>` already triggers the slow in-depth review. Every new permission adds install warnings and review time.
 
+## Order of work (set by Yuvaraj, 2 Oct 2026)
+1. **Ship 1.3.2.** Built and documented (`releases/v1.3.2/`); waiting on the store submission.
+2. **Store, then discoverability.** Submit 1.3.2 together with listing updates meant to rank better on the Chrome Web Store. After that, a **new website for Tabatha** for SEO and AEO (answer-engine) discoverability. *Priority only: not started, not designed.*
+3. **Then discuss the new feature ideas below.** The older list further down still applies to the items it names; where these new ideas rank against the stash is still to be decided.
+
+## New ideas (2 Oct 2026) and assessment
+Not built. Assessment is Claude's; items marked "not verified" need a quick test before relying on them.
+
+1. **"Power Search".** Chrome's address bar can't be extended for normal typing; only a keyword works (e.g. `tb` + Space) via the `omnibox` API, no new permission. Suggestions would come from open tabs plus the 7-day closed-tab list. Chrome reports which Enter was pressed (Ctrl/Cmd+Enter = background tab, Alt+Enter = foreground tab), so Ctrl+Enter = reopen a closed tab fits. Searching full browser history needs the `history` permission (install warning): avoid. **Open question:** did Yuvaraj mean Tabatha's own search box or Chrome's address bar?
+2. **Shortcut for "Switch to tab".** Only possible inside Tabatha or the keyword mode above; extensions can't add buttons to Chrome's own dropdown. In Tabatha, Enter on an open tab already switches. Shift+Tab is taken (moves selection backwards).
+3. **Tab groups as sections on top.** Needs the `tabGroups` permission (whether it adds an install warning: not verified; it does mean a slower review). Show group name + colour, ungrouped tabs below.
+4. **Move tabs between machines.** Phase 0 (no new permission, no server): read Chrome's own "tabs from other devices" list with `sessions.getDevices` and reopen with `sessions.restore` (not verified; needs two synced machines). Only works if both machines use the same Google account with sync on, which managed browser profiles often don't. Phase 1: export/import a tab set as a file or code, no server. Phase 2 (own cloud sync) breaks "nothing leaves the computer": not recommended. Anything that moves browsing data between machines must be explicit and opt-in, and is a privacy decision to make deliberately.
+
 ## Priority order
 1. **v1.4: Save window ("stash"). Build next, keep it free.**
 2. **Later: Search by what a page is about. Best idea, highest risk. Validate first.**

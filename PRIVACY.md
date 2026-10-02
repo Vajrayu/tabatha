@@ -1,6 +1,6 @@
 # Tabatha Privacy Policy
 
-_Last updated: 2 October 2026 (version 1.3.1). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
+_Last updated: 2 October 2026 (version 1.3.2). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
 
 Tabatha is a Chrome extension that shows previews of your open tabs when you press Alt+Q. This policy explains what it handles and what it doesn't. In short: **nothing ever leaves your computer.**
 
@@ -11,7 +11,7 @@ To work, Tabatha uses the following on your device:
 | Data | Why | Where it's kept | How long |
 |---|---|---|---|
 | **Title and address (URL) of each open tab**, plus the address of its site icon | To show and search them in the switcher, and to be able to list a tab after you close it | Read from Chrome when the switcher opens. A copy is kept in `chrome.storage.session`: in memory only, never written to disk | Until the tab closes or Chrome quits |
-| **Screenshots of tabs** (downscaled JPEG thumbnails, max 560 px), saved together with the page address (URL) they belong to | To show a preview of each tab, including after you restart Chrome | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Deleted automatically after 7 days, and the oldest are removed beyond 300 previews or about 6 MB. Uninstalling Tabatha deletes them. |
+| **Screenshots of tabs** (downscaled JPEG thumbnails, max 560 px), saved together with the page address (URL) they belong to | To show a preview of each tab, including after you restart Chrome | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Kept for as long as a tab with that page is open. After that, deleted 7 days after it was last captured or used. At most 300 previews / about 6 MB (previews of open tabs are removed last). Uninstalling Tabatha deletes them. |
 | **Order in which you used your tabs** (tab ID numbers only) | To list the most recently used tabs first | `chrome.storage.session` | Until Chrome quits |
 | **Recently closed tabs and windows** | To show them in "Recently closed" and reopen them | Read from Chrome's own recently-closed list when the switcher opens. Not stored by Tabatha (see the next row for its own list). | Only while the switcher is open |
 | **Tabs you closed: title, address (URL) and icon address**, and when you closed them | To find and reopen tabs beyond Chrome's own 25-item list, and to search them | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Deleted automatically after 7 days, at most 200 entries. Uninstalling Tabatha deletes them. |
@@ -58,8 +58,8 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 
 ## Changes to this policy (newest first)
 
-**2 October 2026 (1.3.1): tab previews are now saved on disk**
-- Changed: tab screenshots used to be kept in memory only and wiped when Chrome closed. They are now saved on your computer (`chrome.storage.local`, keyed by page address) so previews are still there after you restart Chrome. They are deleted after 7 days, capped at 300 previews / about 6 MB, and removed when you uninstall Tabatha.
+**2 October 2026 (1.3.2): tab previews and closed tabs are now saved on disk**
+- Changed: tab screenshots used to be kept in memory only and wiped when Chrome closed. They are now saved on your computer (`chrome.storage.local`, keyed by page address) so previews are still there after you restart Chrome. A preview is kept for as long as a tab with that page is open, and deleted 7 days after it was last captured or used once no open tab has it. They are capped at 300 previews / about 6 MB (previews of open tabs are removed last), and removed when you uninstall Tabatha.
 - Replaced: "It does **not** save anything to disk. Everything is gone when you close Chrome." and "Previews of closed tabs are deleted after 30 minutes." Both no longer apply.
 - Added: Tabatha now keeps its own list of the tabs you closed (title, address, icon address, time), saved on your computer for 7 days (up to 200), so you can search and reopen tabs that Chrome's own recently-closed list (25 items) has already forgotten. Tabs from Incognito windows are never recorded (Tabatha doesn't run there).
 - Unchanged: nothing is sent anywhere, there are no analytics, and no new permissions.

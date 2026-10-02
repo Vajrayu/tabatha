@@ -14,7 +14,8 @@
 
 import { MSG, FRAME_MSG, LIMITS, SWITCHER_PAGE, WINDOW_STATES, CLOSE_REASONS } from './lib/constants.js';
 import {
-  touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews,
+  touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews, markBoot,
+  markDiscarded, moveDiscarded, ensureBoot,
   rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
   setOverlayTab, clearOverlayTab, createLaunch,
 } from './lib/store.js';
@@ -28,6 +29,9 @@ const SWITCHER_URL = chrome.runtime.getURL(SWITCHER_PAGE);
 // postMessage target so the launch token can only ever reach our own frame.
 const EXT_REAL_ORIGIN = `chrome-extension://${chrome.runtime.id}`;
 const INJECTABLE = /^(https?|file):/;
+
+// First worker start of a browser session: remember when it began (see maybeCleanup in store.js).
+ensureBoot().catch(() => {});
 
 // ---------------------------------------------------------------- tab events
 chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
@@ -43,6 +47,8 @@ chrome.tabs.onCreated.addListener((tab) => { rememberTab(tab).catch(() => {}); }
 
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (info.url || info.title || info.favIconUrl) rememberTab(tab).catch(() => {});
+  // Chrome unloaded (or reloaded) this tab while we were running: that's a real "Sleeping" tab.
+  if (typeof info.discarded === 'boolean') markDiscarded(tabId, info.discarded).catch(() => {});
   if (info.status === 'complete' && tab.active) scheduleCapture(tab.windowId, 450);
 });
 
@@ -53,12 +59,14 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 // Chrome still holds the whole window as one "Window" card.
 chrome.tabs.onRemoved.addListener((tabId) => {
   removeFromMru(tabId);
+  markDiscarded(tabId, false).catch(() => {});
   logClosedTab(tabId).catch(() => {});
 });
 
 chrome.tabs.onReplaced.addListener((addedId, removedId) => {
   replaceInMru(removedId, addedId);
   forgetTabMeta(removedId).catch(() => {});
+  moveDiscarded(removedId, addedId).catch(() => {});
   chrome.tabs.get(addedId).then((t) => rememberTab(t)).catch(() => {});
 });
 
@@ -74,8 +82,11 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 });
 
 // ------------------------------------------------------------- setup (idempotent)
-async function setup() {
-  cleanupPreviews().catch(() => {}); // expire + cap the on-disk previews
+async function setup({ fresh = false } = {}) {
+  // After an install/update every tab already exists, so it's safe to expire old previews now.
+  // At browser start Chrome may still be restoring tabs (their previews must count as "in use"),
+  // so there the cleanup is left to the save path, which waits a minute (maybeCleanup in store.js).
+  if (fresh) cleanupPreviews().catch(() => {});
   cleanupClosedLog().catch(() => {}); // ...and the 7-day closed-tab log
   chrome.tabs.query({ windowType: 'normal' }).then(rememberTabs).catch(() => {}); // what each open tab is, for the log
   const active = await chrome.tabs.query({ active: true, windowType: 'normal' });
@@ -84,9 +95,12 @@ async function setup() {
   if (focused) scheduleCapture(focused.windowId, 200);
 }
 
-chrome.runtime.onStartup.addListener(setup);
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onStartup.addListener(async () => {
+  await markBoot().catch(() => {}); // start of a browser session: tab ids and the "slept" list are new
   await setup();
+});
+chrome.runtime.onInstalled.addListener(async () => {
+  await setup({ fresh: true });
   // Tabs that were open before install/reload don't have the content script
   // yet. hotkey.js guards itself, so injecting twice is harmless.
   const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*', 'file://*/*'] });

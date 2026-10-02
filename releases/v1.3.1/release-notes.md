@@ -11,13 +11,9 @@ _First update after launch, from early user feedback. No new permissions, no cha
 
 - **Buy Me a Coffee.** A small pixel-style button in the corner of the switcher opens buymeacoffee.com/vey9utb in a new tab. Nothing loads from that site until you click.
 
-- **Longer closed-tab history.** Tabatha keeps its own 7-day list of closed tabs (up to 200), so search finds tabs that Chrome's 25-item recently-closed list has forgotten. The default "Recently closed" row still shows only the last few hours.
-- **Previews survive restarts.** Tab previews are kept on disk for 7 days (up to 300 / about 6 MB), keyed by page address. This changes the privacy policy and the store's `storage` justification.
-
 ## Bug fixes
-- Closed windows (and any entry Chrome gives no time for) no longer show "20000 d ago" / "NaN d ago".
 - Mac: Option+W (window filter) no longer types "∑" into the search box, and keeps switching windows on every press.
-- "Sleeping" now means what it means in Chrome: the tab was unloaded (faded card, dashed ring round the icon). Awake tabs that haven't been captured yet say "No preview yet".
+- "Inactive" now means what it means in Chrome: the tab was unloaded by Memory Saver (faded card, dashed ring round the icon). Tabs that are running but haven't been captured yet say "No preview yet".
 - Alt+W (window filter) followed by letting go of Alt no longer switches to a tab by surprise.
 - Option/Alt + a key (e.g. Option+Shift+4 on a Mac) no longer types symbols into the search box.
 - Mac: the "delete" key is Backspace, so closing the selected tab is now Cmd+Backspace; the hint bar shows Mac keys (⌘⌫, ⌥W).
