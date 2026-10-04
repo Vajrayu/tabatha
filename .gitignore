@@ -5,3 +5,9 @@ tools/screenshots/out/
 
 # unzipped copies of a release zip (used for "Load unpacked" testing)
 releases/*/tabatha-*/
+
+# Raw screen recordings and finished videos: large, and the recordings show private details. Never commit.
+videos/*.mov
+videos/*.mp4
+# Gavency is a demo-licence font (personal use only). The video engine uses it locally; never publish it.
+video/assets/fonts/Gavency-*.woff2
