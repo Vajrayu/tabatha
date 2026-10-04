@@ -7,6 +7,7 @@ Everything to paste into the [Chrome Web Store Developer Dashboard](https://chro
 Only the text that changed is listed; the old wording is quoted so nothing is lost. The full 1.3.0 listing is also kept in `../v1.3.0/store-listing.md`.
 
 **1.3.2** (2 Oct 2026, update; amended 4 Oct before submission)
+- *Added on 4 Oct (night)*: the website (gettabatha.vercel.app), Help and Feedback links, a fifth tour step that ends with the promise to fix things. Store fields: **Homepage URL** and **Support URL** set (see Additional fields).
 - *Added on 4 Oct (later)*: **"Capture all previews"** button and a "why no preview" message (Description: new bullet and a longer answer to "Why does a tab have no preview?"; `tabs` justification extended). Test instructions rewritten again. Also a much shorter first-run tour.
 - *Added on 4 Oct*: **tab groups** (optional permission, saved groups survive closing a window), a **first-run tour**, a **review reminder**. Description: new bullets under WHAT YOU GET, one line under PRIVATE BY DESIGN, one question in QUESTIONS. Privacy tab: `storage` and `scripting` justifications changed again, new `tabGroups` (optional) justification, the host-permission justification no longer says "kept in memory only". Test instructions rewritten (old version: steps 1 to 6 about coffee and the popup window, 485 characters).
 - *Name and summary (they come from the manifest, so they change with the zip)*: was name "Tabatha" and summary "See live previews of all your tabs with Alt+Q. Search, jump between windows and reopen recently closed tabs." → name "Tabatha: Visual Tab Switcher with Live Previews", summary "Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer." (store ranking: relevant words in the name and summary).
@@ -84,6 +85,7 @@ WHAT YOU GET
 • Capture all previews: Chrome only lets extensions screenshot the tab on screen, so a tab you haven't looked at has no preview yet. One click flips through your open tabs for a few seconds, captures each, skips sleeping tabs, and puts you back where you were.
 • Tab groups (optional): your Chrome tab groups appear as sections, with their names and colours. Close a group, or its whole window, and Tabatha keeps it under "Saved tab groups" until you remove it; Enter brings it back as a real tab group. Turn it on from the footer: Chrome then asks for one extra permission.
 • A short tour the first time you open Tabatha, and a "How it works" button whenever you want it again.
+• Help when you need it: the manual, answers and a feedback form at https://gettabatha.vercel.app (links in the switcher's footer).
 • Free, with a small Buy Me a Coffee button in the corner if you want to say thanks.
 • Works everywhere: on pages extensions can't draw on (New Tab, Chrome settings, the Web Store) Tabatha opens in its own small window instead.
 
@@ -146,9 +148,9 @@ All screenshots use made-up websites (Northwind Docs, Mailpost, Stackboard and s
 ### Additional fields
 | Field | Value |
 |---|---|
-| Official URL | leave as *None* (needs a verified domain) |
-| Homepage URL | `https://github.com/Vajrayu/tabatha` |
-| Support URL | `https://github.com/Vajrayu/tabatha/issues` |
+| Official URL | leave as *None* (needs a domain verified in Search Console; a vercel.app subdomain can be verified with an HTML file later) |
+| Homepage URL | `https://gettabatha.vercel.app` (was the GitHub repo) |
+| Support URL | `https://gettabatha.vercel.app/help` (was GitHub issues) |
 | Mature content | No |
 
 ---

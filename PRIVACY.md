@@ -30,7 +30,7 @@ The shortcut listener that runs on web pages only checks whether you pressed Alt
 
 - It does **not** send any data anywhere. The extension has no server, and its security policy (`connect-src 'none'`) blocks all network requests.
 - The switcher has an optional **Buy Me a Coffee** button. Only if you click it, Chrome opens buymeacoffee.com in a new tab, like any link. Tabatha sends nothing to that site and loads nothing from it before you click.
-- The review reminder has a **Review** button and a **Send feedback** button. Only if you click one, Chrome opens the Chrome Web Store, or a new GitHub issue (public, with the text you typed filled in so you can edit it before posting), in a new tab. Tabatha itself sends nothing.
+- The switcher has **Help** and **Feedback** links, and the review reminder has a **Review** button and a **Tell me what to fix** button. Only if you click one, Chrome opens the Tabatha website (gettabatha.vercel.app) or the Chrome Web Store in a new tab. The Feedback link tells the website only that you came from the extension and which version it is. Tabatha itself sends nothing. What you choose to type into the website's feedback form is covered by the website's privacy page.
 - **Capture all previews** is a button you press. Tabatha then shows each of your tabs for a moment to take its screenshot, skips tabs Chrome has put to sleep, and puts you back on your tabs. The screenshots are stored as described above and go nowhere.
 - It does **not** use analytics, tracking, advertising or third-party code.
 - It does **not** sell, share or transfer your data to anyone.
@@ -69,7 +69,8 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 
 **4 October 2026 (1.3.2, still being submitted): tab groups, welcome tour, review reminder and "Capture all previews"**
 - Added: **saved tab groups**. If you switch on tab groups, Tabatha keeps a copy of each tab group's name, colour and tabs (title and address) on your computer until you remove it, so a group survives its window being closed. This uses a new *optional* permission, `tabGroups`, which is only requested when you click "Turn on tab groups".
-- Added: a **review reminder** and a **first-run tour**. They use small counters and flags kept on your computer (see the table). The review reminder's buttons open the Chrome Web Store or a GitHub issue only when you click them.
+- Added: a **review reminder** and a **first-run tour**. They use small counters and flags kept on your computer (see the table). The review reminder's buttons open the Chrome Web Store or the website's feedback page only when you click them.
+- Added: Help and Feedback links to the Tabatha website (gettabatha.vercel.app); they open only when clicked.
 - Added: a one-time "Press Alt+Q" notice shown on a web page right after install.
 - Added: a **"Capture all previews"** button, and a message in the switcher when Chrome is limiting Tabatha's site access or a screenshot fails. The message uses the outcome of the last preview attempt, kept in memory only (see the table).
 - Unchanged: nothing is sent anywhere by Tabatha, there are no analytics, and no required permission was added.

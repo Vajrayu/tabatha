@@ -6,6 +6,8 @@ The text to paste is in `store-listing.md` in this folder.
 > If 1.3.1 was never submitted, this checklist still works on its own: the Description and `storage` text below include everything from 1.3.1. Also upload the 1.3.1 screenshots from `../v1.3.1/store-assets/` (see `../v1.3.1/UPDATE-CHECKLIST.md`).
 
 ## Before you open the dashboard
+- [ ] **The website is live at https://gettabatha.vercel.app**, with the feedback form working (the extension links to it, and the reviewer may click it).
+- [ ] The product Gmail exists, and is set as the contact email in the dashboard (Account) and in the site (`contactEmail`).
 - [ ] The updated `PRIVACY.md` is pushed to GitHub. The Privacy tab links to it there, and it now says previews are kept while a tab is open.
 - [ ] Windows check from `../v1.3.1/audit.md` (tap Alt+Q stays open on Windows), if not done yet.
 
@@ -18,7 +20,8 @@ The text to paste is in `store-listing.md` in this folder.
   - "Sleeping tabs": only tabs Chrome put to sleep while you browse are Sleeping; after a restart tabs keep their saved preview
   - "Private by design": previews are kept while the tab is open, and 7 days after you close it; saved tab groups stay until you remove them
   - New bullets under WHAT YOU GET: Capture all previews, Tab groups (optional) and the first-run tour; one new question about the optional permission; "Why does a tab have no preview?" now mentions the button and Site access
-- Screenshots, promo tiles, category, URLs: **unchanged**. (Name and summary change via the zip; see step 1.)
+- [ ] **Homepage URL** → `https://gettabatha.vercel.app`, **Support URL** → `https://gettabatha.vercel.app/help` (Store listing → Additional fields).
+- Screenshots, promo tiles, category: **unchanged** (your demo video can be added any time later). (Name and summary change via the zip; see step 1.)
 
 ## 3. Privacy
 - [ ] **`tabs` permission justification: replace** (adds the Capture-all-previews tab visits).

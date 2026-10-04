@@ -4,6 +4,9 @@
 
 ![Tabatha showing previews of open tabs](releases/v1.3.0/store-assets/screenshots/raw-01-overview.png)
 
+## Website
+https://gettabatha.vercel.app: the manual, help, changelog and a feedback form (source: `tabatha-site`).
+
 ## Store
 https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_source=item-share-cb
 

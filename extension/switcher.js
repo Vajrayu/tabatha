@@ -17,7 +17,7 @@
 //     action keys close it instead of acting on something you can't see;
 //   - all page-provided text (titles, URLs) is rendered with textContent.
 
-import { MSG, FRAME_MSG, LIMITS, COFFEE_URL, REVIEW_URL, FEEDBACK_URL } from './lib/constants.js';
+import { MSG, FRAME_MSG, LIMITS, COFFEE_URL, REVIEW_URL, FEEDBACK_URL, HELP_URL, SHOW_COFFEE } from './lib/constants.js';
 import { ybit } from './lib/ybit.js';
 import { getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, getReview, updateReview, getOnboard, updateOnboard, getCaptureNote } from './lib/store.js';
 import { reviewPrompt } from './lib/review.js';
@@ -34,7 +34,7 @@ const el = {
   closedSection: $('closed-section'), closedGrid: $('closed-grid'),
   winHint: $('hint-win'), coffee: $('coffee'),
   savedSection: $('saved-section'), savedGrid: $('saved-grid'),
-  feedbackBtn: $('feedback-btn'), tourBtn: $('tour-btn'), groupsBtn: $('groups-btn'), sweepBtn: $('sweep-btn'),
+  feedbackBtn: $('feedback-btn'), helpBtn: $('help-btn'), tourBtn: $('tour-btn'), groupsBtn: $('groups-btn'), sweepBtn: $('sweep-btn'),
   alert: $('alert'), alertText: $('alert-text'), alertBtn: $('alert-btn'),
   soft: $('soft'), modal: $('modal'), dialog: $('dialog'),
 };
@@ -713,7 +713,8 @@ function tourStep(i) {
   const row = h('div', 'row');
   row.append(dots, h('span', 'grow'));
   if (step.title === 'Tab groups' && !state.groupsOn) row.append(button('Turn on', '', enableGroups));
-  if (last && FEEDBACK_URL) row.append(button('Tell me', '', () => openUrl(FEEDBACK_URL)));
+  if (last && FEEDBACK_URL) // Save first: opening the tab can close the switcher (and cut off an unfinished write).
+  row.append(button('Tell me', '', async () => { await updateOnboard({ tour: true, flyout: true }).catch(() => {}); openUrl(FEEDBACK_URL); }));
   if (tourAt > 0) row.append(button('Back', 'quiet', () => tourStep(tourAt - 1)));
   if (!last) row.append(button('Skip', 'quiet', endTour));
   row.append(button(last ? 'Done' : 'Next', 'primary', () => (last ? endTour() : tourStep(tourAt + 1))));
@@ -977,6 +978,7 @@ function listen() {
     chrome.runtime.sendMessage({ type: MSG.SWEEP }).catch(() => {});
     finish('switch');
   });
+  el.helpBtn.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) openUrl(HELP_URL); });
   el.feedbackBtn.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed() && FEEDBACK_URL) openUrl(FEEDBACK_URL); });
   el.tourBtn.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) tourStep(0); });
   el.groupsBtn.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) enableGroups(); });
@@ -1041,6 +1043,7 @@ function getLaunch() {
   CTX = await getLaunch();
   if (!CTX) return;
   document.documentElement.classList.add(CTX.mode);
+  el.coffee.hidden = !SHOW_COFFEE;
   if (IS_MAC) {
     document.querySelectorAll('kbd[data-mac]').forEach((k) => { k.textContent = k.dataset.mac; });
   }

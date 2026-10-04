@@ -90,9 +90,13 @@ export const REVIEW = Object.freeze({
 });
 
 export const REVIEW_URL = 'https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk/reviews';
-// Where "Send feedback" goes. Empty until the website's feedback form exists (1.3.3): while empty, no feedback
-// button or tour step is shown. (The interim idea, a public GitHub issue, was declined.)
-export const FEEDBACK_URL = '';
+// The website (gettabatha.vercel.app). Links only: the extension never sends anything there itself.
+export const SITE_URL = 'https://gettabatha.vercel.app';
+export const HELP_URL = SITE_URL + '/manual';
+// "Send feedback" opens the site's feedback form; `from` and the version are prefilled from the URL.
+export const FEEDBACK_URL = SITE_URL + '/feedback?from=extension&v=' + chrome.runtime.getManifest().version;
+// One switch for the Buy Me a Coffee button.
+export const SHOW_COFFEE = true;
 
 export const SWITCHER_PAGE = 'switcher.html';
 export const SWEEP_PAGE = 'sweep.html';
