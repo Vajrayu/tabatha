@@ -69,7 +69,7 @@ music = np.zeros(N); sfx = np.zeros(N); kicks = np.zeros(N)
 
 # ---------------- structure (seconds)
 HOOK = [0.0, 0.25, 0.5, 0.75, 1.0]          # five words
-PROD, F1, F2, F3, MET, END = 1.5, 3.0, 4.5, 6.0, 7.5, 8.75
+PROD, F1, F2, END = 1.5, 3.0, 5.5, 8.0   # two features held 2.5 s each; hook + end card timing unchanged
 prog = [(53, [65, 68, 72]), (49, [65, 68, 73]), (56, [63, 68, 72]), (51, [63, 67, 70])]   # Fm Db Ab Eb (roots as MIDI bass)
 
 # Hook: stabs on each word, rising pitch
@@ -81,7 +81,7 @@ place(sfx, whoosh(0.5, True), 1.0, 0.9)
 # Groove from PROD to END (four on the floor)
 for b in range(int(PROD / B), int(END / B)):
     at = b * B
-    place(kicks, kick(at in (PROD, F1, MET)), at)
+    place(kicks, kick(at in (PROD, F1, F2)), at)
     if b % 2 == 1: place(music, snare(), at, 0.55)
     place(music, hat(True), at + B / 2, 0.8)
     for s in range(4): place(music, hat(), at + s * B / 4, 0.6)
@@ -93,26 +93,21 @@ for b in range(int(PROD / B), int(END / B)):
 # metric section: drop the hats for the first beat (space), keep kick
 # ending: big chord + tail
 place(kicks, kick(True), END)
-place(music, pad([65, 68, 72, 77], 1.25), END, 1.4)
-place(music, bass(41, 1.25), END, 1.0)
+place(music, pad([65, 68, 72, 77], DUR - END), END, 1.4)
+place(music, bass(41, DUR - END), END, 1.0)
 for i, n in enumerate([77, 80, 84, 89]): place(music, pluck(n, 0.3, 0.125), END + 0.25 + i * 0.125, 1.2)
 
 # ---------------- SFX on the grid
 place(sfx, whoosh(0.25, False), PROD - 0.02, 0.8)
 place(sfx, key(), 1.875); place(sfx, key(), 2.0, 1.2)                  # Alt, Q
 for i, at in enumerate([2.125, 2.25, 2.375, 2.5, 2.625, 2.75]): place(sfx, tick(84 + i * 2), at)
-for at in (3.25, 3.5, 3.75): place(sfx, key(), at, 1.1)                 # Q taps (cycle)
+for at in (3.5, 4.0, 4.5): place(sfx, key(), at, 1.1)                    # Q taps (cycle)
 place(sfx, whoosh(0.4, False), F1 - 0.05, 0.6)
 place(sfx, click(), F2)                                                 # click search
-for at in (4.75, 4.875, 5.0, 5.125, 5.25): place(sfx, key(), at, 0.8)   # n o r t h
-place(sfx, whoosh(0.4, False), 5.5, 0.5)
-place(sfx, click(), F3)                                                 # Window 2 chip
-place(sfx, whoosh(0.5, False), 6.5, 0.5)
-place(sfx, whoosh(0.5, True), MET - 0.5, 0.9)
-for at in (7.625, 7.75, 8.0): place(sfx, key(), at, 0.8)
-place(sfx, click(), 8.25, 0.8)
+for at in (6.0, 6.25, 6.5, 6.75, 7.0): place(sfx, key(), at, 0.8)       # n o r t h
+place(sfx, whoosh(0.4, False), 7.25, 0.5)                               # pull back to the results
 place(sfx, whoosh(0.5, True), END - 0.5, 0.7)
-place(sfx, click(), 9.5, 1.2)                                           # Add to Chrome
+place(sfx, click(), END + 0.75, 1.2)                                    # Add to Chrome
 
 mix = lp(music, 12000) + kicks * 0.9 + sfx
 mix[-int(SR * 0.4):] *= np.linspace(1, 0, int(SR * 0.4)) ** 2
