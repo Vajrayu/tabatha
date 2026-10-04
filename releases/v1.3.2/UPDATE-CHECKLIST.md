@@ -10,13 +10,14 @@ The text to paste is in `store-listing.md` in this folder.
 - [ ] Windows check from `../v1.3.1/audit.md` (tap Alt+Q stays open on Windows), if not done yet.
 
 ## 1. Package
-- [ ] **Upload new package** → `tabatha-1.3.2.zip` (this folder). The dashboard should then show version **1.3.2**.
+- [ ] **Upload new package** → `tabatha-1.3.2.zip` (this folder). The dashboard should then show version **1.3.2**, name **Tabatha: Visual Tab Switcher with Live Previews** and the new summary (both come from the zip: check them on the Store listing tab).
 
 ## 2. Store listing
 - [ ] **Description**: replace with the Description block in `store-listing.md`. Changed lines:
+  - New opening paragraph (problem-led, with the words tab switcher, tab manager and Alt+Tab) and a new QUESTIONS section; "FEATURES" is now "WHAT YOU GET"
   - "Sleeping tabs": only tabs Chrome put to sleep while you browse are Sleeping; after a restart tabs keep their saved preview
   - "Private by design": previews are kept while the tab is open, and 7 days after you close it
-- Screenshots, promo tiles, summary, category, URLs: **unchanged**.
+- Screenshots, promo tiles, category, URLs: **unchanged**. (Name and summary change via the zip; see step 1.)
 
 ## 3. Privacy
 - [ ] **`storage` permission justification: replace** with the new text in `store-listing.md` (previews are kept while a tab with that page is open, otherwise 7 days).

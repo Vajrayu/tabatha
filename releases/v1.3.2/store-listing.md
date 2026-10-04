@@ -7,6 +7,8 @@ Everything to paste into the [Chrome Web Store Developer Dashboard](https://chro
 Only the text that changed is listed; the old wording is quoted so nothing is lost. The full 1.3.0 listing is also kept in `../v1.3.0/store-listing.md`.
 
 **1.3.2** (2 Oct 2026, update)
+- *Name and summary (they come from the manifest, so they change with the zip)*: was name "Tabatha" and summary "See live previews of all your tabs with Alt+Q. Search, jump between windows and reopen recently closed tabs." → name "Tabatha: Visual Tab Switcher with Live Previews", summary "Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer." (store ranking: relevant words in the name and summary).
+- *Description*: new problem-led opening ("Too many tabs?" plus the words tab switcher, tab manager, Alt+Tab), "FEATURES" renamed "WHAT YOU GET", and a new QUESTIONS section; the rest is unchanged.
 - *Sleeping tabs*: was "Sleeping tabs: tabs Chrome has unloaded to save memory are marked Sleeping. Awake tabs Tabatha can't screenshot yet say No preview yet." Now only tabs Chrome put to sleep while you browse are Sleeping, and tabs keep their saved preview after a restart.
 - *Search / Recently closed*: now "tabs you closed in the last 7 days" (Tabatha keeps its own 7-day list of closed tabs, up to 200, so search goes beyond Chrome's 25-item list).
 - *Private by design*: was "They are stored in memory only, never written to disk, and wiped when you close Chrome." (1.3.0 and 1.3.1) → previews are saved on disk: kept while a tab with that page is open, and 7 days after; plus a bullet about the 7-day closed-tab list.
@@ -51,28 +53,26 @@ Upload `tabatha-1.3.2.zip`. The dashboard reads name, version (1.3.2), descripti
 
 ## 2. Store listing tab
 
-### Title (from manifest)
+### Title (from manifest, 75 characters max; this one is 47)
 ```
-Tabatha
+Tabatha: Visual Tab Switcher with Live Previews
 ```
 
-### Summary (from manifest, 132 characters max; this one is 108)
+### Summary (from manifest, 132 characters max; this one is 125)
 ```
-See live previews of all your tabs with Alt+Q. Search, jump between windows and reopen recently closed tabs.
+Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer.
 ```
 
 ### Description (plain text; the store does not render Markdown)
 ```
-Tabatha is Alt+Tab for your browser tabs.
-
-Press Alt+Q and every open tab appears as a live preview, so you can find the one you want by what it looks like, not by squinting at a row of tiny favicons.
+Too many tabs? Tabatha is a visual tab switcher for Chrome. Press Alt+Q to see live previews of every open tab, search across all your windows and reopen the tabs you just closed. It's Alt+Tab for your browser tabs, and a simple tab manager that never sends your tabs anywhere.
 
 HOW IT WORKS
 • Tap Alt+Q and Tabatha stays open. No need to keep holding anything: use the arrow keys, type to search, or click with the mouse. Enter opens a tab, Esc or a click outside closes Tabatha.
 • Prefer Alt+Tab style? Hold Alt and tap Q again to move through your tabs, most recently used first, then let go to jump.
 • Alt+Shift+Q moves backwards.
 
-FEATURES
+WHAT YOU GET
 • Live previews: see a screenshot of each tab, not just its title.
 • Search: start typing to filter open tabs and tabs you closed in the last 7 days, by title or address.
 • All your windows: tabs from every Chrome window in one view, each labelled with its site and window. Press Alt+W (or click a window chip) to narrow it to one window.
@@ -103,6 +103,12 @@ PRIVATE BY DESIGN
 
 WHY IT ASKS FOR ACCESS TO ALL SITES
 Chrome can only take a screenshot of a tab, and show the switcher on top of a page, if the extension has access to that site. Tabatha uses that access only to capture the preview and draw the switcher. It never reads or changes what's on the page.
+
+QUESTIONS
+- Does Tabatha send my tabs or screenshots anywhere? No. Everything stays on your computer, and the extension is blocked from making network requests.
+- Why does a tab have no preview? Chrome only lets extensions screenshot the tab that is on screen, so a tab gets its preview the first time you look at it.
+- How do I change the Alt+Q shortcut? Open chrome://extensions/shortcuts.
+- Does it work on a Mac? Yes. Alt is the Option key.
 
 Open source: https://github.com/Vajrayu/tabatha
 ```
