@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Design tokens. The single source of truth for colour, type, space and the
+   pixel look. Documented (with examples) at /design-system and in
+   docs/design-system.md. Components use these variables, never raw values.
+   ========================================================================== */
+
+/* Gavency (demo files; the full licence adds digits and punctuation). Italic is the
+   heading face. Condensed is only for the big intro title. */
+@font-face { font-family: 'Gavency'; src: url('/fonts/Gavency-Italic.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Gavency Condensed'; src: url('/fonts/Gavency-Condensed.woff2') format('woff2'); font-display: swap; }
+
+:root {
+  /* ---- colour: core */
+  --ink: #1B2A4A;      /* text, pixel borders, shadows */
+  --ink-2: #31446B;    /* secondary text */
+  --cream: #FFF8E7;    /* panels */
+  --white: #FFFFFF;
+  --sun: #FFD166; --sun-2: #FFC337; --sun-3: #FFB60D;   /* primary buttons, highlights */
+  --sky-3: #BFE5FF; --sky-4: #E8F6FF;                   /* quiet fills */
+  --grass: #5DB35A; --grass-2: #3E8E41;
+  --earth: #7A4E2D; --earth-2: #5E3A20;
+  /* ---- colour: accents (tags and small art only) */
+  --coral: #FF7A59; --pink: #FF9EC7; --mint: #6BCB77; --lilac: #B69CFF; --grey: #E4E0D6;
+  /* ---- colour: special purpose */
+  --signal: #FF2E88;   /* only the "You" cursor tag */
+  --plastic: #D6CCB4; --plastic-hi: #EFE8D5; --plastic-lo: #ADA186; --plastic-edge: #6F6552; /* the monitor bezel */
+  /* sky bands, top to bottom (redefined for night below) */
+  --s1: #2F7FE0; --s2: #3E8DE9; --s3: #529CEF; --s4: #6BADF4; --s5: #88C1F8; --s6: #A8D4FB; --s7: #C3E4FD;
+  --on-sky: #FFFFFF;
+
+  /* ---- type: families */
+  --font-head: 'Gavency', 'Instrument Serif', Georgia, serif;
+  --font-title: 'Gavency Condensed', 'Gavency', Georgia, serif;
+  --font-body: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-verse: 'Instrument Serif', Georgia, serif;   /* poems only */
+
+  /* ---- type: scale. Fluid between a 360px phone and a 1920px monitor, then capped.
+     Roughly a 1.25 ratio at desktop: 14 / 17 / 20 / 30 / 50 / 84 */
+  --fs-display: clamp(44px, 2.6vw + 34px, 84px);
+  --fs-h2: clamp(32px, 1.4vw + 26px, 52px);
+  --fs-h3: clamp(24px, 0.5vw + 21px, 30px);
+  --fs-lede: clamp(17px, 0.2vw + 16px, 20px);
+  --fs-body: clamp(15.5px, 0.1vw + 15.2px, 17px);
+  --fs-small: 14px;
+  --fs-tag: 11px;
+  --lh-tight: 1.02; --lh-body: 1.6; --lh-lede: 1.5;
+
+  /* ---- space: a 4px grid */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
+  --section-y: clamp(48px, 3vw + 32px, 88px);  /* vertical padding of home sections */
+  --gutter: clamp(16px, 3vw, 40px);            /* page side margin */
+
+  /* ---- layout */
+  --wrap: 1200px;
+  --read: 68ch;   /* max line length for paragraphs */
+
+  /* ---- the pixel look */
+  --px: 3px;      /* border thickness */
+  --sh: 4px;      /* hard shadow */
+  --step: steps(5);                   /* the only motion ease for sprite-like movement */
+  --dither-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Cg fill='white'%3E%3Crect x='0' y='0' width='4' height='4'/%3E%3Crect x='4' y='4' width='4' height='4'/%3E%3Crect x='12' y='4' width='4' height='4'/%3E%3Crect x='0' y='8' width='12' height='4'/%3E%3Crect x='0' y='12' width='16' height='4'/%3E%3C/g%3E%3C/svg%3E");
+  --band-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' shape-rendering='crispEdges'%3E%3Cg fill='white'%3E%3Crect x='8' y='0' width='8' height='8'/%3E%3Crect x='0' y='8' width='8' height='8'/%3E%3Crect x='16' y='8' width='8' height='8'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* ---- the monitor bezel (sides/top, bottom) */
+  --bz: 14px; --bz-b: 28px;
+
+  /* ---- stacking order */
+  --z-alt: 30; --z-nav: 40; --z-pet: 50; --z-splash: 80; --z-bezel: 90; --z-cursor: 100;
+
+  color-scheme: light;
+}
+@media (min-width: 1800px) { :root { --wrap: 1360px; --bz: 18px; --bz-b: 34px; } }
+@media (max-width: 700px) { :root { --bz: 6px; --bz-b: 10px; } }
+
+:root[data-time='night'] {
+  --s1: #0B1230; --s2: #111A40; --s3: #18244F; --s4: #20305F; --s5: #2A3D70; --s6: #354B80; --s7: #41598E;
+}
