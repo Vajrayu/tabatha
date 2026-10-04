@@ -82,7 +82,18 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 });
 
 // ------------------------------------------------------------- setup (idempotent)
+// If Chrome left the shortcut unassigned (another extension or app owns it, or a policy
+// blocks it), say so in the worker console instead of failing silently.
+async function checkShortcut() {
+  try {
+    const cmds = await chrome.commands.getAll();
+    const main = cmds.find((c) => c.name === 'open-switcher');
+    if (!main || !main.shortcut) console.warn('[Tabatha] The Alt+Q shortcut is not assigned. Set it at chrome://extensions/shortcuts (the in-page Alt+Q fallback still works on web pages).');
+  } catch {}
+}
+
 async function setup({ fresh = false } = {}) {
+  checkShortcut();
   // After an install/update every tab already exists, so it's safe to expire old previews now.
   // At browser start Chrome may still be restoring tabs (their previews must count as "in use"),
   // so there the cleanup is left to the save path, which waits a minute (maybeCleanup in store.js).
@@ -303,6 +314,13 @@ async function restoreWindow(windowId, state) {
 }
 
 // --------------------------------------------------------------- entry points
+// MV3 note: this worker is not persistent; Chrome stops it when idle and starts it again for
+// an event. Keep every listener registered at the top level, synchronously (nothing awaited
+// before it), or the event that woke the worker can be missed. If a user reports "Alt+Q
+// does nothing until I click the toolbar icon": (1) is the shortcut assigned? (checkShortcut
+// logs a warning, and chrome://extensions/shortcuts shows it); (2) managed browsers can
+// restrict extension shortcuts by policy; (3) hotkey.js is the fallback and retries once
+// (see send() there). A keep-alive alarm would need the `alarms` permission: last resort.
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command === 'open-switcher') trigger(1, tab);
   else if (command === 'open-switcher-reverse') trigger(-1, tab);

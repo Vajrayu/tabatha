@@ -22,7 +22,18 @@
     if (!alive()) { window.removeEventListener('keydown', onKey, true); return; }
     e.preventDefault();
     e.stopImmediatePropagation();
-    chrome.runtime.sendMessage({ type: HOTKEY, dir: e.shiftKey ? -1 : 1 }).catch(() => {});
+    send(e.shiftKey ? -1 : 1);
+  }
+
+  // The service worker can be asleep or still starting when the key is pressed. Sending a
+  // message normally wakes it, but if it isn't listening yet the call is rejected, and a
+  // silently swallowed rejection looks like "Alt+Q does nothing". So retry once after a
+  // moment, by which time the worker has woken.
+  function send(dir) {
+    const msg = { type: HOTKEY, dir };
+    chrome.runtime.sendMessage(msg).catch(() => new Promise((r) => setTimeout(r, 50))
+      .then(() => { if (alive()) return chrome.runtime.sendMessage(msg); })
+      .catch(() => {}));
   }
 
   window.addEventListener('keydown', onKey, true);
