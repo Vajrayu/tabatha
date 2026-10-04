@@ -1,7 +1,7 @@
 # Tabatha showreel (10 s, 120 BPM)
 
 A motion-graphics video for Tabatha 1.3.2, styled with the yuvsualy design system.
-Final renders: `out/tabatha-1080x1920.mp4` (9:16) and `out/tabatha-1080x1080.mp4` (1:1), 60 fps, H.264 yuv420p CRF 16, score at -14 LUFS.
+Final renders: `out/tabatha-1080x1920.mp4` (9:16), `out/tabatha-1080x1080.mp4` (1:1) and `out/tabatha-1920x1080.mp4` (16:9), 60 fps, H.264 yuv420p CRF 16, score at -14 LUFS.
 
 ## The engine
 `index.html` is a single 1080-wide canvas. Every frame is a pure function of time: `window.seek(t)` paints frame t.
@@ -15,8 +15,9 @@ into one (`tmix`, real motion blur), writes `out/silent-WxH.mp4`, then muxes `au
     npm install                                 # Playwright
     node render.mjs                             # 1080x1920, --fps 60 --dur 10 --sub 4
     node render.mjs --w 1080 --h 1080           # the square, same SCENES
+    node render.mjs --w 1920 --h 1080           # 16:9: captions in a left column, switcher on the right
     node render.mjs --sheet                     # contact sheet, one frame per beat
-    npm run render                              # both formats
+    npm run render                              # all three formats
 
 ## Files
 - `assets/`        real captures of the 1.3.2 switcher (`ui/portrait`, `ui/landscape` + element rects), logo, store shots, yuvsualy tokens/icons/cursor, fonts. See `assets/ASSETS.md`.

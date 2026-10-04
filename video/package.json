@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "render": "node render.mjs && node render.mjs --w 1080 --h 1080",
-    "sheet": "node render.mjs --sheet && node render.mjs --w 1080 --h 1080 --sheet"
+    "render": "node render.mjs && node render.mjs --w 1080 --h 1080 && node render.mjs --w 1920 --h 1080",
+    "sheet": "node render.mjs --sheet && node render.mjs --w 1080 --h 1080 --sheet && node render.mjs --w 1920 --h 1080 --sheet"
   },
   "devDependencies": { "playwright": "^1.48.0" }
 }

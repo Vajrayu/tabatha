@@ -74,9 +74,9 @@ const inkBox = (s, f) => { g.font = f; const m = g.measureText(s); return { w: m
 function withT(x, y, s, r, fn) { g.save(); g.translate(x, y); if (r) g.rotate(r * Math.PI / 180); if (s !== 1) g.scale(s, s); fn(); g.restore(); }
 
 // ------------------------------------------------------------------ format, data, timeline
-const TALL = H > W * 1.3, SET = TALL ? 'portrait' : 'landscape';
+const TALL = H > W * 1.3, WIDE = W > H * 1.3, SET = TALL ? 'portrait' : 'landscape';
 const CW = TALL ? 960 : 1280, CH = TALL ? 1280 : 800;             // capture viewport (CSS px), PNGs at the same size
-const S = W / 1080;
+const S = Math.min(W, H) / 1080;                                 // layout units: 1080 on the short side
 const B = DATA.beats.beat, gb = (n) => DATA.beats.phase + n * B;   // gb(n): time of beat n on the measured grid
 const R = DATA[SET];
 const ov = R['10-overview'];
@@ -91,6 +91,15 @@ const L = TALL ? {
   met: [ { w: 'EIGHTEEN', y: 420, size: 300 }, { w: 'HOURS', y: 720, size: 300 }, { w: 'A YEAR', y: 1020, size: 300 }, { w: 'BACK', y: 1350, size: 340, panel: true } ],
   metTagY: 1650,
   end: { logoY: 470, logo: 256, wordY: 840, wordSize: 210, subY: 1010, subFont: 44, btnY: 1220, btnFont: 54, pressY: 1480, pressFont: 44, pressH: 86, urlY: 1640, urlFont: 28 },
+} : WIDE ? {                                                         // 16:9: captions in a left column, the switcher on the right
+  ui: { x: 800, y: 214, w: 1050 }, clipX: 780, capX: 380, capY: 360, capSize: 84, tagY: 530, tagFont: 26,
+  keys: { y: 935, h: 128, font: 62, gap: 30, x: 390 },
+  hook: [ { w: 'WHERE', y: 300, size: 320 }, { w: 'DID', y: 300, size: 320 }, { w: 'THAT', y: 300, size: 320 },
+          { w: 'TAB', y: 690, size: 360, panel: true, gap: 90 }, { w: 'GO?', y: 690, size: 340 } ],
+  pile: { y0: 820, y1: 1070 }, chipFont: 22,
+  met: [ { w: 'EIGHTEEN', y: 290, size: 300 }, { w: 'HOURS', y: 290, size: 300 }, { w: 'A YEAR', y: 640, size: 300 }, { w: 'BACK', y: 640, size: 280, panel: true } ],
+  metTagY: 900,
+  end: { logoY: 190, logo: 210, wordY: 440, wordSize: 220, subY: 590, subFont: 44, btnY: 700, btnFont: 56, pressY: 880, pressFont: 42, pressH: 84, urlY: 1000, urlFont: 28 },
 } : {
   ui: { x: 40, y: 300, w: 1000 }, capY: 70, capSize: 96, tagY: 228, tagFont: 24,
   keys: { y: 935, h: 128, font: 62, gap: 30 },
@@ -102,7 +111,8 @@ const L = TALL ? {
   end: { logoY: 230, logo: 192, wordY: 480, wordSize: 170, subY: 615, subFont: 36, btnY: 760, btnFont: 46, pressY: 930, pressFont: 36, pressH: 72, urlY: 1030, urlFont: 24 },
 };
 const U = L.ui, s0 = U.w / CW, E = L.end;
-const CLIPY = (TALL ? 400 : 270) * S;
+const CLIPY = (TALL ? 400 : WIDE ? 0 : 270) * S, CLIPX = (L.clipX || 0) * S;
+const CAPX = L.capX ? L.capX * S : W / 2, KEYX = L.keys.x ? L.keys.x * S : W / 2;
 const WORD = (size) => `${size}px "Gavency Condensed", "Instrument Serif", serif`;
 const CAP = (size) => `${size}px Gavency, "Instrument Serif", serif`;
 
@@ -132,8 +142,12 @@ function build() {
     const pw = h.panel ? b.w + h.size * 0.32 : b.w, ph = h.panel ? b.h + h.size * 0.3 : b.h;
     return { ...h, bw: pw, bh: ph, t0: [0, 0.5, 1, 1.5, 2][i] * B, x: 540 };
   });
+  L.met.forEach((m) => { const b = inkBox(m.w, WORD(m.size)); m.bw = m.panel ? b.w + m.size * 0.28 : b.w; });
+  const mrows = {}; L.met.forEach((m) => (mrows[m.y] = mrows[m.y] || []).push(m));
+  for (const y in mrows) { const rw = mrows[y], gap = 50; const tot = rw.reduce((a, m) => a + m.bw, 0) + gap * (rw.length - 1);
+    let x = W / 2 - tot / 2; rw.forEach((m) => { m.x = x + m.bw / 2; x += m.bw + gap; }); }
   const rows = {}; words.forEach((w) => (rows[w.y] = rows[w.y] || []).push(w));
-  for (const y in rows) { const rw = rows[y], gap = 40; const tot = rw.reduce((a, w) => a + w.bw, 0) + gap * (rw.length - 1);
+  for (const y in rows) { const rw = rows[y], gap = Math.max(40, ...rw.map((w) => w.gap || 0)); const tot = rw.reduce((a, w) => a + w.bw, 0) + gap * (rw.length - 1);
     let x = W / 2 - tot / 2; rw.forEach((w) => { w.x = (x + w.bw / 2) / S; x += w.bw + gap; }); }
 
   // assembly pieces: crops of the real overview capture at their real positions
@@ -175,8 +189,8 @@ function build() {
     const p = outExpo(k(t, ta, Math.max(0.001, tb - ta)));
     const z = lerp(za, zb, p), f = [lerp(fa[0], fb[0], p), lerp(fa[1], fb[1], p)];
     if (t >= T.F1) {   // keep the visible window inside the capture
-      const sc = s0 * z, hw = W / 2 / sc, top = (anchor[1] - CLIPY) / sc, bot = (H - anchor[1]) / sc;
-      f[0] = CW > 2 * hw ? clamp(f[0], hw, CW - hw) : CW / 2;
+      const sc = s0 * z, lft = (anchor[0] - CLIPX) / sc, rgt = (W - anchor[0]) / sc, top = (anchor[1] - CLIPY) / sc, bot = (H - anchor[1]) / sc;
+      f[0] = CW > lft + rgt ? clamp(f[0], lft, CW - rgt) : CW / 2;
       f[1] = CH > top + bot ? clamp(f[1], top, CH - bot) : f[1];
     }
     return { z, f };
@@ -236,7 +250,7 @@ function caption(s, t0, t) {
   const p = steps(outExpo(k(t, t0, 0.16)), 4);
   g.font = CAP(L.capSize * S); g.textAlign = 'center'; g.textBaseline = 'top';
   const y = (L.capY + (1 - p) * 90) * S;
-  g.fillStyle = INK; g.fillText(s, W / 2, y + 6); g.fillStyle = CREAM; g.fillText(s, W / 2, y);
+  g.fillStyle = INK; g.fillText(s, CAPX, y + 6); g.fillStyle = CREAM; g.fillText(s, CAPX, y);
 }
 function cursorAt(x, y, s) { const c = IMG.cursor; if (c) g.drawImage(c, x, y, 66 * s, 96 * s); }
 function ring(x, y, d) { const s = 30 + steps(d / 0.16, 4) * 120; g.strokeStyle = SUN; g.lineWidth = 6; g.strokeRect(x - s / 2 + 3, y - s / 2 + 3, s - 6, s - 6); }
@@ -280,7 +294,7 @@ const SCENES = [
         const burst = steps(outExpo(k(t, T.KEY, 0.22)), 6), bs = lerp(0.08, 1, burst);
         const sc = s0 * cam.z * bs;
         const X = lerp(W / 2, ox, burst) + shx - (1 - burst) * s0 * CW * bs / 2, Y = lerp(H * 0.52, oy, burst) + shy - (1 - burst) * s0 * CH * bs / 2;
-        g.save(); g.beginPath(); g.rect(0, CLIPY, W, H - CLIPY); g.clip();
+        g.save(); g.beginPath(); g.rect(CLIPX, CLIPY, W - CLIPX, H - CLIPY); g.clip();
         g.translate(X, Y); g.scale(sc, sc);
         const hs = 14 / (s0 * cam.z); g.fillStyle = SUN; g.fillRect(hs, hs, CW, CH);       // yuvsualy hard shadow
         g.beginPath(); g.rect(0, 0, CW, CH); g.clip(); g.fillStyle = UIBG; g.fillRect(0, 0, CW, CH);
@@ -309,7 +323,7 @@ const SCENES = [
         const big = t < T.KEY + B / 4 ? 1.35 : 1, toBottom = outExpo(k(t, T.KEY + B / 4, 0.2));
         const kyMid = H * 0.52 - (K.h * big) / 2, kyLow = (t >= T.F1 ? H - (TALL ? 260 : 170) : K.y - K.h / 2) * S;
         const sc = t >= T.F1 ? 0.62 : lerp(big, 1, toBottom);
-        const kx = W / 2 - (total * sc) / 2, ky = lerp(kyMid, kyLow, toBottom) + (1 - kp) * 500 * S + (t > T.F2 ? k(t, T.F2, 0.15) * 400 : 0);
+        const kx = (t >= T.F1 ? KEYX : W / 2) - (total * sc) / 2, ky = lerp(kyMid, kyLow, toBottom) + (1 - kp) * 500 * S + (t > T.F2 ? k(t, T.F2, 0.15) * 400 : 0);
         const altDown = t >= T.KEY - B / 4 && (t < T.KEY + B / 2 || (t >= T.F1 && t < T.F2));
         const qDown = [T.KEY, gb(6.5), gb(7), gb(7.5)].some((q) => t >= q && t < q + B / 4);
         withT(kx + shx, ky, sc, 0, () => {
@@ -329,7 +343,7 @@ const SCENES = [
       for (const [t0, t1, cap, tg] of CAPS) {
         if (t < t0 || t >= t1) continue;
         caption(cap, t0, t);
-        if (t >= t0 + B / 2) { const tp = steps(outBack(k(t, t0 + B / 2, 0.14)), 4); if (tp > 0) tag(tg, W / 2, L.tagY * S, tp); }
+        if (t >= t0 + B / 2) { const tp = steps(outBack(k(t, t0 + B / 2, 0.14)), 4); if (tp > 0) tag(tg, CAPX, L.tagY * S, tp); }
       }
       // cursor + click rings (in UI space, so it rides the camera)
       const u = curUI(t);
@@ -344,7 +358,7 @@ const SCENES = [
       L.met.forEach((m, i) => {
         const t0 = T.MET + [0, 0.125, 0.25, 0.5][i]; if (t < t0) return;
         const sc = lerp(0.2, 1, steps(outBack(k(t, t0, 0.12)), 4));
-        withT(W / 2 + sx, m.y * S + sy, sc, m.panel ? 3 : 0, () => {
+        withT(m.x + sx, m.y * S + sy, sc, m.panel ? 3 : 0, () => {
           if (m.panel) { const b = inkBox(m.w, WORD(m.size)), bw = b.w + m.size * 0.28, bh = b.h + m.size * 0.3;
             px(-bw / 2, -bh / 2, bw, bh, { fill: CREAM, px: 8, sh: 16 }); text(m.w, 0, m.size * 0.02, WORD(m.size), INK); }
           else text(m.w, 0, 0, WORD(m.size), INK, CREAM, m.size * 0.025, m.size * 0.03);
