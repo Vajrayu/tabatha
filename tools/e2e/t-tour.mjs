@@ -34,5 +34,5 @@ T.log('tour not shown again', await f().$eval('#modal', (n) => n.hidden));
 T.log('footer has Help and Feedback links', !(await f().$eval('#feedback-btn', (n) => n.hidden)) && !(await f().$eval('#help-btn', (n) => n.hidden)));
 await f().click('#feedback-btn'); await c.waitForTimeout(600);
 const urls = await T.sw.evaluate(async () => (await chrome.tabs.query({})).map((t) => t.url || t.pendingUrl));
-T.log('Feedback opens the site form with source and version', urls.some((u) => /^https:\/\/gettabatha\.vercel\.app\/feedback\?from=extension&v=1\.3\.2$/.test(u)), urls.join(' '));
+T.log('Feedback opens the site form with source and version', urls.some((u) => /^https:\/\/tabatha-vert\.vercel\.app\/feedback\?from=extension&v=1\.3\.2$/.test(u)), urls.join(' '));
 await T.close();

@@ -4,7 +4,7 @@
   "short_name": "Tabatha",
   "version": "1.3.2",
   "description": "Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer.",
-  "homepage_url": "https://gettabatha.vercel.app",
+  "homepage_url": "https://tabatha-vert.vercel.app",
   "minimum_chrome_version": "116",
   "icons": {
     "16": "icons/icon16.png",

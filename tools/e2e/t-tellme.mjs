@@ -8,5 +8,5 @@ await T.frame(c).click('#dialog button:has-text("Tell me")'); await c.waitForTim
 const onb = await T.sw.evaluate(() => chrome.storage.local.get('onb').then((o) => o.onb));
 T.log('tour marked as seen', onb.tour === true, JSON.stringify(onb));
 const urls = await T.sw.evaluate(async () => (await chrome.tabs.query({})).map((t) => t.url || t.pendingUrl));
-T.log('feedback form opened', urls.some((u) => u.startsWith('https://gettabatha.vercel.app/feedback')));
+T.log('feedback form opened', urls.some((u) => u.startsWith('https://tabatha-vert.vercel.app/feedback')));
 await T.close();

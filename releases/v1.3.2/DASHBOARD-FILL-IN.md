@@ -4,7 +4,7 @@ Work top to bottom. Paste each block exactly as shown (the dashboard shows plain
 Anything not mentioned here stays as it is. Submit **once**, with everything below done.
 
 ## 0. Before you open the dashboard (these can get the review rejected or the links broken)
-- [ ] **The website is live** at https://gettabatha.vercel.app and its pages open (Home, Manual, Help, Privacy, Feedback). The extension's Help and Feedback links point there, and a reviewer may click them.
+- [ ] **The website is live** at https://tabatha-vert.vercel.app and its pages open (Home, Manual, Help, Privacy, Feedback). The extension's Help and Feedback links point there, and a reviewer may click them.
 - [ ] **The feedback form works** (send yourself a test). If it does not, either finish the Supabase/Resend setup first or tell me to hide the Feedback links.
 - [ ] **`PRIVACY.md` is pushed to GitHub** (the Privacy tab links to it there).
 - [ ] **The contact email** (the new product Gmail) is set in the dashboard under Account.
@@ -35,7 +35,7 @@ WHAT YOU GET
 • Capture all previews: Chrome only lets extensions screenshot the tab on screen, so a tab you haven't looked at has no preview yet. One click flips through your open tabs for a few seconds, captures each, skips sleeping tabs, and puts you back where you were.
 • Tab groups (optional): your Chrome tab groups appear as sections, with their names and colours. Close a group, or its whole window, and Tabatha keeps it under "Saved tab groups" until you remove it; Enter brings it back as a real tab group. Turn it on from the footer: Chrome then asks for one extra permission.
 • A short tour the first time you open Tabatha, and a "How it works" button whenever you want it again.
-• Help when you need it: the manual, answers and a feedback form at https://gettabatha.vercel.app (links in the switcher's footer).
+• Help when you need it: the manual, answers and a feedback form at https://tabatha-vert.vercel.app (links in the switcher's footer).
 • Free, with a small Buy Me a Coffee button in the corner if you want to say thanks.
 • Works everywhere: on pages extensions can't draw on (New Tab, Chrome settings, the Web Store) Tabatha opens in its own small window instead.
 
@@ -72,8 +72,8 @@ QUESTIONS
 Open source: https://github.com/Vajrayu/tabatha
 ```
 **Additional fields**
-- Homepage URL: `https://gettabatha.vercel.app`
-- Support URL: `https://gettabatha.vercel.app/help`
+- Homepage URL: `https://tabatha-vert.vercel.app`
+- Support URL: `https://tabatha-vert.vercel.app/help`
 - Official URL: leave as *None*
 - Mature content: No
 

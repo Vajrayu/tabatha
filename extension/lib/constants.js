@@ -90,8 +90,8 @@ export const REVIEW = Object.freeze({
 });
 
 export const REVIEW_URL = 'https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk/reviews';
-// The website (gettabatha.vercel.app). Links only: the extension never sends anything there itself.
-export const SITE_URL = 'https://gettabatha.vercel.app';
+// The website (tabatha-vert.vercel.app). Links only: the extension never sends anything there itself.
+export const SITE_URL = 'https://tabatha-vert.vercel.app';
 export const HELP_URL = SITE_URL + '/manual';
 // "Send feedback" opens the site's feedback form; `from` and the version are prefilled from the URL.
 export const FEEDBACK_URL = SITE_URL + '/feedback?from=extension&v=' + chrome.runtime.getManifest().version;
