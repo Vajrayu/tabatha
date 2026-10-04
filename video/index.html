@@ -1,0 +1,436 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Tabatha showreel</title>
+<style>
+@font-face { font-family: 'Gavency'; src: url('assets/fonts/Gavency-Italic.woff2') format('woff2'); }
+@font-face { font-family: 'Gavency Condensed'; src: url('assets/fonts/Gavency-Condensed.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; src: url('assets/fonts/instrument-serif-latin-400-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Geist'; src: url('assets/fonts/geist-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; }
+@font-face { font-family: 'Geist Mono'; src: url('assets/fonts/geist-mono-latin-500-normal.woff2') format('woff2'); font-weight: 500; }
+html, body { margin: 0; background: #141413; }
+canvas { display: block; }
+</style>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="data.js"></script>
+<script>
+// Tabatha showreel engine. Every frame is a pure function of time: window.seek(t) paints frame t.
+// SCENES is a list of { from, to, draw(t) } shots; draw() gets local time t - from. No state carried between frames.
+const Q = new URLSearchParams(location.search);
+const W = +(Q.get('w') || 1080), H = +(Q.get('h') || 1920), DUR = 10;
+const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+const g = cv.getContext('2d');
+
+// ------------------------------------------------------------------ helpers
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const k = (t, t0, d) => clamp((t - t0) / d);
+const lerp = (a, b, p) => a + (b - a) * p;
+const outExpo = (p) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));
+const outBack = (p) => { const c = 1.9; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const inOut = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+const steps = (p, n) => Math.floor(clamp(p) * n) / n;          // yuvsualy: stepped eases for pixel things
+
+// Closed-form damped spring, 0 -> 1. Pure function of time.
+function spring(t, k = 170, d = 26) {
+  if (t <= 0) return 0;
+  const w0 = Math.sqrt(k), z = d / (2 * w0);
+  if (z < 1) { const wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+  return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+}
+// Seeded noise (mulberry32), never Math.random: the render must be identical every run
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+// ------------------------------------------------------------------ yuvsualy tokens (assets/yuvsualy/tokens.css)
+const INK = '#1B2A4A', INK2 = '#31446B', CREAM = '#FFF8E7', SUN = '#FFD166', SUN3 = '#FFB60D', AMBER = '#B7791F', CREAM_D = '#E8D7AF', PLASTIC_LO = '#ADA186';
+const SKY = ['#2F7FE0', '#3E8DE9', '#529CEF', '#6BADF4', '#88C1F8', '#A8D4FB', '#C3E4FD'];
+const UIBG = '#16171c';                                          // Tabatha overlay ground
+
+// .px: 4 edge rects (notched corners) + a stepped hard shadow (two offset copies), then the fill
+function px(x, y, w, h, o = {}) {
+  const p = o.px ?? 3, s = o.sh ?? 4, e = o.edge || INK, sh = o.shade || e;
+  if (s > 0) { g.fillStyle = sh; g.fillRect(x + p + s, y + s, w, h); g.fillRect(x + s, y + p + s, w, h); }
+  g.fillStyle = e; g.fillRect(x, y - p, w, p); g.fillRect(x, y + h, w, p); g.fillRect(x - p, y, p, h); g.fillRect(x + w, y, p, h);
+  g.fillStyle = o.fill || CREAM; g.fillRect(x, y, w, h);
+  if (o.dh) dither(x, y + h - o.dh, w, o.dh, o.dither || SUN3);
+}
+// .dither: the 16x16 dither mask from tokens.css, tiled along the bottom band
+const DCELLS = [[0, 0, 4, 4], [4, 4, 4, 4], [12, 4, 4, 4], [0, 8, 12, 4], [0, 12, 16, 4]];
+function dither(x, y, w, dh, color) {
+  g.save(); g.beginPath(); g.rect(x, y, w, dh); g.clip(); g.fillStyle = color; const u = dh / 16;
+  for (let ox = 0; ox < w; ox += dh) for (const [cx, cy, cw, ch] of DCELLS) g.fillRect(x + ox + cx * u, y + cy * u, cw * u, ch * u);
+  g.restore();
+}
+const font = (f) => { g.font = f; };
+g.letterSpacing = '0px';
+const tw = (s, f) => { if (f) g.font = f; return g.measureText(s).width; };
+// draw a word centred on (cx, cy) using its real ink box (caps don't sit on the em box)
+function text(s, cx, cy, f, fill, shadow, sx = 0, sy = 0) {
+  g.font = f; g.letterSpacing = '0px'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  const m = g.measureText(s), y = cy + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+  if (shadow) { g.fillStyle = shadow; g.fillText(s, cx + sx, y + sy); }
+  g.fillStyle = fill; g.fillText(s, cx, y);
+}
+const inkBox = (s, f) => { g.font = f; const m = g.measureText(s); return { w: m.width, h: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent }; };
+function withT(x, y, s, r, fn) { g.save(); g.translate(x, y); if (r) g.rotate(r * Math.PI / 180); if (s !== 1) g.scale(s, s); fn(); g.restore(); }
+
+// ------------------------------------------------------------------ format, data, timeline
+const TALL = H > W * 1.3, SET = TALL ? 'portrait' : 'landscape';
+const CW = TALL ? 960 : 1280, CH = TALL ? 1280 : 800;             // capture viewport (CSS px), PNGs at the same size
+const S = W / 1080;
+const B = DATA.beats.beat, gb = (n) => DATA.beats.phase + n * B;   // gb(n): time of beat n on the measured grid
+const R = DATA[SET];
+const ov = R['10-overview'];
+const T = { HOOK: gb(0), PROD: gb(3), KEY: gb(4), F1: gb(6), F2: gb(9), F3: gb(12), MET: gb(15), END: gb(17.5), DUR };
+
+const L = TALL ? {
+  ui: { x: 43, y: 430, w: 994 }, capY: 120, capSize: 124, tagY: 330, tagFont: 30,
+  keys: { y: 1700, h: 170, font: 84, gap: 40 },
+  hook: [ { w: 'WHERE', y: 330, size: 330 }, { w: 'DID', y: 640, size: 300 }, { w: 'THAT', y: 640, size: 300 },
+          { w: 'TAB', y: 990, size: 420, panel: true }, { w: 'GO?', y: 1330, size: 400 } ],
+  pile: { y0: 1480, y1: 1880 }, chipFont: 26,
+  met: [ { w: 'EIGHTEEN', y: 420, size: 300 }, { w: 'HOURS', y: 720, size: 300 }, { w: 'A YEAR', y: 1020, size: 300 }, { w: 'BACK', y: 1350, size: 340, panel: true } ],
+  metTagY: 1650,
+  end: { logoY: 470, logo: 256, wordY: 840, wordSize: 210, subY: 1010, subFont: 44, btnY: 1220, btnFont: 54, pressY: 1480, pressFont: 44, pressH: 86, urlY: 1640, urlFont: 28 },
+} : {
+  ui: { x: 40, y: 300, w: 1000 }, capY: 70, capSize: 96, tagY: 228, tagFont: 24,
+  keys: { y: 935, h: 128, font: 62, gap: 30 },
+  hook: [ { w: 'WHERE', y: 250, size: 250 }, { w: 'DID', y: 250, size: 250 }, { w: 'THAT', y: 520, size: 250 },
+          { w: 'TAB', y: 520, size: 270, panel: true }, { w: 'GO?', y: 770, size: 250 } ],
+  pile: { y0: 900, y1: 1070 }, chipFont: 22,
+  met: [ { w: 'EIGHTEEN', y: 175, size: 200 }, { w: 'HOURS', y: 370, size: 200 }, { w: 'A YEAR', y: 565, size: 200 }, { w: 'BACK', y: 790, size: 190, panel: true } ],
+  metTagY: 960,
+  end: { logoY: 230, logo: 192, wordY: 480, wordSize: 170, subY: 615, subFont: 36, btnY: 760, btnFont: 46, pressY: 930, pressFont: 36, pressH: 72, urlY: 1030, urlFont: 24 },
+};
+const U = L.ui, s0 = U.w / CW, E = L.end;
+const CLIPY = (TALL ? 400 : 270) * S;
+const WORD = (size) => `${size}px "Gavency Condensed", "Instrument Serif", serif`;
+const CAP = (size) => `${size}px Gavency, "Instrument Serif", serif`;
+
+// ------------------------------------------------------------------ images
+const IMG = {};
+const STATES = Object.keys(R);
+const load = (key, src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = () => res(); i.src = src; IMG[key] = i; });
+const FAV = { Northwind: 'docs.northwind.example', Longform: 'read.longform.example', Gitforge: 'code.gitforge.example', Stackboard: 'board.stackboard.example',
+  Mailpost: 'mail.mailpost.example', Pulse: 'app.pulse.example', Parley: 'team.parley.example', Tunebox: 'play.tunebox.example', Hearth: 'shop.hearth.example',
+  Wayfare: 'maps.wayfare.example', Skycast: 'skycast.example', Dayplan: 'cal.dayplan.example', Skyroute: 'flights.skyroute.example' };
+const favKey = (title) => { for (const w in FAV) if (title.includes(w)) return FAV[w]; return 'docs.northwind.example'; };
+
+// ------------------------------------------------------------------ derived layout (after fonts load)
+let chips, words, pieces, camera, toScreen, stateAt, curUI;
+function build() {
+  // hook: a pile of real tab titles (seeded), and five words laid out in measured rows
+  const TITLES = ov.cards.map((c) => c.t.replace(/\s+/g, ' '));
+  const r = rng(42);
+  chips = [];
+  for (let i = 0; i < 46; i++) {
+    const t = TITLES[i % TITLES.length], label = t.length > 30 ? t.slice(0, 28) + '…' : t;
+    const w = 12 + 28 + 10 + tw(label, `600 ${L.chipFont}px Geist`) + 16;
+    chips.push({ label, fav: favKey(t), w, h: 50, x: r() * (W - 260) - 60, y: lerp(L.pile.y0, L.pile.y1, Math.pow(r(), 0.7)), rot: (r() - 0.5) * 30, t0: 0.02 + (i / 46) * 1.36 + r() * 0.05, sun: r() < 0.18 });
+  }
+  words = L.hook.map((h, i) => {
+    const b = inkBox(h.w, WORD(h.size));
+    const pw = h.panel ? b.w + h.size * 0.32 : b.w, ph = h.panel ? b.h + h.size * 0.3 : b.h;
+    return { ...h, bw: pw, bh: ph, t0: [0, 0.5, 1, 1.5, 2][i] * B, x: 540 };
+  });
+  const rows = {}; words.forEach((w) => (rows[w.y] = rows[w.y] || []).push(w));
+  for (const y in rows) { const rw = rows[y], gap = 40; const tot = rw.reduce((a, w) => a + w.bw, 0) + gap * (rw.length - 1);
+    let x = W / 2 - tot / 2; rw.forEach((w) => { w.x = (x + w.bw / 2) / S; x += w.bw + gap; }); }
+
+  // assembly pieces: crops of the real overview capture at their real positions
+  const newTab = [40, 20, 120, 40];
+  pieces = [];
+  const add = (crop, at, kind, i) => pieces.push({ crop, at, kind, i });
+  add(ov.search, T.KEY + 0.1, 'drop'); add(newTab, T.KEY + 0.1, 'drop');
+  ov.chips.forEach((c, i) => add(c.r, T.KEY + 0.16 + i * 0.05, 'pop'));
+  const oh = ov.heads[0].r; add([oh[0], oh[1] - 4, 200, oh[3] + 8], T.KEY + 0.2, 'pop');
+  const vis = ov.cards.filter((c) => c.r[1] < CH - 20);
+  vis.forEach((c, i) => add([c.r[0] - 6, c.r[1] - 6, c.r[2] + 12, c.r[3] + 12], T.KEY + 0.22 + i * (0.5 / vis.length), 'fly', i));
+  const cf = ov.coffee; add([cf[0] - 8, cf[1] - 8, cf[2] + 16, cf[3] + 16], gb(5.75), 'pop');
+  if (ov.heads[2] && ov.heads[2].r[1] < CH) { const h2 = ov.heads[2].r; add([h2[0], h2[1] - 4, 220, h2[3] + 8], gb(5.75), 'pop'); }
+
+  // camera keyframes in UI coords: [time, zoom, focus]
+  const cardC = (st, pred) => { const c = R[st].cards.find(pred); return c ? [c.r[0] + c.r[2] / 2, c.r[1] + c.r[3] / 2] : [CW / 2, CH / 2]; };
+  const selC = (st) => cardC(st, (c) => c.sel === 'true');
+  const w2 = R[TALL ? '13-window2' : '14-window2-closed'];
+  const w2chip = R['11-search-4'].chips.find((c) => /Window 2/.test(c.t)) || ov.chips[2];
+  const closed = w2.cards.filter((c) => c.closed);
+  const closedC = closed.length ? [closed.reduce((a, c) => a + c.r[0] + c.r[2] / 2, 0) / closed.length, closed[0].r[1] + closed[0].r[3] / 2] : [CW / 2, CH * 0.7];
+  const C0 = [CW / 2, CH / 2], Z1 = TALL ? 1.95 : 1.7;
+  const sF = [ov.search[0] + ov.search[2] / 2, ov.search[1] + (TALL ? 230 : 170)];
+  const KF = [
+    [0, 1, C0], [T.F1 - 0.01, 1, C0],
+    [T.F1 + 0.22, Z1, selC('01-open-held')], [gb(6.5), Z1, selC('01-open-held')],
+    [gb(6.5) + 0.18, Z1, selC('02-cycle1')], [gb(7), Z1, selC('02-cycle1')],
+    [gb(7) + 0.18, Z1, selC('03-cycle2')], [gb(7.5), Z1, selC('03-cycle2')],
+    [gb(7.5) + 0.18, Z1, selC('04-cycle3')], [gb(8.5), Z1, selC('04-cycle3')],
+    [T.F2, TALL ? 1.75 : 1.6, sF], [gb(10.75), TALL ? 1.75 : 1.6, sF],
+    [gb(11) + 0.2, TALL ? 1.25 : 1.2, [CW / 2, TALL ? 420 : 330]], [gb(11.75), TALL ? 1.25 : 1.2, [CW / 2, TALL ? 420 : 330]],
+    [T.F3 - 0.15, 1.6, [CW / 2, TALL ? 330 : 280]], [gb(13.5), 1.6, [CW / 2, TALL ? 330 : 280]],
+    [gb(13.5) + 0.3, 1.6, closedC], [T.MET, 1.75, closedC],
+  ];
+  const anchor = [U.x + s0 * CW / 2, U.y + s0 * CH / 2];
+  camera = (t) => {
+    let i = 0; while (i < KF.length - 2 && t >= KF[i + 1][0]) i++;
+    const [ta, za, fa] = KF[i], [tb, zb, fb] = KF[i + 1];
+    const p = outExpo(k(t, ta, Math.max(0.001, tb - ta)));
+    const z = lerp(za, zb, p), f = [lerp(fa[0], fb[0], p), lerp(fa[1], fb[1], p)];
+    if (t >= T.F1) {   // keep the visible window inside the capture
+      const sc = s0 * z, hw = W / 2 / sc, top = (anchor[1] - CLIPY) / sc, bot = (H - anchor[1]) / sc;
+      f[0] = CW > 2 * hw ? clamp(f[0], hw, CW - hw) : CW / 2;
+      f[1] = CH > top + bot ? clamp(f[1], top, CH - bot) : f[1];
+    }
+    return { z, f };
+  };
+  toScreen = (cam, p) => [anchor[0] + s0 * cam.z * (p[0] - cam.f[0]), anchor[1] + s0 * cam.z * (p[1] - cam.f[1])];
+  stateAt = (t) => {
+    if (t < T.F1) return '10-overview';
+    if (t < gb(6.5)) return '01-open-held'; if (t < gb(7)) return '02-cycle1'; if (t < gb(7.5)) return '03-cycle2';
+    if (t < T.F2) return '04-cycle3';
+    const typing = [gb(9.5), gb(9.75), gb(10), gb(10.25), gb(10.5)];
+    if (t < T.F3) { for (let i = 4; i >= 0; i--) if (t >= typing[i]) return '11-search-' + i; return '12-cleared'; }
+    return !TALL && t >= gb(13.5) + 0.05 ? '14-window2-closed' : '13-window2';
+  };
+  const searchPt = [ov.search[0] + 120, ov.search[1] + ov.search[3] / 2];
+  const chipPt = [w2chip.r[0] + w2chip.r[2] / 2, w2chip.r[1] + w2chip.r[3] / 2];
+  const CUR = [[gb(8.25), [CW * 0.85, CH * 0.75]], [T.F2 - 0.02, searchPt], [gb(10.75), searchPt], [gb(11.5), [searchPt[0] + 160, searchPt[1] + 220]],
+    [T.F3 - 0.02, chipPt], [gb(13.25), chipPt], [gb(14), [chipPt[0] + 60, chipPt[1] + 180]]];
+  curUI = (t) => {
+    if (t < CUR[0][0] || t > T.MET) return null;
+    let i = 0; while (i < CUR.length - 2 && t >= CUR[i + 1][0]) i++;
+    const [ta, pa] = CUR[i], [tb, pb] = CUR[i + 1]; const p = inOut(k(t, ta, tb - ta));
+    return [lerp(pa[0], pb[0], p), lerp(pa[1], pb[1], p)];
+  };
+}
+
+// global hit shake (seeded), decays over 90 ms after each hook word and scene impact
+function shake(t) {
+  let x = 0, y = 0;
+  for (const h of [0, 0.5, 1, 1.5, 2].map((n) => n * B).concat([T.PROD, T.MET, T.END])) {
+    const d = t - h; if (d >= 0 && d < 0.09) { const r = rng(Math.floor(h * 1000)); const a = (1 - d / 0.09) * 14 * S; x += (r() - 0.5) * 2 * a; y += (r() - 0.5) * 2 * a; }
+  }
+  return [x, y];
+}
+function paper(color) {                     // yuvsualy grid paper
+  g.fillStyle = color; g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(27,42,74,.06)';
+  for (let x = 0; x < W; x += 48) g.fillRect(x, 0, 2, H);
+  for (let y = 0; y < H; y += 48) g.fillRect(0, y, W, 2);
+}
+// keycap = a yuvsualy button: label, colour, size, pressed state
+function keycap(label, cream, f, h, x, y, down, o = {}) {
+  const lw = tw(label, `700 ${f}px Geist`), w = Math.max(h, lw + f * 0.9);
+  const off = down ? (o.sh ?? 10) : 0;
+  px(x + off, y + off, w, h, { fill: cream ? CREAM : SUN, px: o.px ?? 5, sh: down ? 0 : (o.sh ?? 10), shade: o.shade || (cream ? PLASTIC_LO : AMBER), dh: h * 0.2, dither: cream ? CREAM_D : SUN3 });
+  text(label, x + off + w / 2, y + off + h / 2 - f * 0.05, `700 ${f}px Geist`, INK);
+  return w;
+}
+const keyW = (label, f, h) => Math.max(h, tw(label, `700 ${f}px Geist`) + f * 0.9);
+function tag(label, cx, top, sc, o = {}) {
+  const f = `500 ${o.font || L.tagFont}px "Geist Mono"`; g.font = f; g.letterSpacing = '0.08em';
+  const s = label.toUpperCase(), w = g.measureText(s).width + 32, h = (o.font || L.tagFont) + 22;
+  withT(cx, top, sc, 0, () => { px(-w / 2, 0, w, h, { fill: o.fill || SUN, px: 3, sh: 4, shade: o.shade || AMBER });
+    g.font = f; g.letterSpacing = '0.08em'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = INK; g.fillText(s, 0, h / 2 + 1); g.letterSpacing = '0px'; });
+}
+function caption(s, t0, t) {
+  g.letterSpacing = '0px';
+  const p = steps(outExpo(k(t, t0, 0.16)), 4);
+  g.font = CAP(L.capSize * S); g.textAlign = 'center'; g.textBaseline = 'top';
+  const y = (L.capY + (1 - p) * 90) * S;
+  g.fillStyle = INK; g.fillText(s, W / 2, y + 6); g.fillStyle = CREAM; g.fillText(s, W / 2, y);
+}
+function cursorAt(x, y, s) { const c = IMG.cursor; if (c) g.drawImage(c, x, y, 66 * s, 96 * s); }
+function ring(x, y, d) { const s = 30 + steps(d / 0.16, 4) * 120; g.strokeStyle = SUN; g.lineWidth = 6; g.strokeRect(x - s / 2 + 3, y - s / 2 + 3, s - 6, s - 6); }
+
+// ------------------------------------------------------------------ shots
+const SCENES = [
+  { from: T.HOOK, to: T.PROD, draw(t) {                 // 1. hook: five words of kinetic type over a pile of real tab titles
+      paper(CREAM);
+      const [sx, sy] = shake(t);
+      g.save(); g.translate(sx, sy);
+      for (const c of chips) {
+        if (t < c.t0) continue;
+        const p = k(t, c.t0, 0.32), fall = p * p;
+        const after = (t - c.t0 - 0.32) / 0.12, bounce = p >= 1 ? Math.sin(clamp(after) * Math.PI) * -18 * Math.max(0, 1 - after) : 0;
+        const jit = t > gb(2.5) ? Math.sin(t * 90 + c.rot) * 6 : 0;
+        withT(c.x + jit, lerp(-120, c.y, fall) + bounce, 1, c.rot * (0.4 + 0.6 * p), () => {
+          px(0, 0, c.w, c.h, { fill: c.sun ? SUN : CREAM, px: 2, sh: 3 });
+          const fi = IMG['fav:' + c.fav]; if (fi) g.drawImage(fi, 12, 11, 28, 28);
+          g.font = `600 ${L.chipFont}px Geist`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = INK; g.fillText(c.label, 50, c.h / 2 + 1);
+        });
+      }
+      for (const w of words) {
+        if (t < w.t0) continue;
+        const p = k(t, w.t0, 0.12), sc = lerp(2.4, 1, steps(outExpo(p), 4));
+        const pulse = t > gb(2) ? 1 + 0.04 * Math.max(0, 1 - (t - gb(2)) / 0.1) : 1;
+        withT(w.x * S, w.y * S, sc * pulse, w.panel ? -4 : 0, () => {
+          if (w.panel) { px(-w.bw / 2, -w.bh / 2, w.bw, w.bh, { fill: SUN, px: 8, sh: 16, dh: 40 }); text(w.w, 0, w.size * 0.02, WORD(w.size), INK); }
+          else text(w.w, 0, 0, WORD(w.size), INK, SUN, w.size * 0.025, w.size * 0.03);
+        });
+      }
+      g.restore();
+  }},
+  { from: T.PROD, to: T.MET, draw(lt) {                 // 2-3. Press Alt+Q, the UI builds itself, three features with a cursor
+      const t = lt + T.PROD;
+      g.fillStyle = INK; g.fillRect(0, 0, W, H);
+      const [shx, shy] = shake(t);
+      const cam = camera(t);
+      const [ox, oy] = toScreen(cam, [0, 0]);
+      // the switcher bursts out of the keys at KEY, then the camera takes over
+      if (t >= T.KEY) {
+        const burst = steps(outExpo(k(t, T.KEY, 0.22)), 6), bs = lerp(0.08, 1, burst);
+        const sc = s0 * cam.z * bs;
+        const X = lerp(W / 2, ox, burst) + shx - (1 - burst) * s0 * CW * bs / 2, Y = lerp(H * 0.52, oy, burst) + shy - (1 - burst) * s0 * CH * bs / 2;
+        g.save(); g.beginPath(); g.rect(0, CLIPY, W, H - CLIPY); g.clip();
+        g.translate(X, Y); g.scale(sc, sc);
+        const hs = 14 / (s0 * cam.z); g.fillStyle = SUN; g.fillRect(hs, hs, CW, CH);       // yuvsualy hard shadow
+        g.beginPath(); g.rect(0, 0, CW, CH); g.clip(); g.fillStyle = UIBG; g.fillRect(0, 0, CW, CH);
+        if (t >= T.F1) g.drawImage(IMG['st:' + stateAt(t)], 0, 0, CW, CH);
+        else for (const pc of pieces) {
+          if (t < pc.at) continue;
+          const [cx0, cy0, cw, ch] = pc.crop, p = k(t, pc.at, pc.kind === 'fly' ? 0.2 : 0.14);
+          let x = 0, y = 0, s = 1, rot = 0;
+          if (pc.kind === 'drop') y = (1 - outBack(p)) * -160;
+          else if (pc.kind === 'pop') s = steps(outBack(p), 4);
+          else {   // cards spring out of the Q key and arc into their slot
+            const keyUI = [(W / 2 - ox) / (s0 * cam.z), (L.keys.y * S - oy) / (s0 * cam.z)], e = outExpo(p);
+            const cx = cx0 + cw / 2, cy = cy0 + ch / 2;
+            x = lerp(keyUI[0] - cx, 0, e); y = lerp(keyUI[1] - cy, 0, e) - Math.sin(Math.PI * e) * 160; s = lerp(0.25, 1, e); rot = (1 - e) * (pc.i % 2 ? 12 : -12);
+          }
+          if (s <= 0) continue;
+          withT(cx0 + cw / 2 + x, cy0 + ch / 2 + y, s, rot, () => g.drawImage(IMG['st:10-overview'], cx0, cy0, cw, ch, -cw / 2, -ch / 2, cw, ch));
+        }
+        g.restore();
+      }
+      // keycaps: centre stage, pressed at KEY, then parked at the bottom; F1: Alt held, Q taps the cycle
+      if (t < T.F2 + 0.15) {
+        const K = L.keys, kp = steps(outBack(k(t, T.PROD + 0.05, 0.2)), 5);
+        const aw = keyW('Alt', K.font, K.h), qw = keyW('Q', K.font, K.h), pw = tw('+', `700 ${K.font}px Geist`);
+        const total = aw + qw + pw + 2 * K.gap;
+        const big = t < T.KEY + B / 4 ? 1.35 : 1, toBottom = outExpo(k(t, T.KEY + B / 4, 0.2));
+        const kyMid = H * 0.52 - (K.h * big) / 2, kyLow = (t >= T.F1 ? H - (TALL ? 260 : 170) : K.y - K.h / 2) * S;
+        const sc = t >= T.F1 ? 0.62 : lerp(big, 1, toBottom);
+        const kx = W / 2 - (total * sc) / 2, ky = lerp(kyMid, kyLow, toBottom) + (1 - kp) * 500 * S + (t > T.F2 ? k(t, T.F2, 0.15) * 400 : 0);
+        const altDown = t >= T.KEY - B / 4 && (t < T.KEY + B / 2 || (t >= T.F1 && t < T.F2));
+        const qDown = [T.KEY, gb(6.5), gb(7), gb(7.5)].some((q) => t >= q && t < q + B / 4);
+        withT(kx + shx, ky, sc, 0, () => {
+          keycap('Alt', true, K.font, K.h, 0, 0, altDown);
+          g.font = `700 ${K.font}px Geist`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = CREAM; g.fillText('+', aw + K.gap, K.h / 2);
+          keycap('Q', false, K.font, K.h, aw + pw + 2 * K.gap, 0, qDown);
+        });
+        if (t < T.KEY + B / 4) {   // "Press" lead-in
+          const p = steps(outExpo(k(t, T.PROD + B / 4, 0.15)), 4);
+          if (p > 0) { g.font = CAP(L.capSize * S); g.textAlign = 'center'; g.textBaseline = 'top'; const y = H * 0.52 - (TALL ? 330 : 250) * S + (1 - p) * 60 * S;
+            g.fillStyle = INK; g.fillText('Press', W / 2, y + 6); g.fillStyle = CREAM; g.fillText('Press', W / 2, y); }
+        }
+      }
+      // captions + tags
+      const CAPS = [[T.KEY + B / 2, T.F1, 'Every tab, live', 'Real previews, not favicons'], [T.F1, T.F2, 'Hold Alt, tap Q', 'Most recent first'],
+        [T.F2, T.F3, 'Type to find it', 'Open + closed in 7 days'], [T.F3, gb(13.5), 'Every window', 'Filter in one click'], [gb(13.5), T.MET, 'Even closed tabs', 'Reopen what you lost']];
+      for (const [t0, t1, cap, tg] of CAPS) {
+        if (t < t0 || t >= t1) continue;
+        caption(cap, t0, t);
+        if (t >= t0 + B / 2) { const tp = steps(outBack(k(t, t0 + B / 2, 0.14)), 4); if (tp > 0) tag(tg, W / 2, L.tagY * S, tp); }
+      }
+      // cursor + click rings (in UI space, so it rides the camera)
+      const u = curUI(t);
+      if (u) { const [cx, cy] = toScreen(cam, u); const down = [T.F2, T.F3].some((c) => t >= c && t < c + 0.1);
+        for (const c of [T.F2, T.F3]) if (t >= c && t < c + 0.16) ring(cx, cy, t - c);
+        cursorAt(cx, cy, (down ? 0.82 : 1) * (TALL ? 1 : 0.85)); }
+  }},
+  { from: T.MET, to: T.END, draw(lt) {                  // 4. the number
+      const t = lt + T.MET;
+      paper(SUN);
+      const [sx, sy] = shake(t);
+      L.met.forEach((m, i) => {
+        const t0 = T.MET + [0, 0.125, 0.25, 0.5][i]; if (t < t0) return;
+        const sc = lerp(0.2, 1, steps(outBack(k(t, t0, 0.12)), 4));
+        withT(W / 2 + sx, m.y * S + sy, sc, m.panel ? 3 : 0, () => {
+          if (m.panel) { const b = inkBox(m.w, WORD(m.size)), bw = b.w + m.size * 0.28, bh = b.h + m.size * 0.3;
+            px(-bw / 2, -bh / 2, bw, bh, { fill: CREAM, px: 8, sh: 16 }); text(m.w, 0, m.size * 0.02, WORD(m.size), INK); }
+          else text(m.w, 0, 0, WORD(m.size), INK, CREAM, m.size * 0.025, m.size * 0.03);
+        });
+      });
+      if (t >= T.MET + 0.75) { const tp = steps(outBack(k(t, T.MET + 0.75, 0.14)), 4); if (tp > 0) tag('est. 30 tab hunts a day × 6 s saved', W / 2, L.metTagY * S, tp, { fill: CREAM, shade: INK }); }
+  }},
+  { from: T.END, to: DUR, draw(lt) {                    // 5. logo lockup + CTA
+      const t = lt + T.END;
+      paper(CREAM);
+      const [sx, sy] = shake(t);
+      const ls = steps(outBack(k(t, T.END, 0.22)), 5);
+      if (ls > 0) { const s = E.logo * ls; g.imageSmoothingQuality = 'high'; g.drawImage(IMG.logo, W / 2 - s / 2 + sx, E.logoY * S - s / 2 + sy, s, s); }
+      // wordmark, letter by letter
+      const wf = `${E.wordSize}px Gavency, "Instrument Serif", serif`, word = 'Tabatha';
+      g.font = wf; const full = g.measureText(word).width; let x = W / 2 - full / 2;
+      [...word].forEach((ch, i) => {
+        g.font = wf; const cw = g.measureText(ch).width, t0 = gb(18) - B / 2 + i * 0.03;
+        if (t >= t0) { const p = steps(outExpo(k(t, t0, 0.14)), 4); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = INK; g.fillText(ch, x, E.wordY * S + (1 - p) * 120); }
+        x += cw;
+      });
+      if (t >= gb(18) - B / 4) { g.font = `500 ${E.subFont}px Geist`; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = INK2; g.fillText('Alt+Tab for your Chrome tabs', W / 2, E.subY * S); }
+      // CTA: a yuvsualy sun button, clicked on the beat
+      if (t >= gb(18)) {
+        const f = E.btnFont, label = 'Add to Chrome, it’s free', lw = tw(label, `700 ${f}px Geist`);
+        const bw = f * 1.4 + lw + f * 0.5 + f * 0.8, bh = f * 0.5 + f + f * 0.62;
+        const down = t >= gb(19) && t < gb(19) + 0.12, off = down ? 10 : 0, bp = steps(outBack(k(t, gb(18), 0.16)), 4);
+        if (bp > 0) withT(W / 2 + off, E.btnY * S + off, bp, 0, () => {
+          px(-bw / 2, 0, bw, bh, { fill: SUN, px: 5, sh: down ? 0 : 10, dh: f * 0.4 });
+          g.font = `700 ${f}px Geist`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = INK; g.fillText(label, -bw / 2 + f * 0.7, f * 0.5 + f / 2 + 2);
+          if (IMG.arrow) { g.imageSmoothingEnabled = false; g.drawImage(IMG.arrow, -bw / 2 + f * 0.7 + lw + f * 0.5, f * 0.5 + f * 0.1, f * 0.8, f * 0.8); g.imageSmoothingEnabled = true; }
+        });
+        // press row: Then press [Alt] + [Q]
+        if (t >= gb(19)) {
+          const pf = E.pressFont, ph = E.pressH, lead = 'Then press', lw2 = tw(lead, `600 ${pf}px Geist`);
+          const aw = keyW('Alt', pf, ph), qw = keyW('Q', pf, ph), gap = 22, tot = lw2 + aw + qw + 3 * gap + 30;
+          const pr = steps(outExpo(k(t, gb(19), 0.14)), 4);
+          withT(W / 2 - tot / 2, (E.pressY + (1 - pr) * 40) * S, 1, 0, () => {
+            g.font = `600 ${pf}px Geist`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = INK; g.fillText(lead, 0, ph / 2);
+            keycap('Alt', true, pf, ph, lw2 + gap, 0, false, { px: 3, sh: 5, shade: INK });
+            g.font = `700 ${pf}px Geist`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = INK; g.fillText('+', lw2 + aw + 2 * gap + 2, ph / 2);
+            keycap('Q', false, pf, ph, lw2 + aw + 3 * gap + 30, 0, t >= gb(19.5) && t < gb(19.75), { px: 3, sh: 5, shade: INK });
+          });
+        }
+        if (t >= gb(19.25)) { g.font = `500 ${E.urlFont}px "Geist Mono"`; g.letterSpacing = '0.04em'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = INK2;
+          g.fillText('Chrome Web Store · search “Tabatha”', W / 2, E.urlY * S); g.letterSpacing = '0px'; }
+        // cursor comes in from the bottom right and clicks the button
+        const target = [W / 2 + bw * 0.2, E.btnY * S + bh * 0.55], p = inOut(k(t, gb(18), gb(19) - gb(18)));
+        const cx = lerp(W + 40, target[0], p), cy = lerp(H * 0.95, target[1], p), d = t - gb(19);
+        if (d >= 0 && d < 0.16) ring(cx, cy, d);
+        cursorAt(cx, cy, (d >= 0 && d < 0.1 ? 0.82 : 1) * (TALL ? 1 : 0.85));
+      }
+  }},
+  { from: 0, to: DUR, draw(t) {                         // overlay: yuvsualy sky-band wipes between scenes
+      for (const w0 of [T.PROD - 0.15, T.MET - 0.15, T.END - 0.15]) {
+        const d = t - w0; if (d < 0 || d >= 0.3) continue;
+        SKY.forEach((c, i) => { const p = steps(clamp((d - i * 0.01) / 0.22), 6); const y = lerp(H + i * H / 7, -H / 7 * (7 - i), p);
+          g.fillStyle = c; g.fillRect(0, y, W, Math.ceil(H / 7) + 2); });
+      }
+  }},
+];
+
+function draw(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.letterSpacing = '0px';
+  g.fillStyle = '#141413'; g.fillRect(0, 0, W, H);
+  for (const s of SCENES) if (t >= s.from && t < s.to) s.draw(t - s.from);
+}
+window.seek = (t) => { draw(t); return true; };
+window.DUR = DUR;
+
+(async () => {
+  await Promise.all([['300px "Gavency Condensed"'], ['100px Gavency'], ['100px "Instrument Serif"'], ['700 50px Geist'], ['600 50px Geist'], ['500 50px Geist'], ['500 30px "Geist Mono"']]
+    .map(([f]) => document.fonts.load(f, 'WHERE Tabatha,?’ 0123')));
+  await document.fonts.ready;
+  await Promise.all([
+    ...STATES.map((n) => load('st:' + n, `assets/ui/${SET}/${n}.png`)),
+    ...Object.values(FAV).map((h) => load('fav:' + h, `assets/ui/favicons/${h}.svg`)),
+    load('cursor', 'assets/yuvsualy/cursor-arrow.svg'), load('logo', 'assets/brand/icon128.png'), load('arrow', 'assets/yuvsualy/icon-arrowRight.svg'),
+  ]);
+  build();
+  window.ready = true;
+  draw(+(Q.get('t') || 0));
+  // Live preview in a normal browser, off during headless render
+  if (!navigator.webdriver && !Q.has('t')) {
+    const t0 = performance.now();
+    (function loop() { draw(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(loop); })();
+  }
+})();
+</script>
