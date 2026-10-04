@@ -29,6 +29,9 @@
     "favicon",
     "sessions"
   ],
+  "optional_permissions": [
+    "tabGroups"
+  ],
   "host_permissions": [
     "<all_urls>"
   ],

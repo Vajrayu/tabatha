@@ -6,7 +6,8 @@ Everything to paste into the [Chrome Web Store Developer Dashboard](https://chro
 
 Only the text that changed is listed; the old wording is quoted so nothing is lost. The full 1.3.0 listing is also kept in `../v1.3.0/store-listing.md`.
 
-**1.3.2** (2 Oct 2026, update)
+**1.3.2** (2 Oct 2026, update; amended 4 Oct before submission)
+- *Added on 4 Oct*: **tab groups** (optional permission, saved groups survive closing a window), a **first-run tour**, a **review reminder**. Description: new bullets under WHAT YOU GET, one line under PRIVATE BY DESIGN, one question in QUESTIONS. Privacy tab: `storage` and `scripting` justifications changed again, new `tabGroups` (optional) justification, the host-permission justification no longer says "kept in memory only". Test instructions rewritten (old version: steps 1 to 6 about coffee and the popup window, 485 characters).
 - *Name and summary (they come from the manifest, so they change with the zip)*: was name "Tabatha" and summary "See live previews of all your tabs with Alt+Q. Search, jump between windows and reopen recently closed tabs." → name "Tabatha: Visual Tab Switcher with Live Previews", summary "Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer." (store ranking: relevant words in the name and summary).
 - *Description*: new problem-led opening ("Too many tabs?" plus the words tab switcher, tab manager, Alt+Tab), "FEATURES" renamed "WHAT YOU GET", and a new QUESTIONS section; the rest is unchanged.
 - *Sleeping tabs*: was "Sleeping tabs: tabs Chrome has unloaded to save memory are marked Sleeping. Awake tabs Tabatha can't screenshot yet say No preview yet." Now only tabs Chrome put to sleep while you browse are Sleeping, and tabs keep their saved preview after a restart.
@@ -79,6 +80,8 @@ WHAT YOU GET
 • Recently closed: reopen tabs and windows you closed in the last few hours, with a preview of what they looked like. Search reaches back 7 days, further than Chrome's own list.
 • Tidy up fast: press Delete (Cmd+Backspace on a Mac) or middle-click to close tabs straight from the switcher.
 • Sleeping tabs: tabs Chrome puts to sleep while you browse are marked Sleeping, with their last preview faded. After a restart, tabs keep their saved preview. Tabs Tabatha can't screenshot yet say No preview yet.
+• Tab groups (optional): your Chrome tab groups appear as sections, with their names and colours. Close a group, or its whole window, and Tabatha keeps it under "Saved tab groups" until you remove it; Enter brings it back as a real tab group. Turn it on from the footer: Chrome then asks for one extra permission.
+• A short tour the first time you open Tabatha, and a "How it works" button whenever you want it again.
 • Free, with a small Buy Me a Coffee button in the corner if you want to say thanks.
 • Works everywhere: on pages extensions can't draw on (New Tab, Chrome settings, the Web Store) Tabatha opens in its own small window instead.
 
@@ -97,6 +100,7 @@ On a Mac, Alt is the Option key. You can change the shortcut at chrome://extensi
 PRIVATE BY DESIGN
 • Previews never leave your computer. They are saved on your computer so they are still there after a restart: kept while the tab is open, and for 7 days after you close it. They are never uploaded anywhere.
 • The titles and addresses of tabs you closed are kept on your computer for 7 days (never uploaded) so you can find them again.
+• Saved tab groups (name, colour, tab titles and addresses) also stay on your computer, until you remove them.
 • Old previews and entries are deleted automatically, and uninstalling Tabatha removes them.
 • No accounts, no analytics, no tracking, no ads. The extension is blocked from making any network requests at all. (The optional Buy Me a Coffee button simply opens buymeacoffee.com in a new tab when you click it.)
 • Tabatha does not run in Incognito windows.
@@ -107,6 +111,7 @@ Chrome can only take a screenshot of a tab, and show the switcher on top of a pa
 QUESTIONS
 - Does Tabatha send my tabs or screenshots anywhere? No. Everything stays on your computer, and the extension is blocked from making network requests.
 - Why does a tab have no preview? Chrome only lets extensions screenshot the tab that is on screen, so a tab gets its preview the first time you look at it.
+- Why is the tab-groups permission separate? It is optional, so Tabatha works fully without it. Chrome only asks when you click "Turn on tab groups".
 - How do I change the Alt+Q shortcut? Open chrome://extensions/shortcuts.
 - Does it work on a Mac? Yes. Alt is the Option key.
 
@@ -163,12 +168,12 @@ Needed to list the user's open tabs across all windows with their titles and URL
 
 **storage**
 ```
-Saves, on the user's own computer (chrome.storage.local): small tab-preview thumbnails keyed by page URL (kept while a tab with that page is open, otherwise 7 days; max 300 / about 6 MB), and the title and address of tabs the user closed in the last 7 days (max 200), so they can be found and reopened beyond Chrome's own 25-item list. Uses chrome.storage.session (memory only) for tab order, the title and address of open tabs (so a closed tab can be listed), which tabs Chrome discarded, and a one-time launch token. Nothing is synced or sent anywhere; the CSP blocks all network requests.
+Saves, on the user's own computer (chrome.storage.local): small tab-preview thumbnails keyed by page URL (kept while a tab with that page is open, otherwise 7 days; max 300 / about 6 MB); the title and address of tabs closed in the last 7 days (max 200); tab groups the user chose to keep (name, colour, tab titles and addresses) until the user removes them; and small counters/flags for the one-time tour and review reminder. Uses chrome.storage.session (memory only) for tab order, open-tab titles and addresses, which tabs Chrome discarded, and a launch token. Nothing is synced or sent anywhere; the CSP blocks all network requests.
 ```
 
 **scripting**
 ```
-Used to show the switcher on top of the current page: scripting.executeScript inserts an iframe containing the extension's own switcher.html and removes it again when the switcher closes. On install it also injects the small shortcut listener (hotkey.js) into tabs that were already open, so Alt+Q works without reloading them. No remote code is ever injected. All injected code ships inside the package.
+Used to show the switcher on top of the current page: scripting.executeScript inserts an iframe containing the extension's own switcher.html and removes it again when the switcher closes. On install it also injects the small shortcut listener (hotkey.js) into tabs that were already open, so Alt+Q works without reloading them, and shows a small one-time "Press Alt+Q" notice (fixed text, reads nothing) on the current page. No remote code is ever injected. All injected code ships inside the package.
 ```
 
 **favicon**
@@ -181,11 +186,16 @@ Shows each tab's site icon in the switcher using Chrome's built-in favicon cache
 Lists recently closed tabs and windows (sessions.getRecentlyClosed) in the switcher's "Recently closed" section and reopens the one the user picks (sessions.restore).
 ```
 
+**tabGroups (optional permission; not requested at install, only when the user clicks "Turn on tab groups")**
+```
+Optional. Used to read the names and colours of the user's tab groups (tabGroups.query), show them as sections in the switcher, keep a saved copy after a group is closed (so it survives its window closing), and recreate a saved group (tabs.group + tabGroups.update) when the user reopens it. Nothing is sent anywhere.
+```
+
 **Host permission (`<all_urls>`, including the content script on all URLs)**
 ```
 Chrome only allows tabs.captureVisibleTab and scripting.executeScript on sites the extension has host access to. Tabatha needs both on whatever site the user happens to be on: to capture the live preview of the current tab, and to draw the switcher overlay on top of it. Because the user can press the shortcut on any website, access cannot be limited to specific domains.
 
-The content script (hotkey.js) is a 30-line listener that watches only for the Alt+Q key combination, because Chrome's own shortcut can be taken by another app or extension. It reads nothing from the page, ignores synthetic key events, and sends no data other than the message "open the switcher". Screenshots are downscaled thumbnails kept in memory only and never leave the device.
+The content script (hotkey.js) is a 30-line listener that watches only for the Alt+Q key combination, because Chrome's own shortcut can be taken by another app or extension. It reads nothing from the page, ignores synthetic key events, and sends no data other than the message "open the switcher". Screenshots are downscaled thumbnails saved on the user's own computer only and never leave the device.
 ```
 
 ### Remote code
@@ -218,15 +228,13 @@ https://github.com/Vajrayu/tabatha/blob/main/PRIVACY.md
 - **Visibility**: Public (or *Unlisted* first if you want to try the store install before announcing it)
 - **Regions**: All regions
 
-## 5. Test instructions tab (optional, but it helps the reviewer; max 500 characters, this is 485)
+## 5. Test instructions tab (optional, but it helps the reviewer; max 500 characters, this is 454)
 ```
-1. Open 3-4 websites in tabs and view each once so it gets a preview.
-2. On any https page, tap Alt+Q. The switcher opens and stays open. Use arrows + Enter or click a tab to switch.
-3. Type to search. Esc closes.
-4. Close a tab, press Alt+Q: it shows under "Recently closed"; click to reopen.
-5. On chrome:// or New Tab, it opens in a small popup window.
-6. "Buy me a coffee" opens buymeacoffee.com in a new tab (plain link).
-No login needed. The extension makes no network requests.
+1. Open 3-4 websites in tabs and view each once.
+2. On an https page tap Alt+Q. A short tour shows (Esc skips it). Then Alt+Q opens the switcher and keeps it open: arrows+Enter or a click switches tab, typing searches, Esc closes.
+3. Close a tab, press Alt+Q: it is under "Recently closed"; click to reopen.
+4. If a tab group exists, the footer link "Turn on tab groups" asks for an optional permission.
+No login. The extension makes no network requests.
 ```
 
 ---

@@ -7,6 +7,8 @@ export const MSG = Object.freeze({
   CYCLE: 'tabatha:cycle',   // background -> open switcher: move selection
   READY: 'tabatha:ready',   // switcher -> background: UI loaded, send queued moves
   CLOSED: 'tabatha:closed', // switcher -> background: UI closed (with reason)
+  GROUPS: 'tabatha:groups', // switcher -> background: sync saved tab groups now
+  FLYOUT_DONE: 'tabatha:flyout-done', // first-run flyout dismissed (content script -> background)
 });
 
 // Messages between the overlay iframe and the content-script code that hosts it.
@@ -19,6 +21,9 @@ export const KEY = Object.freeze({
   SLEPT: 'slept',             // storage.session: number[] ids of tabs we saw Chrome discard in this browser session
   CLOSED_LOG: 'closedlog',    // storage.local: [{ url, title, favIconUrl, closedAt }] tabs closed in the last 7 days
   PREVIEW_INDEX: 'pvidx',     // storage.local: { [normalizedUrl]: { t, n, s } } captured-at, size, and when an open tab last had this URL
+  GROUPS: 'groups',           // storage.local: saved tab groups [{ id, title, color, tabs:[{u,ti}], t, cid, open }]
+  ONBOARD: 'onb',             // storage.local: { at, flyout, tour } first-run flags
+  REVIEW: 'rv',               // storage.local: { since, opens, soft, lastSoft, asks, lastAsk, done } review-prompt counters (never sent anywhere)
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
   LAUNCH: 'launch',           // { token, t, ctx } one-time launch for the next switcher
 });
@@ -55,7 +60,28 @@ export const LIMITS = Object.freeze({
   RECENTLY_CLOSED_SEARCH: 24,   // ...or this many while searching (search reaches the whole 7-day log)
   RECENTLY_CLOSED_WINDOWS: 2,   // of which at most this many whole windows
   RECENTLY_CLOSED_MAX_AGE_S: 4 * 3600, // only things closed in the last 4 hours
+  MAX_SAVED_GROUPS: 100,        // saved tab groups kept (closed ones are only ever removed by the user, or beyond this cap, oldest first)
+  MAX_GROUP_TABS: 100,          // tabs remembered per group
+  GROUP_SYNC_MS: 600,           // tab/group events are batched; a burst (closing a window) becomes one sync
+  GROUP_TITLE_MAX: 120,
+  FLYOUT_WINDOW_MS: 30 * 60 * 1000, // the first-run flyout is offered for this long after install
+  FLYOUT_SHOW_MS: 20000,        // ...and stays on a page this long unless dismissed
 });
+
+// Review prompt timing. Counted on this device only (storage.local), same rules for everyone.
+export const REVIEW = Object.freeze({
+  SOFT_AFTER_OPENS: 15,         // quiet banner: not before this many switcher opens...
+  SOFT_AFTER_MS: 3 * 24 * 3600 * 1000, // ...and this long after install
+  SOFT_GAP_MS: 3 * 24 * 3600 * 1000,   // at most one banner per this long
+  SOFT_MAX: 3,                  // banners shown before the dialog may appear
+  ASK_AFTER_OPENS: 40,          // the dialog: not before this many opens...
+  ASK_AFTER_MS: 10 * 24 * 3600 * 1000, // ...and this long after install
+  ASK_GAP_MS: 14 * 24 * 3600 * 1000,   // at most one dialog per this long
+  ASK_MAX: 2,                   // then never again
+});
+
+export const REVIEW_URL = 'https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk/reviews';
+export const FEEDBACK_URL = 'https://github.com/Vajrayu/tabatha/issues/new';
 
 export const SWITCHER_PAGE = 'switcher.html';
 export const COFFEE_URL = 'https://buymeacoffee.com/vey9utb';

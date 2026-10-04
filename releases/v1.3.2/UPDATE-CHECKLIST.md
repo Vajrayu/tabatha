@@ -16,18 +16,22 @@ The text to paste is in `store-listing.md` in this folder.
 - [ ] **Description**: replace with the Description block in `store-listing.md`. Changed lines:
   - New opening paragraph (problem-led, with the words tab switcher, tab manager and Alt+Tab) and a new QUESTIONS section; "FEATURES" is now "WHAT YOU GET"
   - "Sleeping tabs": only tabs Chrome put to sleep while you browse are Sleeping; after a restart tabs keep their saved preview
-  - "Private by design": previews are kept while the tab is open, and 7 days after you close it
+  - "Private by design": previews are kept while the tab is open, and 7 days after you close it; saved tab groups stay until you remove them
+  - New bullets under WHAT YOU GET: Tab groups (optional) and the first-run tour; one new question about the optional permission
 - Screenshots, promo tiles, category, URLs: **unchanged**. (Name and summary change via the zip; see step 1.)
 
 ## 3. Privacy
-- [ ] **`storage` permission justification: replace** with the new text in `store-listing.md` (previews are kept while a tab with that page is open, otherwise 7 days).
-- Everything else is unchanged: single purpose, other permission justifications, remote code ("No"), data usage ticks, certifications. No new permissions.
+- [ ] **`storage` permission justification: replace** with the new text in `store-listing.md` (adds saved tab groups and the tour/review counters).
+- [ ] **`scripting` justification: replace** (adds the one-time "Press Alt+Q" notice).
+- [ ] **Host permission justification: replace** (it no longer says screenshots are "kept in memory only").
+- [ ] **`tabGroups`**: it is an *optional* permission (`optional_permissions` in the manifest), so users are not asked at install and existing users are not disabled on update. If the dashboard lists it, paste the `tabGroups` justification from `store-listing.md`.
+- Unchanged: single purpose, other permission justifications, remote code ("No"), data usage ticks, certifications.
 
 ## 4. Distribution
 - **No changes.**
 
 ## 5. Test instructions
-- **No changes.**
+- [ ] **Replace** with the block in `store-listing.md` (454 of 500 characters): it now mentions the first-run tour and the tab-groups link.
 
 ## Then
 - [ ] **Submit for review.**

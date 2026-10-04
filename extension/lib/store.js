@@ -12,6 +12,7 @@
 
 import { KEY, LIMITS, previewKey, tabMetaKey, PREVIEW_PREFIX, WINDOW_STATES, MODES } from './constants.js';
 import { normalizeUrl, isWorthReopening } from './ext.js';
+import { emptyReview } from './review.js';
 
 const S = chrome.storage.session;
 const L = chrome.storage.local;
@@ -23,6 +24,12 @@ function serial(fn) {
   const run = queue.then(fn);
   queue = run.catch(() => {});
   return run;
+}
+
+// Same, but across contexts: the worker and the switcher page both write some
+// keys, and Web Locks are shared by every page of the extension.
+export function withLock(name, fn) {
+  return navigator.locks ? navigator.locks.request('tabatha:' + name, fn) : serial(fn);
 }
 
 // ---------- validation ----------
@@ -308,6 +315,41 @@ export function cleanupClosedLog() {
     const raw = (await L.get(KEY.CLOSED_LOG))[KEY.CLOSED_LOG];
     const log = cleanLog(raw);
     if (!Array.isArray(raw) || log.length !== raw.length) await L.set({ [KEY.CLOSED_LOG]: log });
+  });
+}
+
+// ---------- review prompt counters (storage.local, this device only) ----------
+const count = (v) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0);
+function cleanReview(v) {
+  const e = emptyReview();
+  if (!v || typeof v !== 'object') return e;
+  return {
+    since: isTime(v.since) ? v.since : e.since, opens: count(v.opens), soft: count(v.soft), lastSoft: count(v.lastSoft),
+    asks: count(v.asks), lastAsk: count(v.lastAsk), done: v.done === true,
+  };
+}
+export async function getReview() {
+  return cleanReview((await L.get(KEY.REVIEW))[KEY.REVIEW]);
+}
+// `change` gets the current counters and returns the new ones.
+export function updateReview(change) {
+  return withLock('review', async () => {
+    const next = cleanReview(change(await getReview()));
+    await L.set({ [KEY.REVIEW]: next });
+    return next;
+  });
+}
+
+// ---------- first-run flags (storage.local) ----------
+export async function getOnboard() {
+  const v = (await L.get(KEY.ONBOARD))[KEY.ONBOARD];
+  return { at: v && isTime(v.at) ? v.at : 0, flyout: !!(v && v.flyout), tour: !!(v && v.tour) };
+}
+export function updateOnboard(patch) {
+  return withLock('onboard', async () => {
+    const next = { ...(await getOnboard()), ...patch };
+    await L.set({ [KEY.ONBOARD]: next });
+    return next;
   });
 }
 

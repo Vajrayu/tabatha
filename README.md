@@ -16,6 +16,8 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 - **Every window in one view**: each card shows the site and which window it's in. Filter to one window with <kbd>Alt</kbd>+<kbd>W</kbd> or the window chips.
 - **Recently closed**: reopen tabs and windows closed in the last 4 hours, with their last preview. Tabatha also keeps its own 7-day list (up to 200 tabs, on your computer), so searching finds tabs that Chrome's own 25-item list has already forgotten.
 - **Sleeping tabs**: tabs Chrome puts to sleep while you browse are marked *Sleeping* (their last preview stays, faded). After you reopen the browser, tabs keep their saved preview. Tabs Tabatha hasn't been able to screenshot yet say *No preview yet*.
+- **Tab groups (optional)**: your Chrome tab groups show as sections with their name and colour. Close a group, or its window, and Tabatha keeps it under *Saved tab groups* until you remove it; <kbd>Enter</kbd> reopens it as a real group. Switched on from the footer ("Turn on tab groups"), which asks Chrome for one extra, optional permission.
+- **A short tour**: a "Press Alt+Q" notice after you install, and a five-step tour the first time you open Tabatha (replay it with *How it works*).
 - **Close from the switcher**: <kbd>Del</kbd> (<kbd>⌘</kbd>+<kbd>⌫</kbd> on a Mac) or middle-click.
 - **Works everywhere**: on pages extensions can't draw on (New Tab, `chrome://`, the Web Store) it opens in a small popup window instead.
 - **Free**: a small Buy Me a Coffee button sits in the corner of the switcher, if you want to say thanks.
@@ -59,7 +61,7 @@ On macOS, Alt is <kbd>Option</kbd>. To change the shortcut, go to `chrome://exte
 
 ## What's new (newest first)
 
-**1.3.2** (2 Oct 2026): previews are saved on disk and survive a browser restart; a preview is kept while a tab with that page is open (7 days after it closes); "Sleeping" only for tabs Chrome really put to sleep while you browse, so tabs restored after a restart show their preview normally; a 7-day closed-tab list (200 tabs, beyond Chrome's 25-item limit) that search can reach; no more nonsense time on closed windows. Full notes: [releases/v1.3.2/release-notes.md](releases/v1.3.2/release-notes.md).
+**1.3.2** (2 Oct 2026, amended 4 Oct before submission): **tab groups** as sections, with closed groups kept until you remove them (optional `tabGroups` permission, off until you switch it on); a **first-run notice and tour**; a **review reminder** (a quiet banner a few times, one dialog much later; it offers a review and a feedback link whatever your answer); previews are saved on disk and survive a browser restart; a preview is kept while a tab with that page is open (7 days after it closes); "Sleeping" only for tabs Chrome really put to sleep while you browse, so tabs restored after a restart show their preview normally; a 7-day closed-tab list (200 tabs, beyond Chrome's 25-item limit) that search can reach; no more nonsense time on closed windows. Full notes: [releases/v1.3.2/release-notes.md](releases/v1.3.2/release-notes.md).
 
 **1.3.1** (30 Sep 2026): tap-to-open; recently closed limited to the last 4 hours (max 8, max 2 windows); site and window shown on every card, window numbers that stay put; "Inactive" now means unloaded by Chrome, with "No preview yet" for uncaptured tabs; Mac fixes (Option+W, Option+key typing, ⌘⌫); Buy Me a Coffee button. Full notes: [releases/v1.3.1/release-notes.md](releases/v1.3.1/release-notes.md).
 

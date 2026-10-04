@@ -97,7 +97,7 @@ kbd + kbd { margin-left: 2px; }
 
 /* ---------- content ---------- */
 main {
-  /* Bottom strip is kept free for the coffee button, so it never covers a card. */
+  /* Bottom strip is kept free for the coffee button and the footer links, so they never cover a card. */
   position: absolute; inset: var(--top, 72px) 0 64px 0; overflow-y: auto; overflow-x: hidden;
   padding: 8px 40px 24px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent;
 }
@@ -180,3 +180,62 @@ section { max-width: 1640px; margin: 0 auto; }
 .card.asleep .shot { filter: grayscale(.6) brightness(.6); }
 .card.asleep .fav { opacity: .6; border-radius: 50%; outline: 1.5px dashed rgba(255,255,255,.55); outline-offset: 2px; }
 .card.asleep .title { color: var(--fg-2); }
+
+.section-h .sub { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 8px; }
+
+/* ---------- tab group sections ---------- */
+.gsec + .gsec { margin-top: 14px; }
+.has-groups .grid { justify-content: flex-start; }
+.ghead { display: flex; align-items: center; gap: 8px; margin: 4px 8px 8px; font-size: 13px; font-weight: 600; }
+.ghead .n { font-weight: 400; color: var(--fg-3); font-size: 12px; }
+.dot { width: 11px; height: 11px; border-radius: 50%; flex: none; background: var(--gc, #9aa0a6); }
+.gsec.grouped { border-left: 3px solid var(--gc, #9aa0a6); padding-left: 10px; border-radius: 2px; }
+#saved-section { margin-top: 18px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.08); }
+#saved-grid { --w: 290px; justify-content: flex-start; }
+.gcard .head { padding-bottom: 4px; }
+.glist { list-style: none; margin: 0; padding: 8px 6px 4px; border-radius: 6px; background: var(--fill); display: grid; gap: 5px; }
+.glist li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--fg-2); min-width: 0; }
+.glist li img { width: 14px; height: 14px; border-radius: 3px; flex: none; }
+.glist li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.glist li.more { color: var(--fg-3); padding-left: 22px; }
+.gcard.armed .x { opacity: 1; background: var(--danger); width: auto; padding: 0 8px; font-size: 11.5px; }
+
+/* ---------- footer links ---------- */
+.foot { position: fixed; left: 44px; bottom: 18px; z-index: 2; display: flex; align-items: center; gap: 16px; max-width: calc(100% - 330px); flex-wrap: wrap; }
+html.window .foot { left: 22px; bottom: 16px; }
+.link { background: none; border: 0; padding: 4px 2px; color: var(--fg-3); font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.link:hover, .link:focus-visible { color: var(--fg); outline: none; text-decoration: underline; }
+.link.strong { color: #FFD166; font-weight: 600; }
+.q { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid currentColor; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.soft { display: inline-flex; align-items: center; gap: 12px; padding: 3px 12px; border-radius: 16px; background: var(--fill-2); color: var(--fg-2); font-size: 12.5px; }
+
+/* ---------- dialogs (tour, review) ---------- */
+.modal-back { position: fixed; inset: 0; z-index: 5; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.dialog {
+  width: min(460px, 100%); padding: 22px 24px 18px; border-radius: 14px; color: var(--fg);
+  background: #1d2027; border: 1px solid rgba(255,255,255,.2); box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+.dialog h3 { margin: 0 0 8px; font-size: 18px; font-weight: 650; }
+.dialog p { margin: 0 0 10px; color: var(--fg-2); font-size: 14px; line-height: 1.5; }
+.dialog ul { margin: 0 0 10px; padding-left: 18px; color: var(--fg-2); font-size: 14px; line-height: 1.7; }
+.dialog kbd { font-size: 12px; padding: 2px 6px; color: #fff; }
+.dialog textarea {
+  width: 100%; min-height: 84px; resize: vertical; margin: 4px 0 8px; padding: 9px 10px; font: inherit; font-size: 13.5px;
+  color: var(--fg); background: var(--fill); border: 1px solid var(--line); border-radius: 8px; user-select: text;
+}
+.dialog textarea:focus { outline: 0; border-color: rgba(255,255,255,.45); }
+.dialog .note { font-size: 12px; color: var(--fg-3); }
+.row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.row .grow { flex: 1; }
+.btn { border: 1px solid var(--line); background: var(--fill); color: var(--fg); padding: 8px 14px; border-radius: 8px; font-size: 13.5px; cursor: pointer; }
+.btn:hover, .btn:focus-visible { background: var(--fill-2); outline: none; border-color: rgba(255,255,255,.4); }
+.btn.primary { background: #FFD166; border-color: #FFD166; color: #1B2A4A; font-weight: 650; }
+.btn.primary:hover, .btn.primary:focus-visible { background: #ffdc85; }
+.btn.quiet { background: none; border-color: transparent; color: var(--fg-3); }
+.faces { display: flex; gap: 10px; margin-top: 12px; }
+.faces .btn { flex: 1; padding: 12px 6px; }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--fill-2); }
+.dots i.on { background: #FFD166; }
+.modal-back.tour { background: transparent; align-items: flex-end; padding-bottom: 96px; } /* the tour sits low, so what it points at stays in view */
+.tour-hl { outline: 3px solid #FFD166; outline-offset: 3px; border-radius: 8px; }

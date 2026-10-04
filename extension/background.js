@@ -17,8 +17,9 @@ import {
   touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews, markBoot,
   markDiscarded, moveDiscarded, ensureBoot,
   rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
-  setOverlayTab, clearOverlayTab, createLaunch,
+  setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard,
 } from './lib/store.js';
+import { syncGroups, hasGroupsApi } from './lib/groups.js';
 import { scheduleCapture, cancelCapture, captureWindow } from './lib/capture.js';
 import { isOwnUrl } from './lib/ext.js';
 
@@ -32,6 +33,27 @@ const INJECTABLE = /^(https?|file):/;
 
 // First worker start of a browser session: remember when it began (see maybeCleanup in store.js).
 ensureBoot().catch(() => {});
+
+// ------------------------------------------------------------- saved tab groups
+// Events are batched: closing a window fires dozens, and by the time the batch
+// settles the group is gone, so its saved copy keeps the tabs it had (see lib/groups.js).
+// Only runs once the user has switched on the optional tabGroups permission.
+let groupTimer = null;
+function groupsChanged() {
+  if (!hasGroupsApi()) return;
+  clearTimeout(groupTimer);
+  groupTimer = setTimeout(() => syncGroups().catch(() => {}), LIMITS.GROUP_SYNC_MS);
+}
+let groupListeners = false;
+function listenToGroups() {
+  if (groupListeners || !hasGroupsApi()) return;
+  groupListeners = true;
+  for (const ev of ['onCreated', 'onUpdated', 'onRemoved', 'onMoved']) chrome.tabGroups[ev].addListener(groupsChanged);
+}
+listenToGroups(); // top level, so a worker woken by a group event is already listening
+chrome.permissions.onAdded.addListener((p) => {
+  if (p.permissions && p.permissions.includes('tabGroups')) { listenToGroups(); syncGroups().catch(() => {}); }
+});
 
 // ---------------------------------------------------------------- tab events
 chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
@@ -49,8 +71,15 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (info.url || info.title || info.favIconUrl) rememberTab(tab).catch(() => {});
   // Chrome unloaded (or reloaded) this tab while we were running: that's a real "Sleeping" tab.
   if (typeof info.discarded === 'boolean') markDiscarded(tabId, info.discarded).catch(() => {});
-  if (info.status === 'complete' && tab.active) scheduleCapture(tab.windowId, 450);
+  if (info.status === 'complete' && tab.active) {
+    scheduleCapture(tab.windowId, 450);
+    offerFlyout(tab);
+  }
+  if (info.groupId !== undefined || (tab.groupId >= 0 && (info.url || info.title))) groupsChanged();
 });
+chrome.tabs.onAttached.addListener(groupsChanged);
+chrome.tabs.onDetached.addListener(groupsChanged);
+chrome.tabs.onMoved.addListener(groupsChanged);
 
 // Previews are keyed by URL, so a closed or replaced tab keeps its preview
 // (it's what "Recently closed" shows); old ones expire in cleanupPreviews().
@@ -61,6 +90,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   removeFromMru(tabId);
   markDiscarded(tabId, false).catch(() => {});
   logClosedTab(tabId).catch(() => {});
+  groupsChanged();
 });
 
 chrome.tabs.onReplaced.addListener((addedId, removedId) => {
@@ -100,6 +130,7 @@ async function setup({ fresh = false } = {}) {
   if (fresh) cleanupPreviews().catch(() => {});
   cleanupClosedLog().catch(() => {}); // ...and the 7-day closed-tab log
   chrome.tabs.query({ windowType: 'normal' }).then(rememberTabs).catch(() => {}); // what each open tab is, for the log
+  groupsChanged(); // saved tab groups (if switched on)
   const active = await chrome.tabs.query({ active: true, windowType: 'normal' });
   await seedMru(active.map((t) => t.id));
   const [focused] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -110,8 +141,13 @@ chrome.runtime.onStartup.addListener(async () => {
   await markBoot().catch(() => {}); // start of a browser session: tab ids and the "slept" list are new
   await setup();
 });
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   await setup({ fresh: true });
+  if (details.reason === 'install') {
+    await updateOnboard({ at: Date.now(), flyout: false, tour: false }).catch(() => {});
+    const [t] = await chrome.tabs.query({ active: true, lastFocusedWindow: true }).catch(() => []);
+    if (t) offerFlyout(t);
+  }
   // Tabs that were open before install/reload don't have the content script
   // yet. hotkey.js guards itself, so injecting twice is harmless.
   const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*', 'file://*/*'] });
@@ -313,6 +349,57 @@ async function restoreWindow(windowId, state) {
   } catch {}
 }
 
+// ------------------------------------------------------------ first-run flyout
+// Right after a fresh install a small card on the page says "Press Alt+Q". Pages
+// extensions can't touch (the Web Store, chrome://) can't show it, so it is offered
+// again on the next ordinary page the user loads, for a short while. It goes away
+// when dismissed, after 20 s, or as soon as the switcher has been opened once.
+async function offerFlyout(tab) {
+  try {
+    if (!tab || !INJECTABLE.test(tab.url || '') || tab.incognito) return;
+    const o = await getOnboard();
+    if (!o.at || o.flyout || o.tour || Date.now() - o.at > LIMITS.FLYOUT_WINDOW_MS) return;
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id }, func: injectFlyout, args: [MSG.FLYOUT_DONE, LIMITS.FLYOUT_SHOW_MS],
+    });
+  } catch {}
+}
+
+// Runs inside the page (isolated world). A closed shadow root keeps the page's CSS out and
+// its scripts away from our nodes; text is set with textContent only.
+function injectFlyout(doneType, showMs) {
+  if (window.__tabathaFlyout) return;
+  const mac = /mac/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '');
+  const host = document.createElement('div');
+  host.style.cssText = 'all:initial;position:fixed;top:16px;right:16px;z-index:2147483646';
+  const root = host.attachShadow({ mode: 'closed' });
+  const style = document.createElement('style');
+  style.textContent = `
+    .c{font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1B2A4A;background:#FFF8E7;width:280px;padding:14px 16px 14px;
+       border:3px solid #1B2A4A;border-radius:4px;box-shadow:4px 4px 0 #1B2A4A;animation:in .25s steps(4) both}
+    @keyframes in{from{transform:translateY(-10px);opacity:0}to{transform:none;opacity:1}}
+    .t{font-weight:700;font-size:15px;margin:0 22px 6px 0}.p{margin:0 0 10px}
+    kbd{font:inherit;font-weight:700;background:#FFD166;border:2px solid #1B2A4A;border-radius:3px;padding:1px 7px}
+    .s{font-size:12px;opacity:.75;margin:0}
+    button{position:absolute;top:6px;right:8px;border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:#1B2A4A}`;
+  const box = document.createElement('div'); box.className = 'c'; box.setAttribute('role', 'status');
+  const t = document.createElement('p'); t.className = 't'; t.textContent = 'Tabatha is ready';
+  const p = document.createElement('p'); p.className = 'p';
+  const k = document.createElement('kbd'); k.textContent = mac ? 'Option+Q' : 'Alt+Q';
+  p.append('Press ', k, ' to see all your tabs.');
+  const s = document.createElement('p'); s.className = 's'; s.textContent = 'Or click the Tabatha icon in the toolbar.';
+  const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Dismiss'); x.textContent = '\u00d7';
+  box.append(t, p, s, x); root.append(style, box);
+  const done = () => {
+    clearTimeout(timer); host.remove(); delete window.__tabathaFlyout;
+    chrome.runtime.sendMessage({ type: doneType }).catch(() => {});
+  };
+  x.addEventListener('click', done);
+  const timer = setTimeout(() => { host.remove(); delete window.__tabathaFlyout; }, showMs); // left alone: offered again on the next page
+  window.__tabathaFlyout = { host };
+  (document.body || document.documentElement).append(host);
+}
+
 // --------------------------------------------------------------- entry points
 // MV3 note: this worker is not persistent; Chrome stops it when idle and starts it again for
 // an event. Keep every listener registered at the top level, synchronously (nothing awaited
@@ -343,6 +430,12 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       disarmWatchdog();
       respond({ extra: opening ? Math.max(-20, Math.min(20, opening.extra)) : 0 });
       opening = null;
+      return;
+    case MSG.GROUPS:
+      if (fromSwitcher(sender)) syncGroups().catch(() => {});
+      return;
+    case MSG.FLYOUT_DONE:
+      if (fromContentScript(sender)) updateOnboard({ flyout: true }).catch(() => {});
       return;
     case MSG.CLOSED:
       if (!fromSwitcher(sender)) return;
