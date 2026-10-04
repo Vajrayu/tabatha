@@ -239,3 +239,26 @@ html.window .foot { left: 22px; bottom: 16px; }
 .dots i.on { background: #FFD166; }
 .modal-back.tour { background: transparent; align-items: flex-end; padding-bottom: 96px; } /* the tour sits low, so what it points at stays in view */
 .tour-hl { outline: 3px solid #FFD166; outline-offset: 3px; border-radius: 8px; }
+
+/* ---------- alert bar ---------- */
+.alert { margin: 0 44px 4px; padding: 8px 14px; border-radius: 8px; background: #FFD166; color: #1B2A4A; font-size: 13px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.alert .btn { background: #1B2A4A; color: #fff; border-color: #1B2A4A; padding: 4px 12px; }
+
+/* ---------- tour, in the manual's style ---------- */
+.dialog.manual { background: #EBFFA6; color: #1B2A4A; border: 0; border-radius: 0; padding: 38px 24px 18px; width: min(430px, 100%);
+  box-shadow: 0 -3px 0 #1B2A4A, 0 3px 0 #1B2A4A, -3px 0 0 #1B2A4A, 3px 0 0 #1B2A4A, 7px 7px 0 #1B2A4A; position: relative; }
+.dialog.manual .num { position: absolute; top: 0; left: 0; width: 30px; height: 30px; display: grid; place-items: center; background: #1B2A4A; color: #fff; font: 700 16px ui-monospace, "SF Mono", Menlo, monospace; }
+.dialog.manual h3 { font-size: 28px; font-weight: 700; margin: 0 0 8px; letter-spacing: -.01em; }
+.dialog.manual p { color: #1B2A4A; font-size: 16px; line-height: 1.4; margin: 0 0 10px; }
+.dialog.manual kbd { background: #FFF8E7; color: #1B2A4A; font-weight: 700; border-radius: 0; font-size: 14px; padding: 3px 9px;
+  box-shadow: 0 -2px 0 #1B2A4A, 0 2px 0 #1B2A4A, -2px 0 0 #1B2A4A, 2px 0 0 #1B2A4A, 2px 4px 0 #1B2A4A; margin: 0 4px 0 2px; }
+.dialog.manual .keys { display: grid; grid-template-columns: auto 1fr; gap: 10px 14px; align-items: center; margin: 4px 0 10px; font-size: 16px; }
+.dialog.manual .keys span { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.dialog.manual .btn { border-radius: 0; background: #FFF8E7; color: #1B2A4A; border: 3px solid #1B2A4A; font-weight: 700; }
+.dialog.manual .btn.primary { background: #FFD166; }
+.dialog.manual .btn.quiet { background: none; border-color: transparent; color: #1B2A4A; opacity: .7; }
+.dialog.manual .dots i { background: #1B2A4A33; border-radius: 0; }
+.dialog.manual .dots i.on { background: #1B2A4A; }
+.dialog.manual .says { display: flex; align-items: flex-end; gap: 10px; margin-top: 6px; }
+.dialog.manual .says svg { image-rendering: pixelated; flex: none; }
+.dialog.manual .says .bubble { background: #FFF8E7; padding: 6px 12px; font-weight: 600; font-size: 14px; box-shadow: 0 -2px 0 #1B2A4A, 0 2px 0 #1B2A4A, -2px 0 0 #1B2A4A, 2px 0 0 #1B2A4A; margin-bottom: 14px; }

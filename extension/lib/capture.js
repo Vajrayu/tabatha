@@ -5,8 +5,8 @@
 // keyed by URL, deleted after 7 days) and are never sent anywhere.
 
 import { LIMITS, PREVIEW_PREFIX } from './constants.js';
-import { savePreview, isOverlayTab } from './store.js';
-import { isOwnUrl } from './ext.js';
+import { savePreview, isOverlayTab, noteCapture } from './store.js';
+import { isOwnUrl, normalizeUrl } from './ext.js';
 
 let lastCaptureAt = 0;
 const timers = new Map(); // windowId -> timeout id (debounce per window)
@@ -40,30 +40,43 @@ export async function captureWindow(windowId, { force = false } = {}) {
   } catch {
     return; // window closed meanwhile
   }
-  if (!tab || !tab.url || isOwnUrl(tab.url)) return;
-  if (win.type !== 'normal' || win.state === 'minimized' || win.incognito) return;
-  if (await isOverlayTab(tab.id)) return; // never photograph our own overlay
+  if (!tab || !tab.url || isOwnUrl(tab.url)) return noteCapture('skip', 'no page to capture');
+  if (win.type !== 'normal' || win.state === 'minimized' || win.incognito) return noteCapture('skip', 'window is minimized or not a normal window');
+  if (await isOverlayTab(tab.id)) return noteCapture('skip', 'Tabatha was open over this tab');
+  return captureTab(windowId, tab);
+}
 
+// Screenshot the visible tab of `windowId` (which must be `tab`) and store it.
+// Every outcome is noted (storage.session) so the switcher can say why a preview is missing.
+export async function captureTab(windowId, tab) {
   lastCaptureAt = Date.now();
   let dataUrl;
   try {
     dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: 'jpeg', quality: 80 });
-  } catch {
-    return; // chrome:// pages, Web Store, PDF viewer etc. can't be captured
+  } catch (e) {
+    // chrome:// pages, the Web Store and the PDF viewer can't be captured; so can nothing at all if
+    // Chrome withholds the extension's site access ("On click" in chrome://extensions).
+    return noteCapture('error', String((e && e.message) || e).slice(0, 200), tab.url);
   }
 
   // The user may have switched tabs or navigated while the capture was in flight.
   const [still] = await chrome.tabs.query({ active: true, windowId });
-  if (!still || still.id !== tab.id || still.url !== tab.url) return;
+  if (!still || still.id !== tab.id || normalizeUrl(still.url) !== normalizeUrl(tab.url)) return noteCapture('skip', 'the tab changed during the capture', tab.url);
 
   const img = await shrink(dataUrl);
-  if (img) await savePreview(tab.url, { img, t: Date.now() });
+  if (!img) return noteCapture('error', 'could not shrink the screenshot', tab.url);
+  try {
+    await savePreview(tab.url, { img, t: Date.now() });
+  } catch (e) {
+    return noteCapture('error', 'could not save the preview: ' + String((e && e.message) || e).slice(0, 150), tab.url);
+  }
+  return noteCapture('ok', '', tab.url);
 }
 
 // Downscale to at most THUMB_MAX px on the longest side. Decodes the data URL
 // by hand rather than with the Fetch API, so the extension's CSP can forbid all
 // network access (connect-src 'none').
-async function shrink(dataUrl) {
+export async function shrink(dataUrl) {
   try {
     const comma = dataUrl.indexOf(',');
     if (comma < 0) return null;

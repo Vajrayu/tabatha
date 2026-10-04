@@ -1,0 +1,40 @@
+// Core switcher behaviour: open, search, Esc, arrows + Enter, Delete (one per press, even when held), MRU selection.
+import { launch } from './lib.mjs';
+const T = await launch(process.env.EXT);
+const [a, b, c] = await T.open(['alpha', 'beta', 'gamma']);
+await T.skipFirstRun();
+for (const n of ['delta', 't1', 't2', 't3']) await T.sw.evaluate(async (u) => { await chrome.tabs.create({ url: u, active: false }); }, T.url(n));
+await T.sw.evaluate(() => new Promise((r) => setTimeout(r, 1200)));
+await c.bringToFront(); await c.waitForTimeout(500);
+const f = () => T.frame(c);
+await T.tap(c);
+T.log('tap opens and stays open', await T.isOpen(c));
+const sel = await f().$eval('.card[aria-selected="true"] .title', (n) => n.textContent);
+T.log('opens on the previous tab (most recently used)', sel === 'beta page', sel);
+await c.keyboard.type('alp'); await c.waitForTimeout(250);
+T.log('typing searches', (await f().$$eval('#open-grid .card', (x) => x.length)) === 1);
+await c.keyboard.press('Escape'); await c.waitForTimeout(250);
+T.log('first Esc clears the search', await T.isOpen(c) && (await f().$eval('#search', (n) => n.value)) === '');
+await c.keyboard.press('Escape'); await c.waitForTimeout(400);
+T.log('second Esc closes', !(await T.isOpen(c)));
+await T.tap(c); await c.keyboard.press('ArrowRight'); await c.keyboard.press('Enter'); await c.waitForTimeout(600);
+const t = await T.sw.evaluate(async () => (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0].title);
+T.log('arrow + Enter switches tab', t !== 'gamma page', t);
+const p = T.ctx.pages().find((x) => x.url().includes('gamma')); await p.bringToFront();
+const count = () => T.sw.evaluate(async () => (await chrome.tabs.query({})).length);
+const wait = (ms) => T.sw.evaluate((m) => new Promise((r) => setTimeout(r, m)), ms);
+const selected = () => T.frame(p).$eval('.card[aria-selected="true"] .title', (n) => n.textContent);
+// Delete closes the selected tab; keep the selection off the page the switcher is open on.
+const clear = async () => { if ((await selected()) === 'gamma page') await p.keyboard.press('ArrowRight'); };
+const n0 = await count(); await T.tap(p);
+await clear(); await p.keyboard.press('Delete'); await wait(800);
+const n1 = await count();
+await clear(); await p.keyboard.press('Delete'); await wait(900);
+const n2 = await count();
+T.log('two separate Delete presses close two tabs', n0 - n2 === 2, `${n0} -> ${n1} -> ${n2}`);
+// a held key sends repeats: only the first closes a tab
+await clear();
+await p.keyboard.down('Delete'); for (let i = 0; i < 4; i++) { await p.keyboard.down('Delete'); await wait(40); } await p.keyboard.up('Delete'); await wait(900);
+const n3 = await count();
+T.log('a held Delete closes exactly one tab', n2 - n3 === 1, `${n2} -> ${n3}`);
+await T.close();

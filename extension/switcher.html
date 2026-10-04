@@ -23,6 +23,7 @@
     </header>
 
     <nav id="windows" class="windows" aria-label="Windows" hidden></nav>
+    <div id="alert" class="alert" role="alert" hidden><span id="alert-text"></span><button id="alert-btn" class="btn quiet" type="button" hidden></button></div>
 
     <main id="scroller">
       <section aria-labelledby="open-h">
@@ -41,6 +42,8 @@
     </main>
     <div class="foot">
       <button id="tour-btn" class="link" type="button" title="A short tour of Tabatha"><span class="q" aria-hidden="true">?</span>How it works</button>
+      <button id="feedback-btn" class="link" type="button" hidden>Feedback</button>
+      <button id="sweep-btn" class="link" type="button" hidden title="Shows each of your tabs for a moment so every tab gets a preview, then puts you back where you were"></button>
       <button id="groups-btn" class="link" type="button" hidden title="Show your Chrome tab groups here, and keep them when you close them">Turn on tab groups</button>
       <div id="soft" class="soft" hidden>
         <span>Enjoying Tabatha?</span>

@@ -12,7 +12,7 @@
 // Everything here must be safe to run more than once: the worker can be
 // suspended and restarted at any moment, and install/reload re-runs setup.
 
-import { MSG, FRAME_MSG, LIMITS, SWITCHER_PAGE, WINDOW_STATES, CLOSE_REASONS } from './lib/constants.js';
+import { MSG, KEY, FRAME_MSG, LIMITS, SWITCHER_PAGE, WINDOW_STATES, CLOSE_REASONS } from './lib/constants.js';
 import {
   touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews, markBoot,
   markDiscarded, moveDiscarded, ensureBoot,
@@ -20,6 +20,7 @@ import {
   setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard,
 } from './lib/store.js';
 import { syncGroups, hasGroupsApi } from './lib/groups.js';
+import { runSweep, cancelSweep, isSweeping } from './lib/sweep.js';
 import { scheduleCapture, cancelCapture, captureWindow } from './lib/capture.js';
 import { isOwnUrl } from './lib/ext.js';
 
@@ -33,6 +34,10 @@ const INJECTABLE = /^(https?|file):/;
 
 // First worker start of a browser session: remember when it began (see maybeCleanup in store.js).
 ensureBoot().catch(() => {});
+// A worker that has just started is not sweeping: clear a "running" flag a dead worker left behind.
+chrome.storage.session.get(KEY.SWEEP).then((o) => {
+  if (o[KEY.SWEEP] && o[KEY.SWEEP].running && !isSweeping()) chrome.storage.session.set({ [KEY.SWEEP]: { running: false, done: 0, total: 0 } });
+}).catch(() => {});
 
 // ------------------------------------------------------------- saved tab groups
 // Events are batched: closing a window fires dozens, and by the time the batch
@@ -53,10 +58,18 @@ function listenToGroups() {
 listenToGroups(); // top level, so a worker woken by a group event is already listening
 chrome.permissions.onAdded.addListener((p) => {
   if (p.permissions && p.permissions.includes('tabGroups')) { listenToGroups(); syncGroups().catch(() => {}); }
+  // The user just allowed site access they had withheld ("On click" in chrome://extensions):
+  // put the shortcut listener into the tabs that are already open, and take a first preview.
+  if (p.origins && p.origins.length) {
+    chrome.tabs.query({ url: ['http://*/*', 'https://*/*', 'file://*/*'] }).then((tabs) => Promise.allSettled(tabs.map((t) =>
+      chrome.scripting.executeScript({ target: { tabId: t.id, allFrames: true }, files: ['hotkey.js'] })))).catch(() => {});
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(([t]) => t && scheduleCapture(t.windowId, 300)).catch(() => {});
+  }
 });
 
 // ---------------------------------------------------------------- tab events
 chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
+  if (isSweeping()) return; // "Capture all previews" is visiting tabs: that is not the user's order of use
   clearOverlayTab();
   let tab;
   try { tab = await chrome.tabs.get(tabId); } catch { return; }
@@ -71,7 +84,7 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (info.url || info.title || info.favIconUrl) rememberTab(tab).catch(() => {});
   // Chrome unloaded (or reloaded) this tab while we were running: that's a real "Sleeping" tab.
   if (typeof info.discarded === 'boolean') markDiscarded(tabId, info.discarded).catch(() => {});
-  if (info.status === 'complete' && tab.active) {
+  if (info.status === 'complete' && tab.active && !isSweeping()) {
     scheduleCapture(tab.windowId, 450);
     offerFlyout(tab);
   }
@@ -101,7 +114,7 @@ chrome.tabs.onReplaced.addListener((addedId, removedId) => {
 });
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
-  if (windowId === chrome.windows.WINDOW_ID_NONE) return;
+  if (windowId === chrome.windows.WINDOW_ID_NONE || isSweeping()) return;
   try {
     const [tab] = await chrome.tabs.query({ active: true, windowId });
     if (tab && !isOwnUrl(tab.url)) {
@@ -354,11 +367,12 @@ async function restoreWindow(windowId, state) {
 // extensions can't touch (the Web Store, chrome://) can't show it, so it is offered
 // again on the next ordinary page the user loads, for a short while. It goes away
 // when dismissed, after 20 s, or as soon as the switcher has been opened once.
+let flyoutOver = false; // once true it stays true for this worker: no storage read per page load
 async function offerFlyout(tab) {
   try {
-    if (!tab || !INJECTABLE.test(tab.url || '') || tab.incognito) return;
+    if (flyoutOver || !tab || !INJECTABLE.test(tab.url || '') || tab.incognito) return;
     const o = await getOnboard();
-    if (!o.at || o.flyout || o.tour || Date.now() - o.at > LIMITS.FLYOUT_WINDOW_MS) return;
+    if (!o.at || o.flyout || o.tour || Date.now() - o.at > LIMITS.FLYOUT_WINDOW_MS) { if (o.at) flyoutOver = true; return; }
     await chrome.scripting.executeScript({
       target: { tabId: tab.id }, func: injectFlyout, args: [MSG.FLYOUT_DONE, LIMITS.FLYOUT_SHOW_MS],
     });
@@ -373,8 +387,7 @@ function injectFlyout(doneType, showMs) {
   const host = document.createElement('div');
   host.style.cssText = 'all:initial;position:fixed;top:16px;right:16px;z-index:2147483646';
   const root = host.attachShadow({ mode: 'closed' });
-  const style = document.createElement('style');
-  style.textContent = `
+  const css = `
     .c{font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1B2A4A;background:#FFF8E7;width:280px;padding:14px 16px 14px;
        border:3px solid #1B2A4A;border-radius:4px;box-shadow:4px 4px 0 #1B2A4A;animation:in .25s steps(4) both}
     @keyframes in{from{transform:translateY(-10px);opacity:0}to{transform:none;opacity:1}}
@@ -382,6 +395,9 @@ function injectFlyout(doneType, showMs) {
     kbd{font:inherit;font-weight:700;background:#FFD166;border:2px solid #1B2A4A;border-radius:3px;padding:1px 7px}
     .s{font-size:12px;opacity:.75;margin:0}
     button{position:absolute;top:6px;right:8px;border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:#1B2A4A}`;
+  // A constructable stylesheet is not blocked by a page's Content-Security-Policy (an inline <style> can be).
+  try { const sheet = new CSSStyleSheet(); sheet.replaceSync(css); root.adoptedStyleSheets = [sheet]; }
+  catch { const style = document.createElement('style'); style.textContent = css; root.append(style); }
   const box = document.createElement('div'); box.className = 'c'; box.setAttribute('role', 'status');
   const t = document.createElement('p'); t.className = 't'; t.textContent = 'Tabatha is ready';
   const p = document.createElement('p'); p.className = 'p';
@@ -389,7 +405,7 @@ function injectFlyout(doneType, showMs) {
   p.append('Press ', k, ' to see all your tabs.');
   const s = document.createElement('p'); s.className = 's'; s.textContent = 'Or click the Tabatha icon in the toolbar.';
   const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Dismiss'); x.textContent = '\u00d7';
-  box.append(t, p, s, x); root.append(style, box);
+  box.append(t, p, s, x); root.append(box);
   const done = () => {
     clearTimeout(timer); host.remove(); delete window.__tabathaFlyout;
     chrome.runtime.sendMessage({ type: doneType }).catch(() => {});
@@ -430,6 +446,12 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       disarmWatchdog();
       respond({ extra: opening ? Math.max(-20, Math.min(20, opening.extra)) : 0 });
       opening = null;
+      return;
+    case MSG.SWEEP:
+      if (fromSwitcher(sender)) runSweep().catch((e) => console.warn('[Tabatha] preview sweep failed:', e && e.message));
+      return;
+    case MSG.SWEEP_CANCEL:
+      if (isOwnUrl(sender.url, 'sweep.html')) cancelSweep();
       return;
     case MSG.GROUPS:
       if (fromSwitcher(sender)) syncGroups().catch(() => {});

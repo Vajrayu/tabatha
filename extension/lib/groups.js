@@ -94,6 +94,12 @@ export function syncGroups() {
       const drop = new Set(out.filter((r) => !r.open).sort((a, b) => a.t - b.t).slice(0, out.length - LIMITS.MAX_SAVED_GROUPS).map((r) => r.id));
       out = out.filter((r) => !drop.has(r.id));
     }
+    // Keep the whole list inside its share of storage.local: drop the oldest closed groups first.
+    const size = (arr) => JSON.stringify(arr).length;
+    for (const r of [...out].filter((g) => !g.open).sort((a, b) => a.t - b.t)) {
+      if (size(out) <= LIMITS.MAX_GROUPS_BYTES) break;
+      out = out.filter((g) => g.id !== r.id);
+    }
     // `t` of an open group is only for ordering and would change on every sync: don't write for that alone.
     const strip = (arr) => JSON.stringify(arr.map(({ t, ...r }) => (r.open ? r : { ...r, t })));
     if (strip(out) !== strip(clean(before)) || !Array.isArray(before)) await L.set({ [KEY.GROUPS]: out });

@@ -17,10 +17,11 @@ The text to paste is in `store-listing.md` in this folder.
   - New opening paragraph (problem-led, with the words tab switcher, tab manager and Alt+Tab) and a new QUESTIONS section; "FEATURES" is now "WHAT YOU GET"
   - "Sleeping tabs": only tabs Chrome put to sleep while you browse are Sleeping; after a restart tabs keep their saved preview
   - "Private by design": previews are kept while the tab is open, and 7 days after you close it; saved tab groups stay until you remove them
-  - New bullets under WHAT YOU GET: Tab groups (optional) and the first-run tour; one new question about the optional permission
+  - New bullets under WHAT YOU GET: Capture all previews, Tab groups (optional) and the first-run tour; one new question about the optional permission; "Why does a tab have no preview?" now mentions the button and Site access
 - Screenshots, promo tiles, category, URLs: **unchanged**. (Name and summary change via the zip; see step 1.)
 
 ## 3. Privacy
+- [ ] **`tabs` permission justification: replace** (adds the Capture-all-previews tab visits).
 - [ ] **`storage` permission justification: replace** with the new text in `store-listing.md` (adds saved tab groups and the tour/review counters).
 - [ ] **`scripting` justification: replace** (adds the one-time "Press Alt+Q" notice).
 - [ ] **Host permission justification: replace** (it no longer says screenshots are "kept in memory only").
@@ -31,7 +32,7 @@ The text to paste is in `store-listing.md` in this folder.
 - **No changes.**
 
 ## 5. Test instructions
-- [ ] **Replace** with the block in `store-listing.md` (454 of 500 characters): it now mentions the first-run tour and the tab-groups link.
+- [ ] **Replace** with the block in `store-listing.md` (see the character count in `store-listing.md`; it is under 500): it now mentions the first-run tour and the tab-groups link.
 
 ## Then
 - [ ] **Submit for review.**

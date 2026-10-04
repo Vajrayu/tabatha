@@ -1,0 +1,9 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #D2FF3C; color: #1B2A4A; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { margin: 14px; padding: 14px 16px; background: #EBFFA6; box-shadow: 0 -3px 0 #1B2A4A, 0 3px 0 #1B2A4A, -3px 0 0 #1B2A4A, 3px 0 0 #1B2A4A; }
+h1 { margin: 0 0 4px; font-size: 17px; }
+p { margin: 0 0 8px; }
+.note { font-size: 12px; opacity: .8; }
+.bar { height: 14px; background: #fff; box-shadow: 0 0 0 3px #1B2A4A; margin: 8px 3px 12px; }
+.bar i { display: block; height: 100%; width: 0; background: #FFD166; transition: width .15s steps(4); }
+button { font: inherit; font-weight: 700; padding: 5px 14px; background: #FFF8E7; color: #1B2A4A; border: 3px solid #1B2A4A; cursor: pointer; }

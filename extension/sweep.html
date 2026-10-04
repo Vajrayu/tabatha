@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Tabatha: capturing previews</title>
+  <link rel="stylesheet" href="sweep.css">
+</head>
+<body>
+  <main>
+    <h1>Capturing previews</h1>
+    <p id="msg" aria-live="polite">Starting…</p>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="fill"></i></div>
+    <p class="note">Tabatha is showing each tab for a moment. It will put you back where you were.</p>
+    <button id="cancel" type="button">Stop</button>
+  </main>
+  <script type="module" src="sweep.js"></script>
+</body>
+</html>

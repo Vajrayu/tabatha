@@ -353,6 +353,22 @@ export function updateOnboard(patch) {
   });
 }
 
+// ---------- capture diagnostics (storage.session) ----------
+// The last thing that happened when Tabatha tried to take a preview, so the switcher can say
+// why one is missing ("Chrome blocked the screenshot: ..."). Memory only; never contains page content.
+export async function noteCapture(stage, msg = '', url = '') {
+  let host = '';
+  try { host = new URL(url).host; } catch {}
+  try { await S.set({ [KEY.CAPDIAG]: { t: Date.now(), stage, msg: String(msg), host } }); } catch {}
+}
+export async function getCaptureNote() {
+  const v = (await S.get(KEY.CAPDIAG))[KEY.CAPDIAG];
+  return v && typeof v === 'object' && isTime(v.t) ? { t: v.t, stage: String(v.stage), msg: String(v.msg || ''), host: String(v.host || '') } : null;
+}
+export function setMru(ids) {
+  return serial(() => S.set({ [KEY.MRU]: ids.filter(isId).slice(0, LIMITS.MAX_MRU) }));
+}
+
 // ---------- overlay bookkeeping ----------
 // Stored (not kept in memory) so a restarted service worker still knows
 // not to screenshot a tab that currently has the overlay on top of it.

@@ -18,7 +18,8 @@
 //   - all page-provided text (titles, URLs) is rendered with textContent.
 
 import { MSG, FRAME_MSG, LIMITS, COFFEE_URL, REVIEW_URL, FEEDBACK_URL } from './lib/constants.js';
-import { getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, getReview, updateReview, getOnboard, updateOnboard } from './lib/store.js';
+import { ybit } from './lib/ybit.js';
+import { getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, getReview, updateReview, getOnboard, updateOnboard, getCaptureNote } from './lib/store.js';
 import { reviewPrompt } from './lib/review.js';
 import { hasGroupsApi, syncGroups, getSavedGroups, removeSavedGroup, reopenGroup } from './lib/groups.js';
 import { isOwnUrl, normalizeUrl, isWorthReopening } from './lib/ext.js';
@@ -33,7 +34,8 @@ const el = {
   closedSection: $('closed-section'), closedGrid: $('closed-grid'),
   winHint: $('hint-win'), coffee: $('coffee'),
   savedSection: $('saved-section'), savedGrid: $('saved-grid'),
-  tourBtn: $('tour-btn'), groupsBtn: $('groups-btn'),
+  feedbackBtn: $('feedback-btn'), tourBtn: $('tour-btn'), groupsBtn: $('groups-btn'), sweepBtn: $('sweep-btn'),
+  alert: $('alert'), alertText: $('alert-text'), alertBtn: $('alert-btn'),
   soft: $('soft'), modal: $('modal'), dialog: $('dialog'),
 };
 const GROUP_HEX = { grey: '#9aa0a6', blue: '#8ab4f8', red: '#f28b82', yellow: '#fdd663', green: '#81c995', pink: '#ff8bcb', purple: '#c58af9', cyan: '#78d9ec', orange: '#fcad70' };
@@ -64,6 +66,7 @@ const state = {
   sections: [],    // derived: [{ key, group: {title,color}|null, entries }] for the open tabs
   mruOrder: [],    // derived: open entries in most-recently-used order (what Alt+Q cycles through)
   savedCount: 0,
+  hostOk: true,   // does Tabatha have access to all sites (not withheld by Chrome's Site access setting)?
   armed: null,     // key of a saved group waiting for a second Delete / click on x
   modal: null,     // 'tour' | 'ask' while a dialog is open
 };
@@ -478,7 +481,7 @@ function render() {
   const n = open.length;
   el.count.textContent = state.query ? `${n} open · ${closed.length} closed` : `${n} tab${n === 1 ? '' : 's'}`;
   renderWindows();
-  el.scroller.style.setProperty('--top', el.bar.offsetHeight + (el.windows.hidden ? 0 : el.windows.offsetHeight) + 'px');
+  el.scroller.style.setProperty('--top', el.bar.offsetHeight + (el.windows.hidden ? 0 : el.windows.offsetHeight) + (el.alert.hidden ? 0 : el.alert.offsetHeight + 4) + 'px');
   select(state.sel, { scroll: true });
 }
 
@@ -650,6 +653,7 @@ function showDialog(kind, nodes) {
   el.dialog.replaceChildren(...nodes);
   el.modal.hidden = false;
   el.modal.classList.toggle('tour', kind === 'tour');
+  el.dialog.classList.toggle('manual', kind === 'tour');
   const first = el.dialog.querySelector('textarea, .primary') || el.dialog.querySelector('button');
   if (first) first.focus({ preventScroll: true });
 }
@@ -662,9 +666,9 @@ function closeDialog() {
 function whenTapMode(fn) {
   const t0 = performance.now();
   const tick = () => {
-    if (state.done) return;
+    if (state.done || state.modal || el.search.value) return; // closed, or already busy: don't interrupt
     if (!state.holding) return fn();
-    if (performance.now() - t0 < 1500) setTimeout(tick, 150);
+    if (performance.now() - t0 < 10000) setTimeout(tick, 150); // Alt still held from the shortcut: wait for the release
   };
   setTimeout(tick, 350);
 }
@@ -682,29 +686,19 @@ async function enableGroups() {
   chrome.runtime.sendMessage({ type: MSG.GROUPS }).catch(() => {});
   await load();
   refresh();
-  if (state.modal === 'tour') tourStep(TOUR.length - 1);
+  if (state.modal === 'tour') tourStep(tourAt); // redraw the step: it now says the groups are on
 }
 
-// ---- first-run tour
+// ---- first-run tour: short panels, like the manual. A fifth step ("tell me") appears once FEEDBACK_URL is set.
+const keyRows = (...rows) => { const d = h('div', 'keys'); rows.forEach(([keys, word]) => { const k = h('span'); k.append(...keys); d.append(k, h('span', '', word)); }); return d; };
 const TOUR = [
-  { title: 'This is Tabatha', hl: '.card[aria-selected="true"]', body: () => [
-    para('Every tab you have open, with a live preview. ', K('Alt+Q', '⌥Q'), ' opened this. You can let go of the keys now: it stays open.'),
-    para('Your last tab comes first, so ', K('Alt+Q', '⌥Q'), ' then ', K('Enter'), ' flips straight back to where you just were.')] },
-  { title: 'Move around', hl: '#scroller', body: () => [
-    list([K('←'), K('→'), K('↑'), K('↓'), ' or the mouse to pick a tab'],
-         [K('Enter'), ' or a click to open it'],
-         [K('Esc'), ' or a click outside to leave'],
-         [K('Del', '⌘⌫'), ' closes the selected tab']),
-    para('Prefer Alt+Tab style? Hold ', K('Alt', '⌥'), ' and tap ', K('Q'), ' to flick through tabs, then let go to open one.')] },
-  { title: 'Find anything', hl: '.search', body: () => [
-    para('Just start typing. Tabatha searches your open tabs and the tabs you closed in the last 7 days, by title or address.'),
-    para('Closed tabs sit under "Recently closed". ', K('Enter'), ' brings one back.')] },
-  { title: 'Lots of windows?', hl: null, body: () => [
-    para('With more than one window open, the chips at the top filter by window. ', K('Alt+W', '⌥W'), ' jumps to the next one.')] },
-  { title: 'Tab groups', hl: null, body: () => [
-    para('Your Chrome tab groups show up as sections, with their name and colour.'),
-    para('When you close a group, or its whole window, Tabatha keeps it under "Saved tab groups" until you remove it. ', K('Enter'), ' reopens it as a group.'),
-    para(state.groupsOn ? 'Tab groups are on.' : 'This needs one extra permission, which Chrome asks you for when you click:')] },
+  { title: IS_MAC ? 'Press Option+Q' : 'Press Alt+Q', hl: '.card[aria-selected="true"]', say: 'That’s it.', body: () => [para('Every open tab, with a preview.')] },
+  { title: 'Move', hl: '#scroller', body: () => [keyRows([[K('←'), K('→'), K('↑'), K('↓')], 'pick'], [[K('Enter')], 'open'], [[K('Del', '⌘⌫')], 'close tab'], [[K('Esc')], 'leave'])] },
+  { title: 'Search', hl: '.search', body: () => [para('Just type. It finds open tabs and ones you closed in the last 7 days.')] },
+  { title: 'Tab groups', hl: null, say: 'Optional.', body: () => [
+    para('Your groups become sections. Closed ones stay saved until you remove them.'),
+    ...(state.groupsOn ? [para('Groups are on.')] : [])] },
+  ...(FEEDBACK_URL ? [{ title: 'Anything off?', hl: null, say: 'I read every one.', body: () => [para('Tell me what’s broken or missing. I’ll fix it.')] }] : []),
 ];
 let tourAt = 0;
 function tourStep(i) {
@@ -718,13 +712,18 @@ function tourStep(i) {
   TOUR.forEach((_, k) => dots.append(h('i', k === tourAt ? 'on' : '')));
   const row = h('div', 'row');
   row.append(dots, h('span', 'grow'));
-  if (last && !state.groupsOn) row.append(button('Turn on tab groups', '', enableGroups));
+  if (step.title === 'Tab groups' && !state.groupsOn) row.append(button('Turn on', '', enableGroups));
+  if (last && FEEDBACK_URL) row.append(button('Tell me', '', () => openUrl(FEEDBACK_URL)));
   if (tourAt > 0) row.append(button('Back', 'quiet', () => tourStep(tourAt - 1)));
   if (!last) row.append(button('Skip', 'quiet', endTour));
   row.append(button(last ? 'Done' : 'Next', 'primary', () => (last ? endTour() : tourStep(tourAt + 1))));
   const title = h('h3', '', step.title);
   title.id = 'dlg-title';
-  showDialog('tour', [title, ...step.body(), row]);
+  const num = h('span', 'num', String(tourAt + 1));
+  const says = h('div', 'says');
+  says.append(ybit(step.say ? 'happy' : 'idle', 3));
+  if (step.say) says.append(h('span', 'bubble', step.say));
+  showDialog('tour', [num, title, ...step.body(), says, row]);
 }
 function endTour() {
   updateOnboard({ tour: true, flyout: true }).catch(() => {});
@@ -743,6 +742,13 @@ function showSoft() {
 }
 
 function askStep1() {
+  if (!FEEDBACK_URL) { // no feedback route yet: one plain question, the review button for everyone
+    const t = h('h3', '', 'Enjoying Tabatha?');
+    t.id = 'dlg-title';
+    const r = h('div', 'row');
+    r.append(button('Review on the Chrome Web Store', 'primary', goReview), h('span', 'grow'), button('Not now', 'quiet', closeDialog));
+    return showDialog('ask', [t, para('A short review is the best way to help other people find it.'), r]);
+  }
   const title = h('h3', '', 'How is Tabatha working for you?');
   title.id = 'dlg-title';
   const faces = h('div', 'faces');
@@ -754,22 +760,54 @@ function askStep1() {
 function askStep2(mood) {
   const title = h('h3', '', mood === 'good' ? 'Glad to hear it!' : 'Thanks for being honest');
   title.id = 'dlg-title';
-  const text = h('textarea');
-  text.maxLength = 1000;
-  text.placeholder = mood === 'good' ? 'Anything you’d like it to do next? (optional)' : 'What should be better?';
-  text.setAttribute('aria-label', 'Your feedback');
-  const note = h('p', 'note', 'Feedback opens a new GitHub issue with your text filled in. You can edit it before posting, and it is public. Tabatha sends nothing itself.');
-  const send = () => {
-    const body = (text.value.trim() || '(no details)') + '\n\n---\nTabatha ' + chrome.runtime.getManifest().version + ' · mood: ' + mood;
-    reviewDone().then(() => openUrl(FEEDBACK_URL + '?title=' + encodeURIComponent('Feedback') + '&body=' + encodeURIComponent(body)));
-  };
   const row = h('div', 'row');
-  row.append(button('Review on the Chrome Web Store', 'primary', goReview), button('Send feedback', '', send), h('span', 'grow'), button('Not now', 'quiet', closeDialog));
+  row.append(button('Review on the Chrome Web Store', 'primary', goReview), button('Tell me what to fix', '', () => reviewDone().then(() => openUrl(FEEDBACK_URL))), h('span', 'grow'), button('Not now', 'quiet', closeDialog));
   showDialog('ask', [title, para(mood === 'good'
     ? 'A review is the best way to help other people find Tabatha.'
-    : 'Tell me what to fix below. If you’d like to leave a review as well, that’s always welcome.'), text, note, row]);
+    : 'Tell me what to fix. A review is welcome too, whenever you like.'),
+    h('p', 'note', 'Both open in a new tab. Tabatha itself sends nothing.'), row]);
 }
 function askLater() { closeDialog(); }
+
+// ---- is capturing working? Say so when it isn't, and offer the fix.
+// Chrome lets users set an extension's "Site access" to "On click", which withholds the access
+// Tabatha needs to screenshot pages and to react to Alt+Q on them. Detect that, and say why a
+// preview is missing when the screenshot itself failed.
+function showAlert(text, label, fn) {
+  el.alertText.textContent = text;
+  el.alertBtn.hidden = !label;
+  el.alertBtn.onclick = label ? (e) => { e.stopPropagation(); if (pointerAllowed()) fn(); } : null;
+  if (label) el.alertBtn.textContent = label;
+  el.alert.hidden = false;
+  el.scroller.style.setProperty('--top', el.bar.offsetHeight + (el.windows.hidden ? 0 : el.windows.offsetHeight) + el.alert.offsetHeight + 4 + 'px');
+}
+async function requestHostAccess() {
+  asking = true;
+  let ok = false;
+  try { ok = await chrome.permissions.request({ origins: ['<all_urls>'] }); } catch {}
+  asking = false;
+  window.focus();
+  if (!ok || state.done) return;
+  showAlert('Thanks. Tabatha can see your sites now. Previews fill in as you visit tabs.');
+  setTimeout(() => { if (!state.done) { el.alert.hidden = true; render(); } }, 3500);
+}
+function updateSweepButton() {
+  const n = state.tabs.filter((t) => !t.active && !t.discarded && /^https?:/.test(urlOf(t)) && !state.previews[t.id]).length;
+  el.sweepBtn.hidden = !state.hostOk || n === 0;
+  el.sweepBtn.textContent = `Capture all previews (${n})`;
+}
+async function healthCheck() {
+  try { state.hostOk = await chrome.permissions.contains({ origins: ['<all_urls>'] }); } catch { state.hostOk = true; }
+  if (!state.hostOk) showAlert('Chrome is limiting Tabatha\u2019s access to your sites, so it can\u2019t take previews or hear Alt+Q on pages.', 'Allow on all sites', requestHostAccess);
+  else {
+    const cur = state.entries.find((e) => e.kind === 'tab' && e.tab.id === CTX.srcTab);
+    if (cur && !cur.preview && /^https?:/.test(urlOf(cur.tab))) {
+      const n = await getCaptureNote().catch(() => null);
+      if (n && n.stage === 'error' && Date.now() - n.t < 120000) showAlert(`Couldn\u2019t take a preview of ${n.host || 'this page'}: ${n.msg}`);
+    }
+  }
+  updateSweepButton();
+}
 
 // Runs once per open, after the first render.
 async function firstRun() {
@@ -933,6 +971,13 @@ function listen() {
     try { await chrome.tabs.create({ url: COFFEE_URL, windowId: CTX.srcWin, active: true }); } catch {}
     finish('switch');
   });
+  el.sweepBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!pointerAllowed()) return;
+    chrome.runtime.sendMessage({ type: MSG.SWEEP }).catch(() => {});
+    finish('switch');
+  });
+  el.feedbackBtn.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed() && FEEDBACK_URL) openUrl(FEEDBACK_URL); });
   el.tourBtn.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) tourStep(0); });
   el.groupsBtn.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) enableGroups(); });
   $('soft-review').addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) goReview(); });
@@ -1011,6 +1056,8 @@ function getLaunch() {
   window.focus();
   el.search.focus({ preventScroll: true });
   firstRun();
+  healthCheck();
+  if (FEEDBACK_URL) el.feedbackBtn.hidden = false;
   try {
     const r = await chrome.runtime.sendMessage({ type: MSG.READY });
     const extra = r && Number.isInteger(r.extra) ? r.extra : 0;

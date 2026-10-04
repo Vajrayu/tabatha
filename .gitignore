@@ -2,3 +2,6 @@
 node_modules/
 tools/screenshots/sites/
 tools/screenshots/out/
+
+# unzipped copies of a release zip (used for "Load unpacked" testing)
+releases/*/tabatha-*/

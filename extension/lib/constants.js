@@ -8,6 +8,8 @@ export const MSG = Object.freeze({
   READY: 'tabatha:ready',   // switcher -> background: UI loaded, send queued moves
   CLOSED: 'tabatha:closed', // switcher -> background: UI closed (with reason)
   GROUPS: 'tabatha:groups', // switcher -> background: sync saved tab groups now
+  SWEEP: 'tabatha:sweep',   // switcher -> background: capture previews of every tab now
+  SWEEP_CANCEL: 'tabatha:sweep-cancel', // sweep window -> background
   FLYOUT_DONE: 'tabatha:flyout-done', // first-run flyout dismissed (content script -> background)
 });
 
@@ -24,6 +26,8 @@ export const KEY = Object.freeze({
   GROUPS: 'groups',           // storage.local: saved tab groups [{ id, title, color, tabs:[{u,ti}], t, cid, open }]
   ONBOARD: 'onb',             // storage.local: { at, flyout, tour } first-run flags
   REVIEW: 'rv',               // storage.local: { since, opens, soft, lastSoft, asks, lastAsk, done } review-prompt counters (never sent anywhere)
+  CAPDIAG: 'capdiag',         // storage.session: { t, stage, msg, host } outcome of the last preview attempt
+  SWEEP: 'sweep',             // storage.session: { running, done, total } progress of "Capture all previews"
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
   LAUNCH: 'launch',           // { token, t, ctx } one-time launch for the next switcher
 });
@@ -61,9 +65,14 @@ export const LIMITS = Object.freeze({
   RECENTLY_CLOSED_WINDOWS: 2,   // of which at most this many whole windows
   RECENTLY_CLOSED_MAX_AGE_S: 4 * 3600, // only things closed in the last 4 hours
   MAX_SAVED_GROUPS: 100,        // saved tab groups kept (closed ones are only ever removed by the user, or beyond this cap, oldest first)
-  MAX_GROUP_TABS: 100,          // tabs remembered per group
+  MAX_GROUP_TABS: 100,
+  MAX_GROUPS_BYTES: 2 * 1024 * 1024, // saved groups stay well inside storage.local's 10 MB (previews have 6 MB): over this, the oldest closed groups go          // tabs remembered per group
   GROUP_SYNC_MS: 600,           // tab/group events are batched; a burst (closing a window) becomes one sync
   GROUP_TITLE_MAX: 120,
+  SWEEP_MAX_TABS: 100,          // most tabs one "Capture all previews" run visits
+  SWEEP_STALE_MS: 6 * 60 * 60 * 1000, // tabs whose preview is newer than this are skipped
+  SWEEP_PAINT_MS: 300,         // wait after a tab finishes loading, so the screenshot isn't blank
+  SWEEP_LOAD_MS: 2500,         // ...and give up waiting for a slow page after this long
   FLYOUT_WINDOW_MS: 30 * 60 * 1000, // the first-run flyout is offered for this long after install
   FLYOUT_SHOW_MS: 20000,        // ...and stays on a page this long unless dismissed
 });
@@ -81,7 +90,10 @@ export const REVIEW = Object.freeze({
 });
 
 export const REVIEW_URL = 'https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk/reviews';
-export const FEEDBACK_URL = 'https://github.com/Vajrayu/tabatha/issues/new';
+// Where "Send feedback" goes. Empty until the website's feedback form exists (1.3.3): while empty, no feedback
+// button or tour step is shown. (The interim idea, a public GitHub issue, was declined.)
+export const FEEDBACK_URL = '';
 
 export const SWITCHER_PAGE = 'switcher.html';
+export const SWEEP_PAGE = 'sweep.html';
 export const COFFEE_URL = 'https://buymeacoffee.com/vey9utb';

@@ -7,6 +7,7 @@ Everything to paste into the [Chrome Web Store Developer Dashboard](https://chro
 Only the text that changed is listed; the old wording is quoted so nothing is lost. The full 1.3.0 listing is also kept in `../v1.3.0/store-listing.md`.
 
 **1.3.2** (2 Oct 2026, update; amended 4 Oct before submission)
+- *Added on 4 Oct (later)*: **"Capture all previews"** button and a "why no preview" message (Description: new bullet and a longer answer to "Why does a tab have no preview?"; `tabs` justification extended). Test instructions rewritten again. Also a much shorter first-run tour.
 - *Added on 4 Oct*: **tab groups** (optional permission, saved groups survive closing a window), a **first-run tour**, a **review reminder**. Description: new bullets under WHAT YOU GET, one line under PRIVATE BY DESIGN, one question in QUESTIONS. Privacy tab: `storage` and `scripting` justifications changed again, new `tabGroups` (optional) justification, the host-permission justification no longer says "kept in memory only". Test instructions rewritten (old version: steps 1 to 6 about coffee and the popup window, 485 characters).
 - *Name and summary (they come from the manifest, so they change with the zip)*: was name "Tabatha" and summary "See live previews of all your tabs with Alt+Q. Search, jump between windows and reopen recently closed tabs." → name "Tabatha: Visual Tab Switcher with Live Previews", summary "Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer." (store ranking: relevant words in the name and summary).
 - *Description*: new problem-led opening ("Too many tabs?" plus the words tab switcher, tab manager, Alt+Tab), "FEATURES" renamed "WHAT YOU GET", and a new QUESTIONS section; the rest is unchanged.
@@ -80,6 +81,7 @@ WHAT YOU GET
 • Recently closed: reopen tabs and windows you closed in the last few hours, with a preview of what they looked like. Search reaches back 7 days, further than Chrome's own list.
 • Tidy up fast: press Delete (Cmd+Backspace on a Mac) or middle-click to close tabs straight from the switcher.
 • Sleeping tabs: tabs Chrome puts to sleep while you browse are marked Sleeping, with their last preview faded. After a restart, tabs keep their saved preview. Tabs Tabatha can't screenshot yet say No preview yet.
+• Capture all previews: Chrome only lets extensions screenshot the tab on screen, so a tab you haven't looked at has no preview yet. One click flips through your open tabs for a few seconds, captures each, skips sleeping tabs, and puts you back where you were.
 • Tab groups (optional): your Chrome tab groups appear as sections, with their names and colours. Close a group, or its whole window, and Tabatha keeps it under "Saved tab groups" until you remove it; Enter brings it back as a real tab group. Turn it on from the footer: Chrome then asks for one extra permission.
 • A short tour the first time you open Tabatha, and a "How it works" button whenever you want it again.
 • Free, with a small Buy Me a Coffee button in the corner if you want to say thanks.
@@ -110,7 +112,7 @@ Chrome can only take a screenshot of a tab, and show the switcher on top of a pa
 
 QUESTIONS
 - Does Tabatha send my tabs or screenshots anywhere? No. Everything stays on your computer, and the extension is blocked from making network requests.
-- Why does a tab have no preview? Chrome only lets extensions screenshot the tab that is on screen, so a tab gets its preview the first time you look at it.
+- Why does a tab have no preview? Chrome only lets extensions screenshot the tab that is on screen, so a tab gets its preview the first time you look at it. Click "Capture all previews" in Tabatha to fill in the rest in a few seconds. If no tab ever gets one, check chrome://extensions > Tabatha > Site access is "On all sites"; Tabatha tells you if it isn't.
 - Why is the tab-groups permission separate? It is optional, so Tabatha works fully without it. Chrome only asks when you click "Turn on tab groups".
 - How do I change the Alt+Q shortcut? Open chrome://extensions/shortcuts.
 - Does it work on a Mac? Yes. Alt is the Option key.
@@ -163,7 +165,7 @@ _(Dashboard fields have length limits; the `storage` text below is 591 character
 
 **tabs**
 ```
-Needed to list the user's open tabs across all windows with their titles and URLs, to switch to the tab the user picks (tabs.update), to close tabs from the switcher (tabs.remove), and to take the preview screenshot of the visible tab (tabs.captureVisibleTab). Tab titles and URLs are only shown in the switcher and matched against the user's own search text.
+Needed to list the user's open tabs across all windows with their titles and URLs, to switch to the tab the user picks (tabs.update), to close tabs from the switcher (tabs.remove), and to take the preview screenshot of the visible tab (tabs.captureVisibleTab). When the user clicks "Capture all previews", it briefly activates each awake tab in turn (tabs.update) to screenshot it, then restores each window's tab. Tab titles and URLs are only shown in the switcher and matched against the user's own search text.
 ```
 
 **storage**
@@ -228,12 +230,12 @@ https://github.com/Vajrayu/tabatha/blob/main/PRIVACY.md
 - **Visibility**: Public (or *Unlisted* first if you want to try the store install before announcing it)
 - **Regions**: All regions
 
-## 5. Test instructions tab (optional, but it helps the reviewer; max 500 characters, this is 454)
+## 5. Test instructions tab (optional, but it helps the reviewer; max 500 characters, this is 391)
 ```
 1. Open 3-4 websites in tabs and view each once.
-2. On an https page tap Alt+Q. A short tour shows (Esc skips it). Then Alt+Q opens the switcher and keeps it open: arrows+Enter or a click switches tab, typing searches, Esc closes.
-3. Close a tab, press Alt+Q: it is under "Recently closed"; click to reopen.
-4. If a tab group exists, the footer link "Turn on tab groups" asks for an optional permission.
+2. On an https page tap Alt+Q. A short tour shows (Esc skips). Alt+Q then opens the switcher: arrows+Enter or a click switches tab, typing searches, Esc closes.
+3. Footer "Capture all previews" flips through the tabs, then returns.
+4. Close a tab, press Alt+Q: it is under "Recently closed".
 No login. The extension makes no network requests.
 ```
 
