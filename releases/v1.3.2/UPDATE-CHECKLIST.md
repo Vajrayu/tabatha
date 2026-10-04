@@ -1,7 +1,7 @@
 # Tabatha 1.3.2: what to change in the Chrome Web Store dashboard
 
 Compared with 1.3.1 (the build before this one). Anything not listed here stays exactly as it is.
-The text to paste is in `store-listing.md` in this folder.
+**Use `DASHBOARD-FILL-IN.md` in this folder: it has everything in paste-ready order.** This file is the change log against the previous submission; `store-listing.md` is the source.
 
 > If 1.3.1 was never submitted, this checklist still works on its own: the Description and `storage` text below include everything from 1.3.1. Also upload the 1.3.1 screenshots from `../v1.3.1/store-assets/` (see `../v1.3.1/UPDATE-CHECKLIST.md`).
 
