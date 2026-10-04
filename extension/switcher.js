@@ -529,7 +529,8 @@ function onKeyDown(e) {
   const acts = k === 'Enter' || closeKey || (altOnly && (e.code === 'KeyQ' || e.code === 'KeyW'));
   if (acts && !keysAllowed()) { e.preventDefault(); finish('cancel'); return; }
 
-  if (closeKey) { e.preventDefault(); return closeTab(state.entries[state.sel]); }
+  // Holding the key sends repeats: close one tab per press, not one per repeat.
+  if (closeKey) { e.preventDefault(); if (e.repeat) return; return closeTab(state.entries[state.sel]); }
   if (altOnly && e.code === 'KeyQ') { e.preventDefault(); return qPress(e.shiftKey ? -1 : 1); }
   if (altOnly && e.code === 'KeyW') { e.preventDefault(); return cycleScope(e.shiftKey ? -1 : 1); }
   if (e.ctrlKey && (k === 'ArrowLeft' || k === 'ArrowRight')) { e.preventDefault(); return cycleScope(k === 'ArrowRight' ? 1 : -1); }
