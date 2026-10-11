@@ -11,7 +11,7 @@ const f = () => T.frame(c);
 await c.waitForTimeout(500);
 T.log('tour shown on first open', await f().$eval('#modal', (n) => !n.hidden));
 const steps = [];
-for (let i = 0; i < 7; i++) {
+for (let i = 0; i < 9; i++) {
   const title = await f().$eval('#dlg-title', (n) => n.textContent).catch(() => null);
   if (!title) break;
   steps.push(title);
@@ -21,7 +21,7 @@ for (let i = 0; i < 7; i++) {
   if (title === 'Anything off?') break;
   await c.keyboard.press('ArrowRight'); await c.waitForTimeout(150);
 }
-T.log('steps', /^Press (Alt|Option)\+Q,Move,Search,Tab groups,Anything off\?$/.test(steps.join()), steps.join());
+T.log('steps', /^Press (Alt|Option)\+Q,Move,Search,Many at once,Groups and bookmarks,Settings,Anything off\?$/.test(steps.join()), steps.join());
 T.log('ends with the promise to fix things', steps[steps.length - 1] === 'Anything off?');
 const tellMe = (await f().$$eval('#dialog button', (x) => x.map((b) => b.textContent))).includes('Tell me');
 T.log('last step offers "Tell me"', tellMe);
@@ -34,5 +34,5 @@ T.log('tour not shown again', await f().$eval('#modal', (n) => n.hidden));
 T.log('footer has Help and Feedback links', !(await f().$eval('#feedback-btn', (n) => n.hidden)) && !(await f().$eval('#help-btn', (n) => n.hidden)));
 await f().click('#feedback-btn'); await c.waitForTimeout(600);
 const urls = await T.sw.evaluate(async () => (await chrome.tabs.query({})).map((t) => t.url || t.pendingUrl));
-T.log('Feedback opens the site form with source and version', urls.some((u) => /^https:\/\/tabatha-vert\.vercel\.app\/feedback\?from=extension&v=1\.3\.2$/.test(u)), urls.join(' '));
+T.log('Feedback opens the site form with source and version', urls.some((u) => /^https:\/\/tabatha-vert\.vercel\.app\/feedback\?from=extension&v=\d+\.\d+\.\d+&lang=en$/.test(u)), urls.join(' '));
 await T.close();

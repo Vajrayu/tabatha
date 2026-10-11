@@ -25,7 +25,7 @@ await page.keyboard.press('Escape'); await page.waitForTimeout(250);
 T.log('Esc ends the tour', await page.$eval('#modal', (n) => n.hidden));
 T.log('health check ran: no alert', await page.$eval('#alert', (n) => n.hidden));
 const label = await page.$eval('#sweep-btn', (n) => (n.hidden ? '' : n.textContent));
-T.log('capture button offered', /Capture all previews \(\d\)/.test(label), label);
+T.log('capture button offered', /\d+ without preview · Capture all/.test(label), label);
 await page.click('#sweep-btn'); await T.sw.evaluate(() => new Promise((r) => setTimeout(r, 6000)));
 const idx = await T.sw.evaluate(() => chrome.storage.local.get('pvidx').then((o) => Object.keys(o.pvidx || {}).map((u) => u.split('/').pop())));
 T.log('sweep from popup mode captured the background tabs', idx.includes('beta.html') && idx.includes('gamma.html'), idx.join());

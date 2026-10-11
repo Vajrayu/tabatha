@@ -15,7 +15,7 @@ fs.writeFileSync(jsPath, fs.readFileSync(jsPath, 'utf8').replace("chrome.permiss
   await T.tap(a);
   const f = T.frame(a);
   const txt = await f.$eval('#alert-text', (n) => n.textContent);
-  T.log('withheld access: alert explains it', !(await f.$eval('#alert', (n) => n.hidden)) && /limiting/.test(txt), txt);
+  T.log('withheld access: alert explains it', !(await f.$eval('#alert', (n) => n.hidden)) && /keeping Tabatha away/.test(txt), txt);
   T.log('...with an "Allow on all sites" button', (await f.$eval('#alert-btn', (n) => (n.hidden ? '' : n.textContent))) === 'Allow on all sites');
   T.log('...and no capture button', await f.$eval('#sweep-btn', (n) => n.hidden));
   await a.screenshot({ path: path.join(S, 'shot-alert.png') });
@@ -30,7 +30,21 @@ fs.writeFileSync(jsPath, fs.readFileSync(jsPath, 'utf8').replace("chrome.permiss
   const f = T.frame(a);
   const hidden = await f.$eval('#alert', (n) => n.hidden);
   const txt = hidden ? '' : await f.$eval('#alert-text', (n) => n.textContent);
-  T.log('failed capture: alert names the reason', !hidden && /simulated: capture not allowed/.test(txt), txt);
+  T.log('failed capture: a plain sentence, no Chrome jargon', !hidden && /couldn.t take a picture/.test(txt) && !/simulated/.test(txt), txt);
+  T.log('...Chrome\u2019s own text is only in the tooltip', /simulated: capture not allowed/.test(await f.$eval('#alert', (n) => n.title)));
+  await T.close();
+}
+// 2b. The "extension has not been invoked" error: plain words and an Allow button.
+{
+  const T = await launch(base);
+  await T.sw.evaluate(() => { chrome.tabs.captureVisibleTab = async () => { throw new Error("Extension has not been invoked for the current page (see activeTab permission). Chrome pages cannot be captured."); }; });
+  const [a] = await T.open(['alpha']); await T.skipFirstRun();
+  await T.tap(a);
+  const f = T.frame(a);
+  const txt = await f.$eval('#alert-text', (n) => n.textContent);
+  T.log('activeTab error: plain words', /isn.t letting Tabatha look/.test(txt) && !/invoked|activeTab/.test(txt), txt);
+  T.log('...with an Allow on all sites button', (await f.$eval('#alert-btn', (n) => (n.hidden ? '' : n.textContent))) === 'Allow on all sites');
+  await a.screenshot({ path: path.join(S, 'shot-alert2.png') });
   await T.close();
 }
 // 3. Everything fine: no alert.

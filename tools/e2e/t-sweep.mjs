@@ -16,7 +16,7 @@ await T.tap(b);
 const f = () => T.frame(b);
 await b.waitForTimeout(500);
 const label = await f().$eval('#sweep-btn', (n) => (n.hidden ? '(hidden)' : n.textContent));
-T.log('capture button offered with a count', /Capture all previews \(\d+\)/.test(label), label);
+T.log('capture button offered with a count', /\d+ without preview · Capture all/.test(label), label);
 const mruBefore = await mru(); const actBefore = await active();
 await f().click('#sweep-btn');
 await b.waitForTimeout(500);

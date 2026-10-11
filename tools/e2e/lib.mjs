@@ -1,24 +1,24 @@
 // End-to-end harness: real Chromium + the unpacked extension + a tiny local site (site/*.html).
 // Run a test with:  EXT=/path/to/extension S=/some/scratch/dir node t-xxx.mjs
-// Playwright is resolved from PW (default: the portfolio checkout's node_modules).
+// Playwright is resolved from PW (default: a portfolio checkout next to this repo).
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { chromium } = await import(process.env.PW || '/Users/yuvathefirst/dev/portfolio/node_modules/playwright/index.mjs');
+const { chromium } = await import(process.env.PW || new URL('../../../portfolio/node_modules/playwright/index.mjs', import.meta.url).href);
 export const S = process.env.S || '/tmp/tabatha-e2e';
 fs.mkdirSync(S, { recursive: true });
 
-export async function launch(ext, { profile } = {}) {
+export async function launch(ext, { profile, args = [], viewport = { width: 1280, height: 800 } } = {}) {
   const srv = http.createServer((q, r) => {
     try { r.end(fs.readFileSync(path.join(here, 'site', q.url.split('?')[0].split('#')[0]))); } catch { r.statusCode = 404; r.end(); }
   }).listen(0);
   const port = srv.address().port;
   const ctx = await chromium.launchPersistentContext(profile || path.join(S, 'prof' + Date.now() + Math.floor(Math.random() * 1e4)), {
-    channel: 'chromium', headless: true, viewport: { width: 1280, height: 800 },
-    args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`],
+    channel: 'chromium', headless: true, viewport,
+    args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`, ...args],
   });
   let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('serviceworker');
   const url = (n) => `http://localhost:${port}/${n}.html`;
@@ -37,14 +37,17 @@ export async function launch(ext, { profile } = {}) {
   return { ctx, sw, url, open, frame, isOpen, tap, log, skipFirstRun, close, port };
 }
 
-// A copy of the extension with `tabGroups` as a normal permission (Playwright can't click Chrome's permission prompt).
-export function withTabGroups(ext) {
-  const dir = path.join(S, 'ext-tabgroups');
+// A copy of the extension with optional permissions made normal ones (Playwright can't click Chrome's permission prompt).
+export function withPermissions(ext, perms) {
+  const dir = path.join(S, 'ext-' + perms.join('-'));
   fs.rmSync(dir, { recursive: true, force: true });
   fs.cpSync(ext, dir, { recursive: true });
   const mp = path.join(dir, 'manifest.json');
   const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
-  m.permissions.push('tabGroups'); delete m.optional_permissions;
+  m.permissions.push(...perms);
+  m.optional_permissions = (m.optional_permissions || []).filter((p) => !perms.includes(p));
+  if (!m.optional_permissions.length) delete m.optional_permissions;
   fs.writeFileSync(mp, JSON.stringify(m, null, 1));
   return dir;
 }
+export const withTabGroups = (ext) => withPermissions(ext, ['tabGroups']);

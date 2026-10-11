@@ -12,6 +12,7 @@ node t-popup.mjs     # popup-window mode
 node t-multiwin.mjs  # two windows, Alt+W, the sweep
 node t-sweep.mjs     # "Capture all previews"
 node t-health.mjs    # the "why no previews" bar
+node t-view.mjs      # sort, By site, collapsing, stars, one card's Capture preview
 ```
 
 Playwright is imported from `PW` (default: the portfolio checkout's `node_modules`). Chromium can't run discard tests (it crashes), so the "Sleeping" tests used a raw-CDP driver that isn't kept here.
