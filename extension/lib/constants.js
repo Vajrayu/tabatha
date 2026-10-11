@@ -1,4 +1,5 @@
 // Shared names and limits used by the background worker and the switcher UI.
+import { uiLang } from './i18n.js';
 // (hotkey.js is a classic content script and can't import this, so it
 // repeats MSG.HOTKEY as a string literal. Keep them in sync.)
 
@@ -10,7 +11,11 @@ export const MSG = Object.freeze({
   GROUPS: 'tabatha:groups', // switcher -> background: sync saved tab groups now
   SWEEP: 'tabatha:sweep',   // switcher -> background: capture previews of every tab now
   SWEEP_CANCEL: 'tabatha:sweep-cancel', // sweep window -> background
+  CAPTURE_ONE: 'tabatha:capture-one', // switcher -> background: show one tab for a moment and capture it
   FLYOUT_DONE: 'tabatha:flyout-done', // first-run flyout dismissed (content script -> background)
+  NUDGE: 'tabatha:nudge',   // "use Alt+Q" toast answered (content script -> background): { act: 'try'|'ok'|'never' }
+  OPENED: 'tabatha:opened', // switcher -> background: it opened (the nudge keeps quiet for a while after)
+  SLEEP: 'tabatha:sleep',   // switcher -> background, as it closes: unload these tabs ({ tabIds })
 });
 
 // Messages between the overlay iframe and the content-script code that hosts it.
@@ -28,6 +33,14 @@ export const KEY = Object.freeze({
   REVIEW: 'rv',               // storage.local: { since, opens, soft, lastSoft, asks, lastAsk, done } review-prompt counters (never sent anywhere)
   CAPDIAG: 'capdiag',         // storage.session: { t, stage, msg, host } outcome of the last preview attempt
   SWEEP: 'sweep',             // storage.session: { running, done, total } progress of "Capture all previews"
+  STARS: 'stars',             // storage.local: { [normalizedUrl]: { u, ti, t } } pages the user starred
+  VIEW: 'view',               // storage.local: { sort, collapsed: string[], panel, ptab, folder } how the switcher lays tabs out
+  NUDGE: 'nudge',             // storage.local: { day, runs, shown, last, never } the "use Alt+Q" nudge (never sent anywhere)
+  LAST_OPEN: 'lastOpen',      // storage.session: when the switcher last opened
+  PREFS: 'prefs',             // storage.local: { lang: 'auto'|'en'|'ru'|'es', startup: boolean } Settings
+  PEEK: 'peek',               // storage.local: the day Y-bit last peeked from behind the corner buttons
+  NOCAP: 'nocap',             // storage.session: normalized URLs Chrome refused to screenshot (the Web Store, some built-in pages)
+  RESUME: 'resume',           // storage.session: { t, query, scope, sort, starred, key } reopen the switcher where it was (after a one-tab capture)
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
   LAUNCH: 'launch',           // { token, t, ctx } one-time launch for the next switcher
 });
@@ -69,34 +82,58 @@ export const LIMITS = Object.freeze({
   MAX_GROUPS_BYTES: 2 * 1024 * 1024, // saved groups stay well inside storage.local's 10 MB (previews have 6 MB): over this, the oldest closed groups go          // tabs remembered per group
   GROUP_SYNC_MS: 600,           // tab/group events are batched; a burst (closing a window) becomes one sync
   GROUP_TITLE_MAX: 120,
+  MAX_STARS: 300,               // most starred pages kept (their previews are kept like an open tab's)
+  MAX_COLLAPSED: 200,           // most collapsed sections remembered
+  RESUME_TTL_MS: 15000,         // a resume note older than this is ignored
   SWEEP_MAX_TABS: 100,          // most tabs one "Capture all previews" run visits
   SWEEP_STALE_MS: 6 * 60 * 60 * 1000, // tabs whose preview is newer than this are skipped
   SWEEP_PAINT_MS: 300,         // wait after a tab finishes loading, so the screenshot isn't blank
   SWEEP_LOAD_MS: 2500,         // ...and give up waiting for a slow page after this long
   FLYOUT_WINDOW_MS: 30 * 60 * 1000, // the first-run flyout is offered for this long after install
   FLYOUT_SHOW_MS: 20000,        // ...and stays on a page this long unless dismissed
+  STARTUP_OPEN_MS: 3500,        // "Open Tabatha when Chrome starts" waits this long for Chrome to restore the tabs
+  MAX_BOOKMARKS_SHOWN: 400,     // bookmarks drawn in the panel at once (search narrows the rest)
 });
 
-// Review prompt timing. Counted on this device only (storage.local), same rules for everyone.
+// The "use Alt+Q" nudge: Chrome never tells extensions about Ctrl+Tab, so a run of quick
+// next/previous-tab switches is what it looks for. Counted on this device only.
+export const NUDGE = Object.freeze({
+  STEP_MS: 1500,                // a step is a switch to the tab right next to the last one, this soon after it
+  RUN_STEPS: 3,                 // ...and this many steps in a row make a "run"
+  SETTLE_MS: 900,               // the note waits until the switching has stopped this long
+  QUIET_AFTER_EVENT_MS: 400,    // switches right after a tab was opened or closed don't count (Chrome picks the neighbour)
+  RUNS_BEFORE: 2,               // shown on the second run of a day, not the first
+  GAP_MS: 24 * 3600 * 1000,     // at most once a day
+  MAX: 3,                       // and three times ever
+  AFTER_USE_MS: 10 * 60 * 1000, // never within 10 minutes of opening Tabatha
+  HABIT_OPENS: 30,              // after this many opens the habit is there: stop for good
+  SHOW_MS: 12000,
+});
+
+// "How is Tabatha working for you?" timing. Counted on this device only (storage.local), same rules for everyone.
 export const REVIEW = Object.freeze({
-  SOFT_AFTER_OPENS: 15,         // quiet banner: not before this many switcher opens...
-  SOFT_AFTER_MS: 3 * 24 * 3600 * 1000, // ...and this long after install
-  SOFT_GAP_MS: 3 * 24 * 3600 * 1000,   // at most one banner per this long
-  SOFT_MAX: 3,                  // banners shown before the dialog may appear
-  ASK_AFTER_OPENS: 40,          // the dialog: not before this many opens...
-  ASK_AFTER_MS: 10 * 24 * 3600 * 1000, // ...and this long after install
-  ASK_GAP_MS: 14 * 24 * 3600 * 1000,   // at most one dialog per this long
+  ASK_AFTER_OPENS: 15,          // not before this many switcher opens...
+  ASK_AFTER_MS: 3 * 24 * 3600 * 1000,  // ...and this long after install
+  ASK_GAP_MS: 14 * 24 * 3600 * 1000,   // at most one ask per this long
   ASK_MAX: 2,                   // then never again
 });
 
-export const REVIEW_URL = 'https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk/reviews';
+export const REVIEW_URL = 'https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk/reviews?utm_source=extension';
 // The website (tabatha-vert.vercel.app). Links only: the extension never sends anything there itself.
 export const SITE_URL = 'https://tabatha-vert.vercel.app';
 export const HELP_URL = SITE_URL + '/manual';
+const VERSION = chrome.runtime.getManifest().version;
+// Pages on the site that Tabatha opens. Only where the click came from, the version and the
+// language go in the URL; whatever people write is typed on the page itself, never put in a link.
+// The language is the one Tabatha is shown in (its own setting, see lib/i18n.js), read at the moment of the click.
+export const siteUrl = (path, from, extra = '') => `${SITE_URL}${path}?from=${from}&v=${VERSION}&lang=${uiLang()}${extra}`;
 // "Send feedback" opens the site's feedback form; `from` and the version are prefilled from the URL.
-export const FEEDBACK_URL = SITE_URL + '/feedback?from=extension&v=' + chrome.runtime.getManifest().version;
-// One switch for the Buy Me a Coffee button.
+export const feedbackUrl = () => siteUrl('/feedback', 'extension');
+// Chrome opens this after someone removes Tabatha (chrome.runtime.setUninstallURL). Nothing is sent by the removal itself.
+export const uninstallUrl = () => siteUrl('/uninstall', 'uninstall');
+// One switch for the Buy Me a Coffee button, one for the Pro waitlist button.
 export const SHOW_COFFEE = true;
+export const SHOW_PRO = true;
 
 export const SWITCHER_PAGE = 'switcher.html';
 export const SWEEP_PAGE = 'sweep.html';

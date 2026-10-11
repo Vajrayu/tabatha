@@ -1,0 +1,923 @@
+{
+ "localeCode": {
+  "message": "es"
+ },
+ "extName": {
+  "message": "Tabatha: cambiador visual de pestañas con vistas previas"
+ },
+ "extShortName": {
+  "message": "Tabatha"
+ },
+ "extDesc": {
+  "message": "Alt+Tab para pestañas de Chrome: vistas previas, búsqueda al instante y pestañas cerradas. Gratis, privado, todo queda en tu equipo."
+ },
+ "cmdOpen": {
+  "message": "Abrir Tabatha / pestaña siguiente"
+ },
+ "cmdReverse": {
+  "message": "Abrir Tabatha / pestaña anterior"
+ },
+ "actionTitle": {
+  "message": "Tabatha (Alt+Q)"
+ },
+ "newTab": {
+  "message": "Nueva pestaña"
+ },
+ "searchPlaceholder": {
+  "message": "Busca en pestañas abiertas y cerradas en los últimos 7 días"
+ },
+ "searchAria": {
+  "message": "Buscar pestañas"
+ },
+ "hintMove": {
+  "message": "mover"
+ },
+ "hintOpen": {
+  "message": "abrir"
+ },
+ "hintClose": {
+  "message": "cerrar"
+ },
+ "hintStar": {
+  "message": "destacar"
+ },
+ "hintExit": {
+  "message": "salir"
+ },
+ "hintWindow": {
+  "message": "ventana"
+ },
+ "windowsAria": {
+  "message": "Ventanas"
+ },
+ "viewAria": {
+  "message": "Ordenar y filtrar"
+ },
+ "sortAria": {
+  "message": "Ordenar pestañas"
+ },
+ "starFilterTitle": {
+  "message": "Mostrar solo las páginas destacadas"
+ },
+ "starred": {
+  "message": "Destacadas"
+ },
+ "sortRecent": {
+  "message": "Recientes"
+ },
+ "sortRecentTitle": {
+  "message": "Primero las usadas más recientemente (como Alt+Tab)"
+ },
+ "sortNewest": {
+  "message": "Nuevas"
+ },
+ "sortNewestTitle": {
+  "message": "Primero las abiertas más tarde"
+ },
+ "sortOldest": {
+  "message": "Antiguas"
+ },
+ "sortOldestTitle": {
+  "message": "Primero las abiertas antes"
+ },
+ "sortName": {
+  "message": "A–Z"
+ },
+ "sortNameTitle": {
+  "message": "Por título, de la A a la Z"
+ },
+ "sortSite": {
+  "message": "Por sitio"
+ },
+ "sortSiteTitle": {
+  "message": "Juntar las pestañas del mismo sitio"
+ },
+ "groupsOn": {
+  "message": "Activar grupos de pestañas"
+ },
+ "groupsOnTitle": {
+  "message": "Muestra tus grupos de pestañas de Chrome como secciones y guárdalos al cerrarlos"
+ },
+ "panelBtn": {
+  "message": "Grupos y marcadores"
+ },
+ "panelAria": {
+  "message": "Grupos guardados y marcadores"
+ },
+ "panelHide": {
+  "message": "Ocultar este panel"
+ },
+ "paneGroups": {
+  "message": "Grupos guardados"
+ },
+ "paneMarks": {
+  "message": "Marcadores"
+ },
+ "openTabs": {
+  "message": "Pestañas abiertas"
+ },
+ "recentlyClosed": {
+  "message": "Cerradas recientemente"
+ },
+ "closedSearchH": {
+  "message": "Cerradas en los últimos 7 días"
+ },
+ "starredNotOpen": {
+  "message": "Destacadas, sin abrir"
+ },
+ "noMatch": {
+  "message": "Ninguna pestaña abierta coincide con la búsqueda."
+ },
+ "noStarredOpen": {
+  "message": "Ninguna pestaña abierta está destacada. Destaca una con la ☆ de su tarjeta."
+ },
+ "countSearch": {
+  "message": "$1 abiertas · $2 cerradas"
+ },
+ "countSearchStarred": {
+  "message": "$1 abiertas · $2 destacadas"
+ },
+ "tabs_one": {
+  "message": "$1 pestaña"
+ },
+ "tabs_other": {
+  "message": "$1 pestañas"
+ },
+ "thisWindow": {
+  "message": "Esta ventana"
+ },
+ "windowN": {
+  "message": "Ventana $1"
+ },
+ "allWindows": {
+  "message": "Todas las ventanas"
+ },
+ "activeTab": {
+  "message": "Pestaña activa: $1"
+ },
+ "closedWindow": {
+  "message": "Ventana · $1"
+ },
+ "otherSites": {
+  "message": "Otros sitios"
+ },
+ "unnamedGroup": {
+  "message": "Grupo sin nombre"
+ },
+ "ungrouped": {
+  "message": "Sin grupo"
+ },
+ "untitled": {
+  "message": "Sin título"
+ },
+ "sectionShow": {
+  "message": "Mostrar estas pestañas"
+ },
+ "sectionCollapse": {
+  "message": "Contraer esta sección"
+ },
+ "noPreview": {
+  "message": "Aún sin vista previa"
+ },
+ "sleeping": {
+  "message": "Dormida"
+ },
+ "sleepingTip": {
+  "message": "Dormida: Chrome descargó esta pestaña para ahorrar memoria. Se recarga al abrirla."
+ },
+ "closedLabel": {
+  "message": "Cerrada"
+ },
+ "reopenTip": {
+  "message": "Volver a abrir: $1"
+ },
+ "pinned": {
+  "message": "Fijada"
+ },
+ "star": {
+  "message": "Destacar"
+ },
+ "unstar": {
+  "message": "Quitar de destacadas"
+ },
+ "starAria": {
+  "message": "Destacar esta página"
+ },
+ "unstarAria": {
+  "message": "Quitar esta página de destacadas"
+ },
+ "closeTab": {
+  "message": "Cerrar pestaña"
+ },
+ "closeTabTitle": {
+  "message": "Cerrar pestaña (Supr)"
+ },
+ "capturePreview": {
+  "message": "Capturar vista previa"
+ },
+ "capturing": {
+  "message": "Capturando…"
+ },
+ "captureTitle": {
+  "message": "Muestra esta pestaña un momento para hacerle la foto y vuelve"
+ },
+ "pickAria": {
+  "message": "Seleccionar esta pestaña"
+ },
+ "pickTitle": {
+  "message": "Seleccionar (o Ctrl+clic en la tarjeta). Mayús+clic selecciona un rango."
+ },
+ "copyLink": {
+  "message": "Copiar enlace"
+ },
+ "bookmarkThis": {
+  "message": "Añadir a marcadores"
+ },
+ "sleepThis": {
+  "message": "Dormir (libera memoria)"
+ },
+ "dupesBtn_one": {
+  "message": "$1 duplicada"
+ },
+ "dupesBtn_other": {
+  "message": "$1 duplicadas"
+ },
+ "dupesSure": {
+  "message": "¿Cerrar $1? Pulsa otra vez"
+ },
+ "dupesTitle": {
+  "message": "Muestra las páginas abiertas más de una vez (misma dirección, sin la parte #). Luego eliges si cerrar las copias."
+ },
+ "sweepAll_one": {
+  "message": "$1 sin vista previa · Capturarla"
+ },
+ "sweepAll_other": {
+  "message": "$1 sin vista previa · Capturar todas"
+ },
+ "sweepThese_one": {
+  "message": "$1 sin vista previa · Capturarla"
+ },
+ "sweepThese_other": {
+  "message": "$1 sin vista previa · Capturar estas"
+ },
+ "sweepFirst_one": {
+  "message": "$1 sin vista previa · Capturar las primeras $2"
+ },
+ "sweepFirst_other": {
+  "message": "$1 sin vista previa · Capturar las primeras $2"
+ },
+ "sweepTitleAll": {
+  "message": "Muestra cada pestaña un momento para hacerle la foto y te devuelve a donde estabas."
+ },
+ "sweepTitleThese": {
+  "message": "Muestra cada una de estas pestañas un momento para hacerle la foto y te devuelve a donde estabas."
+ },
+ "sweepTitleMax": {
+  "message": "$1 cada vez."
+ },
+ "sweepTitleOne": {
+  "message": "También puedes capturar una sola pestaña desde su tarjeta."
+ },
+ "pickedN_one": {
+  "message": "$1 seleccionada"
+ },
+ "pickedN_other": {
+  "message": "$1 seleccionadas"
+ },
+ "matchesN_one": {
+  "message": "$1 pestaña coincide"
+ },
+ "matchesN_other": {
+  "message": "$1 pestañas coinciden"
+ },
+ "selPick": {
+  "message": "Seleccionar pestañas…"
+ },
+ "selAllN": {
+  "message": "Seleccionar las $1"
+ },
+ "selNone": {
+  "message": "Quitar selección"
+ },
+ "actClose": {
+  "message": "Cerrar"
+ },
+ "sureN": {
+  "message": "¿Cerrar $1? Pulsa otra vez"
+ },
+ "actCopy": {
+  "message": "Copiar enlaces"
+ },
+ "actCopyMd": {
+  "message": "Copiar como Markdown"
+ },
+ "actBookmark": {
+  "message": "Marcadores"
+ },
+ "actNewWindow": {
+  "message": "A ventana nueva"
+ },
+ "actGroup": {
+  "message": "Agrupar"
+ },
+ "actSleep": {
+  "message": "Dormir"
+ },
+ "actSleepTitle": {
+  "message": "Descárgalas para liberar memoria al salir de Tabatha. Se recargan al abrirlas."
+ },
+ "actPin": {
+  "message": "Fijar"
+ },
+ "actUnpin": {
+  "message": "No fijar"
+ },
+ "actMute": {
+  "message": "Silenciar"
+ },
+ "actUnmute": {
+  "message": "Activar sonido"
+ },
+ "actFailed": {
+  "message": "No funcionó: Chrome no lo permitió."
+ },
+ "closedN_one": {
+  "message": "$1 pestaña cerrada"
+ },
+ "closedN_other": {
+  "message": "$1 pestañas cerradas"
+ },
+ "copiedN_one": {
+  "message": "$1 enlace copiado"
+ },
+ "copiedN_other": {
+  "message": "$1 enlaces copiados"
+ },
+ "copyFailed": {
+  "message": "Esta página no deja a Tabatha usar el portapapeles. Prueba desde la página de nueva pestaña."
+ },
+ "groupedN_one": {
+  "message": "$1 pestaña agrupada"
+ },
+ "groupedN_other": {
+  "message": "$1 pestañas agrupadas"
+ },
+ "groupPinned": {
+  "message": "Las pestañas fijadas no pueden ir en un grupo."
+ },
+ "sleptN_one": {
+  "message": "$1 pestaña dormida"
+ },
+ "sleptN_other": {
+  "message": "$1 pestañas dormidas"
+ },
+ "sleptNone": {
+  "message": "Nada que dormir (Chrome no descarga la pestaña en la que estás)."
+ },
+ "pinnedN_one": {
+  "message": "$1 pestaña fijada"
+ },
+ "pinnedN_other": {
+  "message": "$1 pestañas fijadas"
+ },
+ "unpinnedN_one": {
+  "message": "$1 pestaña sin fijar"
+ },
+ "unpinnedN_other": {
+  "message": "$1 pestañas sin fijar"
+ },
+ "mutedN_one": {
+  "message": "$1 pestaña silenciada"
+ },
+ "mutedN_other": {
+  "message": "$1 pestañas silenciadas"
+ },
+ "unmutedN_one": {
+  "message": "$1 pestaña con sonido"
+ },
+ "unmutedN_other": {
+  "message": "$1 pestañas con sonido"
+ },
+ "bookmarkedN_one": {
+  "message": "$1 pestaña añadida a «$2»"
+ },
+ "bookmarkedN_other": {
+  "message": "$1 pestañas añadidas a «$2»"
+ },
+ "marksFolderName": {
+  "message": "Pestañas, $1"
+ },
+ "groupsPaneOff": {
+  "message": "Activa los grupos de pestañas y los grupos que cierres se guardarán aquí, como capas, hasta que los quites."
+ },
+ "groupsPaneEmpty": {
+  "message": "Aún no hay grupos. Marca pestañas y elige Agrupar, o crea uno en Chrome. Los grupos cerrados se quedan aquí hasta que los elimines."
+ },
+ "groupsPaneNoMatch": {
+  "message": "Ningún grupo guardado coincide con la búsqueda."
+ },
+ "reopenGroup": {
+  "message": "Volver a abrir el grupo entero ($1)"
+ },
+ "removeGroup": {
+  "message": "Quitar este grupo guardado"
+ },
+ "removeQ": {
+  "message": "¿Quitar?"
+ },
+ "collapse": {
+  "message": "Contraer"
+ },
+ "expand": {
+  "message": "Desplegar"
+ },
+ "marksPaneOff": {
+  "message": "Mira y ordena tus marcadores de Chrome aquí: ábrelos, arrastra pestañas a carpetas, cámbiales el nombre y muévelos."
+ },
+ "marksPaneOffNote": {
+  "message": "Chrome te pedirá permiso para que Tabatha lea y cambie tus marcadores. Se quedan en Chrome: Tabatha no guarda copia ni envía nada."
+ },
+ "marksOn": {
+  "message": "Activar marcadores"
+ },
+ "marksLoadFailed": {
+  "message": "No se pudieron leer tus marcadores."
+ },
+ "marksNoMatch": {
+  "message": "Ningún marcador coincide con la búsqueda."
+ },
+ "marksAddPicked_one": {
+  "message": "Añadir la pestaña seleccionada a marcadores"
+ },
+ "marksAddPicked_other": {
+  "message": "Añadir $1 pestañas seleccionadas a marcadores"
+ },
+ "newFolder": {
+  "message": "Nueva carpeta aquí"
+ },
+ "newFolderName": {
+  "message": "Nueva carpeta"
+ },
+ "rename": {
+  "message": "Cambiar nombre"
+ },
+ "editMark": {
+  "message": "Editar"
+ },
+ "openRemove": {
+  "message": "Abrir y quitar de marcadores"
+ },
+ "deleteMark": {
+  "message": "Eliminar marcador"
+ },
+ "markTitle": {
+  "message": "Nombre"
+ },
+ "markUrl": {
+  "message": "Dirección"
+ },
+ "moveTo": {
+  "message": "Carpeta"
+ },
+ "save": {
+  "message": "Guardar"
+ },
+ "cancel": {
+  "message": "Cancelar"
+ },
+ "badUrl": {
+  "message": "Esa dirección no parece correcta."
+ },
+ "tourBtn": {
+  "message": "Cómo funciona"
+ },
+ "tourTitle": {
+  "message": "Un recorrido breve por Tabatha"
+ },
+ "help": {
+  "message": "Ayuda"
+ },
+ "helpTitle": {
+  "message": "El manual de Tabatha, en la web"
+ },
+ "feedback": {
+  "message": "Comentarios"
+ },
+ "coffee": {
+  "message": "Invítame a un café"
+ },
+ "coffeeTitle": {
+  "message": "Tabatha es gratis. Si te ahorra tiempo, puedes invitarme a un café."
+ },
+ "proBtn": {
+  "message": "Tabatha Pro · Únete a la lista"
+ },
+ "proTitle": {
+  "message": "Tabatha sigue siendo gratis. Pro añadiría extras para quien usa muchas pestañas: apúntate para enterarte primero."
+ },
+ "tour1Title": {
+  "message": "Pulsa $1"
+ },
+ "tour1Say": {
+  "message": "Eso es todo."
+ },
+ "tour1Body": {
+  "message": "Todas tus pestañas abiertas, con vista previa."
+ },
+ "tour2Title": {
+  "message": "Moverse"
+ },
+ "keyPick": {
+  "message": "elegir"
+ },
+ "keyOpen": {
+  "message": "abrir"
+ },
+ "keyClose": {
+  "message": "cerrar pestaña"
+ },
+ "keyLeave": {
+  "message": "salir"
+ },
+ "tour3Title": {
+  "message": "Buscar"
+ },
+ "tour3Body": {
+  "message": "Escribe sin más, en cualquier parte de Tabatha. Encuentra pestañas abiertas y las cerradas en los últimos 7 días."
+ },
+ "tourManyTitle": {
+  "message": "Varias a la vez"
+ },
+ "tourManyBody": {
+  "message": "Marca pestañas con la casilla (o Ctrl+clic). Luego ciérralas, cópialas, agrúpalas o guárdalas desde la barra de abajo."
+ },
+ "tour4Title": {
+  "message": "Grupos de pestañas"
+ },
+ "tour4Say": {
+  "message": "Opcional."
+ },
+ "tour4Body": {
+  "message": "Tus grupos se convierten en secciones. Los cerrados se quedan guardados hasta que los quites."
+ },
+ "tour4On": {
+  "message": "Los grupos están activados."
+ },
+ "tour5Title": {
+  "message": "¿Algo no va bien?"
+ },
+ "tour5Say": {
+  "message": "Leo todos."
+ },
+ "tour5Body": {
+  "message": "Cuéntame qué falla o qué falta. Lo arreglaré."
+ },
+ "turnOn": {
+  "message": "Activar"
+ },
+ "tellMe": {
+  "message": "Contármelo"
+ },
+ "back": {
+  "message": "Atrás"
+ },
+ "skip": {
+  "message": "Saltar"
+ },
+ "next": {
+  "message": "Siguiente"
+ },
+ "done": {
+  "message": "Listo"
+ },
+ "askTitle": {
+  "message": "¿Qué tal te funciona Tabatha?"
+ },
+ "askBody": {
+  "message": "Diez segundos. Así sé qué construir después. Tu respuesta se queda en tu ordenador: los botones solo abren una página donde tú eliges qué enviar."
+ },
+ "moodGood": {
+  "message": "Me encanta"
+ },
+ "moodOkay": {
+  "message": "Está bien"
+ },
+ "moodBad": {
+  "message": "Necesita mejorar"
+ },
+ "askGoodTitle": {
+  "message": "¡Me alegra oírlo!"
+ },
+ "askGoodBody": {
+  "message": "Una reseña es la mejor forma de ayudar a otros a encontrar Tabatha."
+ },
+ "askBadTitle": {
+  "message": "Gracias por tu sinceridad"
+ },
+ "askBadBody": {
+  "message": "Cuéntame qué haría que te funcionara. Una reseña también es bienvenida, cuando quieras."
+ },
+ "reviewBtn": {
+  "message": "Reseña en Chrome Web Store"
+ },
+ "surveyBtn": {
+  "message": "Contarte qué ayudaría"
+ },
+ "proAsk": {
+  "message": "Unirme a la lista de espera de Tabatha Pro"
+ },
+ "askNote": {
+  "message": "Todo se abre en una pestaña nueva. Tabatha no envía nada por sí misma."
+ },
+ "notNow": {
+  "message": "Ahora no"
+ },
+ "dontAsk": {
+  "message": "No volver a preguntar"
+ },
+ "hostBlocked": {
+  "message": "Chrome no deja a Tabatha acceder a tus sitios, así que aún no hay vistas previas."
+ },
+ "hostAllow": {
+  "message": "Permitir en todos los sitios"
+ },
+ "hostBlockedTip": {
+  "message": "El «Acceso a sitios» de Tabatha en Chrome no está en «En todos los sitios». Sin eso, Tabatha no puede hacer vistas previas ni oír Alt+Q en las páginas."
+ },
+ "hostThanks": {
+  "message": "Gracias. Tabatha ya puede ver tus sitios. Las vistas previas aparecerán al visitar las pestañas."
+ },
+ "capErrHost": {
+  "message": "Chrome no deja a Tabatha ver esta página, así que no tiene foto. Suele arreglarse permitiendo Tabatha en todos los sitios."
+ },
+ "capErrPage": {
+  "message": "Chrome no permite fotos de este tipo de página."
+ },
+ "capErrOther": {
+  "message": "Tabatha no pudo hacer una foto de esta página ahora."
+ },
+ "thisPage": {
+  "message": "Esta página"
+ },
+ "justNow": {
+  "message": "ahora mismo"
+ },
+ "flyoutTitle": {
+  "message": "Tabatha está lista"
+ },
+ "flyoutBody": {
+  "message": "Pulsa $1 para ver todas tus pestañas."
+ },
+ "flyoutSub": {
+  "message": "O haz clic en el icono de Tabatha en la barra de herramientas."
+ },
+ "dismiss": {
+  "message": "Cerrar"
+ },
+ "nudgeTitle": {
+  "message": "¿Buscas una pestaña?"
+ },
+ "nudgeBody": {
+  "message": "$1 las muestra todas a la vez, con vista previa. Escribe para encontrar la que quieres."
+ },
+ "nudgeTry": {
+  "message": "Probar"
+ },
+ "nudgeOk": {
+  "message": "Entendido"
+ },
+ "nudgeNever": {
+  "message": "No mostrar más"
+ },
+ "sweepPageTitle": {
+  "message": "Tabatha: capturando vistas previas"
+ },
+ "sweepH": {
+  "message": "Tabatha está capturando vistas previas"
+ },
+ "sweepStarting": {
+  "message": "Empezando…"
+ },
+ "sweepDone": {
+  "message": "Listo."
+ },
+ "sweepTabOf": {
+  "message": "Pestaña $1 de $2"
+ },
+ "sweepNote": {
+  "message": "Cada pestaña se muestra un momento. Luego volverás a donde estabas."
+ },
+ "sweepStop": {
+  "message": "Detener"
+ },
+ "sweepStopping": {
+  "message": "Deteniendo…"
+ },
+ "captureBlocked": {
+  "message": "Chrome no permite una vista previa de esta página."
+ },
+ "captureFailed": {
+  "message": "Esta vez no hubo vista previa: la página no terminó de cargar. Inténtalo de nuevo."
+ },
+ "sleepUndone": {
+  "message": "No se dormirá."
+ },
+ "sleepLaterN_one": {
+  "message": "$1 pestaña se dormirá al salir de Tabatha"
+ },
+ "sleepLaterN_other": {
+  "message": "$1 pestañas se dormirán al salir de Tabatha"
+ },
+ "willSleep": {
+  "message": "Se dormirá al salir"
+ },
+ "sleepUndo": {
+  "message": "No dormir"
+ },
+ "sweepNothing": {
+  "message": "Nada que capturar: todas las pestañas ya tienen vista previa o no pueden tenerla."
+ },
+ "actCloseTitle": {
+  "message": "Cierra las pestañas seleccionadas. Quedan en Cerradas recientemente."
+ },
+ "actCopyTitle": {
+  "message": "Copia sus direcciones, una por línea"
+ },
+ "actCopyMdTitle": {
+  "message": "Copia líneas «- [Título](enlace)»: se pegan como títulos con enlace en Notion, Obsidian, GitHub, Slack o Docs"
+ },
+ "actBookmarkTitle": {
+  "message": "Guárdalas como marcadores (varias van a una carpeta nueva)"
+ },
+ "actGroupTitle": {
+  "message": "Ponlas en un grupo de pestañas de Chrome con nombre y color"
+ },
+ "actNewWindowTitle": {
+  "message": "Muévelas a una ventana propia"
+ },
+ "selAllMatches_one": {
+  "message": "Seleccionar la pestaña encontrada"
+ },
+ "selAllMatches_other": {
+  "message": "Seleccionar las $1 pestañas encontradas"
+ },
+ "selAllTabs_one": {
+  "message": "Seleccionar la pestaña"
+ },
+ "selAllTabs_other": {
+  "message": "Seleccionar las $1 pestañas"
+ },
+ "dupesSummary_one": {
+  "message": "$1 copia de más: queda una pestaña de cada página"
+ },
+ "dupesSummary_other": {
+  "message": "$1 copias de más: queda una pestaña de cada página"
+ },
+ "dupesNone": {
+  "message": "No quedan duplicadas."
+ },
+ "dupesClose_one": {
+  "message": "Cerrar $1 copia"
+ },
+ "dupesClose_other": {
+  "message": "Cerrar $1 copias"
+ },
+ "dupesBack": {
+  "message": "Volver"
+ },
+ "dupeCloses": {
+  "message": "Se cierra"
+ },
+ "dupeStays": {
+  "message": "Se queda"
+ },
+ "groupName": {
+  "message": "Nombre del grupo"
+ },
+ "groupNamePh": {
+  "message": "p. ej. Investigación"
+ },
+ "groupCreate_one": {
+  "message": "Agrupar $1 pestaña"
+ },
+ "groupCreate_other": {
+  "message": "Agrupar $1 pestañas"
+ },
+ "groupNeedsPerm": {
+  "message": "Chrome pedirá una vez permiso para nombrar y colorear grupos."
+ },
+ "groupMenu": {
+  "message": "Opciones del grupo"
+ },
+ "groupsOpenH": {
+  "message": "Abiertos"
+ },
+ "groupsSavedH": {
+  "message": "Guardados (cerrados)"
+ },
+ "gmRename": {
+  "message": "Cambiar nombre o color"
+ },
+ "gmSelect": {
+  "message": "Seleccionar sus pestañas"
+ },
+ "gmBookmark": {
+  "message": "Guardar el grupo en marcadores"
+ },
+ "gmWindow": {
+  "message": "Mover a una ventana nueva"
+ },
+ "gmSleep": {
+  "message": "Dormir sus pestañas"
+ },
+ "gmUngroup": {
+  "message": "Desagrupar (mantener las pestañas)"
+ },
+ "gmClose": {
+  "message": "Cerrar (mantenerlo guardado)"
+ },
+ "gmCloseSure": {
+  "message": "¿Cerrar $1 pestañas? Pulsa otra vez"
+ },
+ "gmDelete": {
+  "message": "Eliminar el grupo y sus pestañas"
+ },
+ "gmDeleteSure": {
+  "message": "¿Eliminarlo y cerrar $1 pestañas? Pulsa otra vez"
+ },
+ "gmReopen": {
+  "message": "Volver a abrir"
+ },
+ "gmForget": {
+  "message": "Eliminar este grupo guardado"
+ },
+ "gmForgetSure": {
+  "message": "¿Eliminarlo? Pulsa otra vez"
+ },
+ "folderMenu": {
+  "message": "Opciones de la carpeta"
+ },
+ "folderDelete": {
+  "message": "Eliminar carpeta"
+ },
+ "folderDeleteSure_one": {
+  "message": "¿Eliminarla con el marcador que contiene? Pulsa otra vez"
+ },
+ "folderDeleteSure_other": {
+  "message": "¿Eliminarla con los $1 marcadores que contiene? Pulsa otra vez"
+ },
+ "marksAddHere_one": {
+  "message": "Guardar aquí la pestaña marcada"
+ },
+ "marksAddHere_other": {
+  "message": "Guardar aquí las $1 pestañas marcadas"
+ },
+ "settings": {
+  "message": "Ajustes"
+ },
+ "setLang": {
+  "message": "Idioma"
+ },
+ "setLangAuto": {
+  "message": "Automático (idioma de Chrome)"
+ },
+ "setStartup": {
+  "message": "Abrir Tabatha al iniciar Chrome"
+ },
+ "setStartupNote": {
+  "message": "Muestra todas tus pestañas, donde lo dejaste, unos segundos después de abrir Chrome."
+ },
+ "setShortcut": {
+  "message": "Cambiar el atajo Alt+Q"
+ },
+ "shortcutMissing": {
+  "message": "Tabatha no tiene asignado Alt+Q: puede que otra app o extensión lo use. Elige un atajo en Chrome."
+ },
+ "iconTip": {
+  "message": "Consejo: $1 abre Tabatha desde cualquier sitio, sin ratón."
+ },
+ "keySearch": {
+  "message": "ir a la búsqueda"
+ },
+ "tourWinTitle": {
+  "message": "Tus ventanas"
+ },
+ "tourWinBody": {
+  "message": "Cada ventana de Chrome, con una imagen de lo que muestra. Haz clic en una, o pulsa Alt+W, para ver solo sus pestañas."
+ },
+ "tourPanelTitle": {
+  "message": "Grupos y marcadores"
+ },
+ "tourPanelBody": {
+  "message": "Tus grupos de pestañas y los marcadores de Chrome están en este panel. Los grupos cerrados se guardan hasta que los elimines."
+ },
+ "tourSetTitle": {
+  "message": "Ajustes"
+ },
+ "tourSetBody": {
+  "message": "El idioma, y abrir Tabatha al iniciar Chrome."
+ },
+ "actMore": {
+  "message": "Más"
+ }
+}

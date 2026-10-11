@@ -113,6 +113,22 @@ export function removeSavedGroup(id) {
   });
 }
 
+// Rename / recolour a saved (closed) group.
+export function updateSavedGroup(id, { title, color } = {}) {
+  return withLock('groups', async () => {
+    const saved = await getSavedGroups();
+    await L.set({ [KEY.GROUPS]: saved.map((g) => (g.id !== id ? g : {
+      ...g,
+      ...(typeof title === 'string' ? { title: title.slice(0, LIMITS.GROUP_TITLE_MAX) } : {}),
+      ...(GROUP_COLORS.includes(color) ? { color } : {}),
+    })) });
+  });
+}
+// The saved copy that follows an open Chrome group (to remove it when the user deletes or ungroups that group).
+export async function recordFor(chromeGroupId) {
+  return (await getSavedGroups()).find((g) => g.open && g.cid === chromeGroupId) || null;
+}
+
 // Open a saved group again in `windowId`, as a real Chrome tab group.
 export async function reopenGroup(g, windowId) {
   const ids = [];

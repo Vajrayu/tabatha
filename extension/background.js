@@ -12,15 +12,18 @@
 // Everything here must be safe to run more than once: the worker can be
 // suspended and restarted at any moment, and install/reload re-runs setup.
 
-import { MSG, KEY, FRAME_MSG, LIMITS, SWITCHER_PAGE, WINDOW_STATES, CLOSE_REASONS } from './lib/constants.js';
+import { MSG, KEY, FRAME_MSG, LIMITS, NUDGE, SWITCHER_PAGE, WINDOW_STATES, CLOSE_REASONS, uninstallUrl } from './lib/constants.js';
 import {
   touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews, markBoot,
   markDiscarded, moveDiscarded, ensureBoot,
   rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
   setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard,
+  getNudge, updateNudge, getReview, getPrefs,
 } from './lib/store.js';
+import { dayOf } from './lib/review.js';
+import { t, loadLang } from './lib/i18n.js';
 import { syncGroups, hasGroupsApi } from './lib/groups.js';
-import { runSweep, cancelSweep, isSweeping } from './lib/sweep.js';
+import { runSweep, cancelSweep, isSweeping, sweepJobs } from './lib/sweep.js';
 import { scheduleCapture, cancelCapture, captureWindow } from './lib/capture.js';
 import { isOwnUrl } from './lib/ext.js';
 
@@ -34,6 +37,27 @@ const INJECTABLE = /^(https?|file):/;
 
 // First worker start of a browser session: remember when it began (see maybeCleanup in store.js).
 ensureBoot().catch(() => {});
+// After someone removes Tabatha, Chrome opens this page (one optional question). The URL carries
+// only the version and the interface language; the removal itself sends nothing.
+const setUninstall = () => loadLang().then(() => chrome.runtime.setUninstallURL(uninstallUrl())).catch(() => {});
+setUninstall();
+// The language setting changed: the uninstall page follows it.
+chrome.storage.onChanged.addListener((c, area) => { if (area === 'local' && c[KEY.PREFS]) setUninstall(); });
+
+// ---------------------------------------------------------- tab count on the toolbar icon
+let badgeTimer = null;
+function updateBadge() {
+  clearTimeout(badgeTimer);
+  badgeTimer = setTimeout(async () => {
+    try {
+      const n = (await chrome.tabs.query({ windowType: 'normal' })).length;
+      await chrome.action.setBadgeText({ text: n > 999 ? '999+' : String(n) });
+    } catch {}
+  }, 300);
+}
+Promise.resolve().then(() => chrome.action.setBadgeBackgroundColor({ color: '#1B2A4A' })).catch(() => {});
+Promise.resolve().then(() => chrome.action.setBadgeTextColor({ color: '#D2FF3C' })).catch(() => {});
+updateBadge();
 // A worker that has just started is not sweeping: clear a "running" flag a dead worker left behind.
 chrome.storage.session.get(KEY.SWEEP).then((o) => {
   if (o[KEY.SWEEP] && o[KEY.SWEEP].running && !isSweeping()) chrome.storage.session.set({ [KEY.SWEEP]: { running: false, done: 0, total: 0 } });
@@ -76,9 +100,10 @@ chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
   if (isOwnUrl(tab.url) || isOwnUrl(tab.pendingUrl)) return;
   touchMru(tabId);
   scheduleCapture(windowId);
+  watchCycling(tab);
 });
 
-chrome.tabs.onCreated.addListener((tab) => { rememberTab(tab).catch(() => {}); });
+chrome.tabs.onCreated.addListener((tab) => { rememberTab(tab).catch(() => {}); quietAt = Date.now(); updateBadge(); });
 
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (info.url || info.title || info.favIconUrl) rememberTab(tab).catch(() => {});
@@ -92,6 +117,7 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 });
 chrome.tabs.onAttached.addListener(groupsChanged);
 chrome.tabs.onDetached.addListener(groupsChanged);
+chrome.windows.onRemoved.addListener(updateBadge);
 chrome.tabs.onMoved.addListener(groupsChanged);
 
 // Previews are keyed by URL, so a closed or replaced tab keeps its preview
@@ -100,6 +126,8 @@ chrome.tabs.onMoved.addListener(groupsChanged);
 // their window (isWindowClosing): the switcher drops those from the list when
 // Chrome still holds the whole window as one "Window" card.
 chrome.tabs.onRemoved.addListener((tabId) => {
+  quietAt = Date.now(); // Chrome now shows the closed tab's neighbour: not a Ctrl+Tab step
+  updateBadge();
   removeFromMru(tabId);
   markDiscarded(tabId, false).catch(() => {});
   logClosedTab(tabId).catch(() => {});
@@ -112,6 +140,98 @@ chrome.tabs.onReplaced.addListener((addedId, removedId) => {
   moveDiscarded(removedId, addedId).catch(() => {});
   chrome.tabs.get(addedId).then((t) => rememberTab(t)).catch(() => {});
 });
+
+// ------------------------------------------------------------- the "use Alt+Q" nudge
+// Chrome never tells extensions about Ctrl+Tab / Ctrl+PgDn. What it looks like from here: several
+// switches in a row, each to the tab right next to the previous one, each within a moment. When
+// that happens a second time in a day, a small note says Alt+Q shows every tab at once. Rare by
+// design: once a day at most, three times ever, never soon after using Tabatha, never again once
+// the habit is there (NUDGE in constants.js), and "Don't show again" ends it.
+let quietAt = 0;   // a tab was just opened or closed, or Tabatha just switched: the next activation isn't the user cycling
+const steps = new Map(); // windowId -> { index, t, n }
+async function watchCycling(tab) {
+  const now = Date.now();
+  const prev = steps.get(tab.windowId);
+  let n = 0;
+  if (prev && now - prev.t < NUDGE.STEP_MS && now - quietAt > NUDGE.QUIET_AFTER_EVENT_MS && tab.index !== prev.index) {
+    const d = Math.abs(tab.index - prev.index);
+    let adjacent = d === 1;
+    if (!adjacent && (tab.index === 0 || prev.index === 0)) { // Ctrl+Tab wraps from the last tab to the first
+      const count = await chrome.tabs.query({ windowId: tab.windowId }).then((x) => x.length).catch(() => 0);
+      adjacent = d === count - 1;
+    }
+    if (adjacent) n = prev.n + 1;
+  }
+  steps.set(tab.windowId, { index: tab.index, t: now, n });
+  // A run: wait until the switching stops, then speak up on the tab the user landed on.
+  if (n >= NUDGE.RUN_STEPS || (settleTimer && settleWin === tab.windowId)) {
+    clearTimeout(settleTimer);
+    settleWin = tab.windowId;
+    settleTimer = setTimeout(async () => {
+      settleTimer = null;
+      const [t] = await chrome.tabs.query({ active: true, windowId: settleWin }).catch(() => []);
+      if (t) onCyclingRun(t).catch(() => {});
+    }, NUDGE.SETTLE_MS);
+  }
+}
+let settleTimer = null, settleWin = null;
+async function onCyclingRun(tab) {
+  const now = Date.now();
+  const today = dayOf(now);
+  const nd = await updateNudge((x) => ({ ...x, day: today, runs: x.day === today ? x.runs + 1 : 1 }));
+  if (nd.never || nd.shown >= NUDGE.MAX || now - nd.last < NUDGE.GAP_MS || nd.runs < NUDGE.RUNS_BEFORE) return;
+  const [rv, onb, lo] = await Promise.all([getReview(), getOnboard(), chrome.storage.session.get(KEY.LAST_OPEN)]);
+  if (rv.opens >= NUDGE.HABIT_OPENS) return updateNudge((x) => ({ ...x, never: true }));
+  if (now - (lo[KEY.LAST_OPEN] || 0) < NUDGE.AFTER_USE_MS) return;
+  if (onb.at && now - onb.at < LIMITS.FLYOUT_WINDOW_MS) return; // the first-run flyout is still doing this job
+  if (!tab.active || !INJECTABLE.test(tab.url || '') || tab.incognito) return;
+  const mac = await chrome.runtime.getPlatformInfo().then((p) => p.os === 'mac').catch(() => false);
+  await loadLang();
+  const key = mac ? 'Option+Q' : 'Alt+Q';
+  const text = { title: t('nudgeTitle'), body: t('nudgeBody', key), tryIt: t('nudgeTry'), ok: t('nudgeOk'), never: t('nudgeNever'), close: t('dismiss') };
+  await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: injectNudge, args: [MSG.NUDGE, NUDGE.SHOW_MS, text, key] });
+  await updateNudge((x) => ({ ...x, shown: x.shown + 1, last: now }));
+}
+
+// Runs inside the page (isolated world), like the first-run flyout: closed shadow root, textContent only.
+function injectNudge(type, showMs, text, key) {
+  if (window.__tabathaNudge) return;
+  const host = document.createElement('div');
+  host.style.cssText = 'all:initial;position:fixed;bottom:20px;right:20px;z-index:2147483646';
+  const root = host.attachShadow({ mode: 'closed' });
+  const css = `
+    .c{font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1B2A4A;background:#EBFFA6;width:300px;padding:14px 16px 12px;
+       border:3px solid #1B2A4A;border-radius:4px;box-shadow:4px 4px 0 #1B2A4A;animation:in .25s steps(4) both}
+    @keyframes in{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+    .t{font-weight:700;font-size:15px;margin:0 22px 6px 0}.p{margin:0 0 10px}
+    kbd{font:inherit;font-weight:700;background:#FFD166;border:2px solid #1B2A4A;border-radius:3px;padding:1px 7px}
+    .r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .b{font:inherit;font-weight:700;font-size:13px;border:2px solid #1B2A4A;background:#FFF8E7;color:#1B2A4A;padding:4px 10px;cursor:pointer}
+    .b.p1{background:#FFD166}.q{border:0;background:none;text-decoration:underline;padding:4px 2px;font-weight:400;opacity:.75}
+    .x{position:absolute;top:6px;right:8px;border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:#1B2A4A}`;
+  try { const sheet = new CSSStyleSheet(); sheet.replaceSync(css); root.adoptedStyleSheets = [sheet]; }
+  catch { const style = document.createElement('style'); style.textContent = css; root.append(style); }
+  const box = document.createElement('div'); box.className = 'c'; box.setAttribute('role', 'status');
+  const h = document.createElement('p'); h.className = 't'; h.textContent = text.title;
+  const p = document.createElement('p'); p.className = 'p';
+  const [before, after] = text.body.split(key);
+  const k = document.createElement('kbd'); k.textContent = key;
+  p.append(before || '', k, after || '');
+  const row = document.createElement('div'); row.className = 'r';
+  const btn = (label, cls, act) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.textContent = label;
+    b.addEventListener('click', (e) => { if (!e.isTrusted) return; done(); chrome.runtime.sendMessage({ type, act }).catch(() => {}); });
+    return b;
+  };
+  row.append(btn(text.tryIt, 'b p1', 'try'), btn(text.ok, 'b', 'ok'), btn(text.never, 'b q', 'never'));
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.setAttribute('aria-label', text.close); x.textContent = '\u00d7';
+  x.addEventListener('click', () => done());
+  box.append(h, p, row, x); root.append(box);
+  const timer = setTimeout(() => done(), showMs);
+  function done() { clearTimeout(timer); host.remove(); delete window.__tabathaNudge; }
+  window.__tabathaNudge = { host };
+  (document.body || document.documentElement).append(host);
+}
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE || isSweeping()) return;
@@ -153,6 +273,9 @@ async function setup({ fresh = false } = {}) {
 chrome.runtime.onStartup.addListener(async () => {
   await markBoot().catch(() => {}); // start of a browser session: tab ids and the "slept" list are new
   await setup();
+  // Settings → "Open Tabatha when Chrome starts": once Chrome has put the tabs back, show them all.
+  const prefs = await getPrefs().catch(() => ({ startup: false }));
+  if (prefs.startup) setTimeout(() => trigger(1, null, 'startup'), LIMITS.STARTUP_OPEN_MS);
 });
 chrome.runtime.onInstalled.addListener(async (details) => {
   await setup({ fresh: true });
@@ -173,15 +296,15 @@ let opening = null;   // { t, extra } while a switcher is loading (dedupes rapid
 let watchdog = null;  // { token, timer } for an overlay that hasn't reported READY yet
 let lastTrigger = 0;
 
-function trigger(dir, tab) {
+function trigger(dir, tab, via = 'key') {
   // Both Chrome's shortcut and the in-page listener may see the same press;
   // this also rate-limits a misbehaving sender.
   if (Date.now() - lastTrigger < 120) return;
   lastTrigger = Date.now();
-  openSwitcher(dir, tab).catch((e) => console.warn('[Tabatha] could not open the switcher:', e && e.message));
+  openSwitcher(dir, tab, via).catch((e) => console.warn('[Tabatha] could not open the switcher:', e && e.message));
 }
 
-async function openSwitcher(dir, fromTab) {
+async function openSwitcher(dir, fromTab, via = 'key') {
   // 1. Already open anywhere? Just move its selection.
   try {
     const r = await chrome.runtime.sendMessage({ type: MSG.CYCLE, dir });
@@ -194,6 +317,7 @@ async function openSwitcher(dir, fromTab) {
     return;
   }
   opening = { t: Date.now(), extra: 0 };
+  chrome.storage.session.set({ [KEY.LAST_OPEN]: Date.now() }).catch(() => {});
 
   let tab = fromTab;
   if (!tab || !tab.active) [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -213,7 +337,7 @@ async function openSwitcher(dir, fromTab) {
   }
 
   const ctx = {
-    src: tab.id, win: tab.windowId, dir,
+    src: tab.id, win: tab.windowId, dir, via,
     state: WINDOW_STATES.includes(win.state) ? win.state : 'normal',
   };
 
@@ -308,6 +432,7 @@ function injectOverlay(src, token, extOrigin, FRAME) {
   const frame = document.createElement('iframe');
   frame.src = src;
   frame.setAttribute('allowtransparency', 'true');
+  frame.setAttribute('allow', 'clipboard-write'); // "Copy links" (the page's own policy can still refuse; the switcher falls back)
   frame.setAttribute('aria-label', 'Tabatha tab switcher');
   // Invisible and click-through until the switcher reports it has rendered,
   // so a page that blocks it is never left covered by an empty frame.
@@ -373,15 +498,17 @@ async function offerFlyout(tab) {
     if (flyoutOver || !tab || !INJECTABLE.test(tab.url || '') || tab.incognito) return;
     const o = await getOnboard();
     if (!o.at || o.flyout || o.tour || Date.now() - o.at > LIMITS.FLYOUT_WINDOW_MS) { if (o.at) flyoutOver = true; return; }
+    await loadLang();
     await chrome.scripting.executeScript({
-      target: { tabId: tab.id }, func: injectFlyout, args: [MSG.FLYOUT_DONE, LIMITS.FLYOUT_SHOW_MS],
+      target: { tabId: tab.id }, func: injectFlyout,
+      args: [MSG.FLYOUT_DONE, LIMITS.FLYOUT_SHOW_MS, { title: t('flyoutTitle'), body: t('flyoutBody', '$KEY$'), sub: t('flyoutSub'), close: t('dismiss') }],
     });
   } catch {}
 }
 
 // Runs inside the page (isolated world). A closed shadow root keeps the page's CSS out and
 // its scripts away from our nodes; text is set with textContent only.
-function injectFlyout(doneType, showMs) {
+function injectFlyout(doneType, showMs, text) {
   if (window.__tabathaFlyout) return;
   const mac = /mac/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '');
   const host = document.createElement('div');
@@ -399,12 +526,13 @@ function injectFlyout(doneType, showMs) {
   try { const sheet = new CSSStyleSheet(); sheet.replaceSync(css); root.adoptedStyleSheets = [sheet]; }
   catch { const style = document.createElement('style'); style.textContent = css; root.append(style); }
   const box = document.createElement('div'); box.className = 'c'; box.setAttribute('role', 'status');
-  const t = document.createElement('p'); t.className = 't'; t.textContent = 'Tabatha is ready';
+  const t = document.createElement('p'); t.className = 't'; t.textContent = text.title;
   const p = document.createElement('p'); p.className = 'p';
   const k = document.createElement('kbd'); k.textContent = mac ? 'Option+Q' : 'Alt+Q';
-  p.append('Press ', k, ' to see all your tabs.');
-  const s = document.createElement('p'); s.className = 's'; s.textContent = 'Or click the Tabatha icon in the toolbar.';
-  const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Dismiss'); x.textContent = '\u00d7';
+  const [before, after] = text.body.split('$KEY$');
+  p.append(before || '', k, after || '');
+  const s = document.createElement('p'); s.className = 's'; s.textContent = text.sub;
+  const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', text.close); x.textContent = '\u00d7';
   box.append(t, p, s, x); root.append(box);
   const done = () => {
     clearTimeout(timer); host.remove(); delete window.__tabathaFlyout;
@@ -429,7 +557,22 @@ chrome.commands.onCommand.addListener((command, tab) => {
   else if (command === 'open-switcher-reverse') trigger(-1, tab);
 });
 
-chrome.action.onClicked.addListener((tab) => trigger(1, tab));
+chrome.action.onClicked.addListener((tab) => trigger(1, tab, 'icon'));
+
+async function captureOne(tabId, reopenTab) {
+  const n = await runSweep({ only: [tabId], force: true, quiet: true });
+  await reopenOver(reopenTab);
+  return { ok: n > 0 };
+}
+// Open the switcher again over a tab (after Tabatha had to step aside to take screenshots).
+async function reopenOver(tabId) {
+  if (tabId === null) return;
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    opening = null;
+    await openSwitcher(1, tab);
+  } catch {}
+}
 
 const fromContentScript = (s) => !!s.tab && Number.isInteger(s.tab.id) && !isOwnUrl(s.url);
 const fromSwitcher = (s) => isOwnUrl(s.url, SWITCHER_PAGE);
@@ -447,9 +590,37 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       respond({ extra: opening ? Math.max(-20, Math.min(20, opening.extra)) : 0 });
       opening = null;
       return;
-    case MSG.SWEEP:
-      if (fromSwitcher(sender)) runSweep().catch((e) => console.warn('[Tabatha] preview sweep failed:', e && e.message));
+    case MSG.SWEEP: {
+      // Answer first (how many tabs need a picture), so the switcher can say "nothing to capture"
+      // instead of closing for nothing; then run, and open the switcher again over the tab it came from.
+      if (!fromSwitcher(sender)) return;
+      const only = Array.isArray(msg.tabIds) ? msg.tabIds.filter(Number.isInteger).slice(0, LIMITS.SWEEP_MAX_TABS) : null;
+      sweepJobs({ only }).then((jobs) => {
+        respond({ n: jobs.length });
+        if (!jobs.length) return;
+        setTimeout(() => runSweep({ only })
+          .then(() => reopenOver(Number.isInteger(msg.reopen) ? msg.reopen : null))
+          .catch((e) => console.warn('[Tabatha] preview sweep failed:', e && e.message)), 150);
+      }, () => respond({ n: 0 }));
+      return true;
+    }
+    case MSG.SLEEP: {
+      // Tabs the user put to sleep in the switcher: unloaded once it has closed, so the switcher stays smooth.
+      if (!fromSwitcher(sender) || !Array.isArray(msg.tabIds)) return;
+      const ids = msg.tabIds.filter(Number.isInteger).slice(0, 500);
+      setTimeout(async () => {
+        for (const id of ids) {
+          try { const t = await chrome.tabs.get(id); if (!t.active && !t.discarded) await chrome.tabs.discard(id); } catch {}
+        }
+      }, 400);
       return;
+    }
+    case MSG.CAPTURE_ONE:
+      // One card's "Capture preview". If the tab is in the window the overlay sits in, showing it
+      // closes the overlay; `reopen` then brings the switcher back over the original tab.
+      if (!fromSwitcher(sender) || !Number.isInteger(msg.tabId)) return;
+      captureOne(msg.tabId, Number.isInteger(msg.reopen) ? msg.reopen : null).then(respond, () => respond({ ok: false }));
+      return true;
     case MSG.SWEEP_CANCEL:
       if (isOwnUrl(sender.url, 'sweep.html')) cancelSweep();
       return;
@@ -459,11 +630,17 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
     case MSG.FLYOUT_DONE:
       if (fromContentScript(sender)) updateOnboard({ flyout: true }).catch(() => {});
       return;
+    case MSG.NUDGE:
+      if (!fromContentScript(sender)) return;
+      if (msg.act === 'try') trigger(1, sender.tab);
+      else if (msg.act === 'never') updateNudge((x) => ({ ...x, never: true })).catch(() => {});
+      return;
     case MSG.CLOSED:
       if (!fromSwitcher(sender)) return;
       disarmWatchdog();
       opening = null;
       clearOverlayTab();
+      quietAt = Date.now(); // the switch Tabatha just made isn't the user cycling with Ctrl+Tab
       if (msg.reason === 'cancel' && Number.isInteger(msg.win)) {
         const state = WINDOW_STATES.includes(msg.state) ? msg.state : 'normal';
         restoreWindow(msg.win, state);

@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Tabatha: Visual Tab Switcher with Live Previews",
-  "short_name": "Tabatha",
-  "version": "1.3.2",
-  "description": "Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer.",
+  "default_locale": "en",
+  "name": "__MSG_extName__",
+  "short_name": "__MSG_extShortName__",
+  "version": "1.3.3",
+  "description": "__MSG_extDesc__",
   "homepage_url": "https://tabatha-vert.vercel.app",
   "minimum_chrome_version": "116",
   "icons": {
@@ -13,7 +14,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Tabatha (Alt+Q)",
+    "default_title": "__MSG_actionTitle__",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png"
@@ -31,7 +32,8 @@
     "sessions"
   ],
   "optional_permissions": [
-    "tabGroups"
+    "tabGroups",
+    "bookmarks"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -55,14 +57,14 @@
         "default": "Alt+Q",
         "mac": "Alt+Q"
       },
-      "description": "Open Tabatha / move to next tab"
+      "description": "__MSG_cmdOpen__"
     },
     "open-switcher-reverse": {
       "suggested_key": {
         "default": "Alt+Shift+Q",
         "mac": "Alt+Shift+Q"
       },
-      "description": "Open Tabatha / move to previous tab"
+      "description": "__MSG_cmdReverse__"
     }
   },
   "web_accessible_resources": [

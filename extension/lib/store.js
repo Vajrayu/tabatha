@@ -110,10 +110,11 @@ export async function getPreviews(urls) {
 
 // URLs that open tabs have right now (null if Chrome can't tell us). A preview
 // for one of these is kept as long as the tab is open, however old it is.
+// Starred pages count as open: their previews are kept even while no tab shows them.
 async function openKeys() {
   try {
-    const tabs = await chrome.tabs.query({ windowType: 'normal' });
-    return new Set(tabs.map((t) => keyOf(t.url || t.pendingUrl)).filter(Boolean));
+    const [tabs, stars] = await Promise.all([chrome.tabs.query({ windowType: 'normal' }), getStars()]);
+    return new Set([...tabs.map((t) => keyOf(t.url || t.pendingUrl)).filter(Boolean), ...Object.keys(stars)]);
   } catch {
     return null;
   }
@@ -326,6 +327,7 @@ function cleanReview(v) {
   return {
     since: isTime(v.since) ? v.since : e.since, opens: count(v.opens), soft: count(v.soft), lastSoft: count(v.lastSoft),
     asks: count(v.asks), lastAsk: count(v.lastAsk), done: v.done === true,
+    day: typeof v.day === 'string' && v.day.length <= 12 ? v.day : '',
   };
 }
 export async function getReview() {
@@ -353,6 +355,94 @@ export function updateOnboard(patch) {
   });
 }
 
+// ---------- stars (storage.local) ----------
+// Pages the user starred, keyed by normalized URL (tab ids don't survive a restart).
+// Not bookmarks: they live only in Tabatha, on this computer.
+const isStar = (v) => !!v && typeof v === 'object' && typeof v.u === 'string' && v.u.length <= LIMITS.MAX_URL_KEY && isTime(v.t);
+export async function getStars() {
+  const v = (await L.get(KEY.STARS))[KEY.STARS];
+  const out = {};
+  if (v && typeof v === 'object' && !Array.isArray(v)) {
+    for (const [k, e] of Object.entries(v)) if (k && isStar(e)) out[k] = { u: e.u, ti: String(e.ti || '').slice(0, 300), t: e.t };
+  }
+  return out;
+}
+// Star or unstar a page. Returns the new state (true = starred).
+export function toggleStar(url, title) {
+  const k = keyOf(url);
+  if (!k) return Promise.resolve(false);
+  return withLock('stars', async () => {
+    const stars = await getStars();
+    let on;
+    if (stars[k]) { delete stars[k]; on = false; } else {
+      stars[k] = { u: url, ti: String(title || '').slice(0, 300), t: Date.now() };
+      on = true;
+      const keys = Object.keys(stars).sort((a, b) => stars[b].t - stars[a].t);
+      keys.slice(LIMITS.MAX_STARS).forEach((x) => delete stars[x]); // over the cap: the oldest stars go
+    }
+    await L.set({ [KEY.STARS]: stars });
+    return on;
+  });
+}
+
+// ---------- switcher layout (storage.local) ----------
+export const SORTS = Object.freeze(['recent', 'newest', 'oldest', 'name', 'site']);
+export async function getView() {
+  const v = (await L.get(KEY.VIEW))[KEY.VIEW] || {};
+  return {
+    sort: SORTS.includes(v.sort) ? v.sort : 'recent',
+    collapsed: Array.isArray(v.collapsed) ? v.collapsed.filter((x) => typeof x === 'string' && x.length <= 300).slice(0, LIMITS.MAX_COLLAPSED) : [],
+    panel: typeof v.panel === 'boolean' ? v.panel : null, // the right panel: null = not chosen yet (open on wide screens)
+    ptab: v.ptab === 'marks' ? 'marks' : 'groups',
+    folder: typeof v.folder === 'string' && v.folder.length <= 40 ? v.folder : '', // last bookmark folder used
+    gorder: Array.isArray(v.gorder) ? v.gorder.filter((x) => typeof x === 'string' && x.length <= 60).slice(0, 200) : [], // order of saved groups in the panel
+  };
+}
+export function updateView(patch) {
+  return withLock('view', async () => {
+    const next = { ...(await getView()), ...patch };
+    next.collapsed = next.collapsed.slice(-LIMITS.MAX_COLLAPSED);
+    await L.set({ [KEY.VIEW]: next });
+    return next;
+  });
+}
+
+// ---------- settings (storage.local) ----------
+export async function getPrefs() {
+  const v = (await L.get(KEY.PREFS))[KEY.PREFS] || {};
+  return { lang: ['auto', 'en', 'ru', 'es'].includes(v.lang) ? v.lang : 'auto', startup: v.startup === true };
+}
+export function updatePrefs(patch) {
+  return withLock('prefs', async () => {
+    const next = { ...(await getPrefs()), ...patch };
+    await L.set({ [KEY.PREFS]: next });
+    return next;
+  });
+}
+
+// ---------- the "use Alt+Q" nudge (storage.local, this device only) ----------
+export async function getNudge() {
+  const v = (await L.get(KEY.NUDGE))[KEY.NUDGE] || {};
+  return { day: typeof v.day === 'string' ? v.day : '', runs: count(v.runs), shown: count(v.shown), last: count(v.last), never: v.never === true };
+}
+export function updateNudge(change) {
+  return withLock('nudge', async () => {
+    const next = change(await getNudge());
+    await L.set({ [KEY.NUDGE]: next });
+    return next;
+  });
+}
+
+// ---------- resume (storage.session) ----------
+// Capturing one tab in the switcher's own window hides the page the switcher sits on, which closes
+// it. The switcher leaves a note of what it was showing, and opens again where it was.
+export const setResume = (r) => S.set({ [KEY.RESUME]: { ...r, t: Date.now() } });
+export async function takeResume() {
+  const r = (await S.get(KEY.RESUME))[KEY.RESUME];
+  await S.remove(KEY.RESUME);
+  return r && isTime(r.t) && Date.now() - r.t < LIMITS.RESUME_TTL_MS ? r : null;
+}
+
 // ---------- capture diagnostics (storage.session) ----------
 // The last thing that happened when Tabatha tried to take a preview, so the switcher can say
 // why one is missing ("Chrome blocked the screenshot: ..."). Memory only; never contains page content.
@@ -360,6 +450,23 @@ export async function noteCapture(stage, msg = '', url = '') {
   let host = '';
   try { host = new URL(url).host; } catch {}
   try { await S.set({ [KEY.CAPDIAG]: { t: Date.now(), stage, msg: String(msg), host } }); } catch {}
+  // Pages Chrome never lets extensions screenshot (the Web Store, some built-in pages): remember them,
+  // so the switcher stops offering "Capture preview" there. A later success forgets the page again.
+  const k = url && normalizeUrl(url);
+  if (!k) return;
+  const blocked = stage === 'error' && /cannot be scripted|cannot access|extensions gallery|chrome:\/\/|edge:\/\//i.test(msg);
+  if (!blocked && stage !== 'ok') return;
+  try {
+    await serial(async () => {
+      const list = ((await S.get(KEY.NOCAP))[KEY.NOCAP] || []).filter((x) => typeof x === 'string' && x !== k);
+      if (blocked) list.unshift(k);
+      await S.set({ [KEY.NOCAP]: list.slice(0, 300) });
+    });
+  } catch {}
+}
+export async function getNoCapture() {
+  const v = (await S.get(KEY.NOCAP))[KEY.NOCAP];
+  return new Set(Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []);
 }
 export async function getCaptureNote() {
   const v = (await S.get(KEY.CAPDIAG))[KEY.CAPDIAG];
@@ -407,6 +514,7 @@ export function consumeLaunch(token) {
       srcState: WINDOW_STATES.includes(c.state) ? c.state : 'normal',
       dir: c.dir === -1 ? -1 : 1,
       mode: MODES.includes(c.mode) ? c.mode : 'window',
+      via: ['key', 'icon', 'startup'].includes(c.via) ? c.via : 'key', // how it was opened
     });
   });
 }

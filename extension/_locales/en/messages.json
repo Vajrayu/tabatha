@@ -1,0 +1,923 @@
+{
+ "localeCode": {
+  "message": "en"
+ },
+ "extName": {
+  "message": "Tabatha: Visual Tab Switcher with Live Previews"
+ },
+ "extShortName": {
+  "message": "Tabatha"
+ },
+ "extDesc": {
+  "message": "Alt+Tab for Chrome tabs: live previews, instant search and recently closed tabs. Free, private, nothing leaves your computer."
+ },
+ "cmdOpen": {
+  "message": "Open Tabatha / move to next tab"
+ },
+ "cmdReverse": {
+  "message": "Open Tabatha / move to previous tab"
+ },
+ "actionTitle": {
+  "message": "Tabatha (Alt+Q)"
+ },
+ "newTab": {
+  "message": "New tab"
+ },
+ "searchPlaceholder": {
+  "message": "Search open tabs and tabs closed in the last 7 days"
+ },
+ "searchAria": {
+  "message": "Search tabs"
+ },
+ "hintMove": {
+  "message": "move"
+ },
+ "hintOpen": {
+  "message": "open"
+ },
+ "hintClose": {
+  "message": "close tab"
+ },
+ "hintStar": {
+  "message": "star"
+ },
+ "hintExit": {
+  "message": "exit"
+ },
+ "hintWindow": {
+  "message": "window"
+ },
+ "windowsAria": {
+  "message": "Windows"
+ },
+ "viewAria": {
+  "message": "Sort and filter"
+ },
+ "sortAria": {
+  "message": "Sort tabs"
+ },
+ "starFilterTitle": {
+  "message": "Show only starred pages"
+ },
+ "starred": {
+  "message": "Starred"
+ },
+ "sortRecent": {
+  "message": "Recent"
+ },
+ "sortRecentTitle": {
+  "message": "Most recently used first (like Alt+Tab)"
+ },
+ "sortNewest": {
+  "message": "Newest"
+ },
+ "sortNewestTitle": {
+  "message": "Newest opened first"
+ },
+ "sortOldest": {
+  "message": "Oldest"
+ },
+ "sortOldestTitle": {
+  "message": "Oldest opened first"
+ },
+ "sortName": {
+  "message": "A–Z"
+ },
+ "sortNameTitle": {
+  "message": "By title, A to Z"
+ },
+ "sortSite": {
+  "message": "By site"
+ },
+ "sortSiteTitle": {
+  "message": "Group tabs from the same site together"
+ },
+ "groupsOn": {
+  "message": "Turn on tab groups"
+ },
+ "groupsOnTitle": {
+  "message": "Show your Chrome tab groups here as sections, and keep them when you close them"
+ },
+ "panelBtn": {
+  "message": "Groups & bookmarks"
+ },
+ "panelAria": {
+  "message": "Saved groups and bookmarks"
+ },
+ "panelHide": {
+  "message": "Hide this panel"
+ },
+ "paneGroups": {
+  "message": "Saved groups"
+ },
+ "paneMarks": {
+  "message": "Bookmarks"
+ },
+ "openTabs": {
+  "message": "Open tabs"
+ },
+ "recentlyClosed": {
+  "message": "Recently closed"
+ },
+ "closedSearchH": {
+  "message": "Closed in the last 7 days"
+ },
+ "starredNotOpen": {
+  "message": "Starred, not open"
+ },
+ "noMatch": {
+  "message": "No open tabs match your search."
+ },
+ "noStarredOpen": {
+  "message": "No open tabs are starred. Star one with the ☆ on its card."
+ },
+ "countSearch": {
+  "message": "$1 open · $2 closed"
+ },
+ "countSearchStarred": {
+  "message": "$1 open · $2 starred"
+ },
+ "tabs_one": {
+  "message": "$1 tab"
+ },
+ "tabs_other": {
+  "message": "$1 tabs"
+ },
+ "thisWindow": {
+  "message": "This window"
+ },
+ "windowN": {
+  "message": "Window $1"
+ },
+ "allWindows": {
+  "message": "All windows"
+ },
+ "activeTab": {
+  "message": "Active tab: $1"
+ },
+ "closedWindow": {
+  "message": "Window · $1"
+ },
+ "otherSites": {
+  "message": "Other sites"
+ },
+ "unnamedGroup": {
+  "message": "Unnamed group"
+ },
+ "ungrouped": {
+  "message": "Ungrouped"
+ },
+ "untitled": {
+  "message": "Untitled"
+ },
+ "sectionShow": {
+  "message": "Show these tabs"
+ },
+ "sectionCollapse": {
+  "message": "Collapse this section"
+ },
+ "noPreview": {
+  "message": "No preview yet"
+ },
+ "sleeping": {
+  "message": "Sleeping"
+ },
+ "sleepingTip": {
+  "message": "Sleeping: Chrome unloaded this tab to save memory. It reloads when you open it."
+ },
+ "closedLabel": {
+  "message": "Closed"
+ },
+ "reopenTip": {
+  "message": "Reopen: $1"
+ },
+ "pinned": {
+  "message": "Pinned"
+ },
+ "star": {
+  "message": "Star"
+ },
+ "unstar": {
+  "message": "Unstar"
+ },
+ "starAria": {
+  "message": "Star this page"
+ },
+ "unstarAria": {
+  "message": "Unstar this page"
+ },
+ "closeTab": {
+  "message": "Close tab"
+ },
+ "closeTabTitle": {
+  "message": "Close tab (Del)"
+ },
+ "capturePreview": {
+  "message": "Capture preview"
+ },
+ "capturing": {
+  "message": "Capturing…"
+ },
+ "captureTitle": {
+  "message": "Shows this tab for a moment to take its picture, then comes back"
+ },
+ "pickAria": {
+  "message": "Select this tab"
+ },
+ "pickTitle": {
+  "message": "Select (or Ctrl+click the card). Shift+click selects a range."
+ },
+ "copyLink": {
+  "message": "Copy link"
+ },
+ "bookmarkThis": {
+  "message": "Bookmark"
+ },
+ "sleepThis": {
+  "message": "Put to sleep (frees memory)"
+ },
+ "dupesBtn_one": {
+  "message": "$1 duplicate"
+ },
+ "dupesBtn_other": {
+  "message": "$1 duplicates"
+ },
+ "dupesSure": {
+  "message": "Close $1? Click again"
+ },
+ "dupesTitle": {
+  "message": "Show the pages that are open more than once (same address, ignoring the #part). You then choose to close the extra copies."
+ },
+ "sweepAll_one": {
+  "message": "$1 without preview · Capture it"
+ },
+ "sweepAll_other": {
+  "message": "$1 without preview · Capture all"
+ },
+ "sweepThese_one": {
+  "message": "$1 without preview · Capture it"
+ },
+ "sweepThese_other": {
+  "message": "$1 without preview · Capture these"
+ },
+ "sweepFirst_one": {
+  "message": "$1 without preview · Capture first $2"
+ },
+ "sweepFirst_other": {
+  "message": "$1 without preview · Capture first $2"
+ },
+ "sweepTitleAll": {
+  "message": "Shows each of your tabs for a moment to take its picture, then puts you back where you were."
+ },
+ "sweepTitleThese": {
+  "message": "Shows each of these tabs for a moment to take its picture, then puts you back where you were."
+ },
+ "sweepTitleMax": {
+  "message": "$1 at a time."
+ },
+ "sweepTitleOne": {
+  "message": "You can also capture one tab from its card."
+ },
+ "pickedN_one": {
+  "message": "$1 selected"
+ },
+ "pickedN_other": {
+  "message": "$1 selected"
+ },
+ "matchesN_one": {
+  "message": "$1 matching tab"
+ },
+ "matchesN_other": {
+  "message": "$1 matching tabs"
+ },
+ "selPick": {
+  "message": "Select tabs…"
+ },
+ "selAllN": {
+  "message": "Select all $1"
+ },
+ "selNone": {
+  "message": "Clear"
+ },
+ "actClose": {
+  "message": "Close"
+ },
+ "sureN": {
+  "message": "Close $1? Click again"
+ },
+ "actCopy": {
+  "message": "Copy links"
+ },
+ "actCopyMd": {
+  "message": "Copy as Markdown"
+ },
+ "actBookmark": {
+  "message": "Bookmark"
+ },
+ "actNewWindow": {
+  "message": "Move to new window"
+ },
+ "actGroup": {
+  "message": "Group"
+ },
+ "actSleep": {
+  "message": "Sleep"
+ },
+ "actSleepTitle": {
+  "message": "Unload them to free memory once you leave Tabatha. They reload when you open them."
+ },
+ "actPin": {
+  "message": "Pin"
+ },
+ "actUnpin": {
+  "message": "Unpin"
+ },
+ "actMute": {
+  "message": "Mute"
+ },
+ "actUnmute": {
+  "message": "Unmute"
+ },
+ "actFailed": {
+  "message": "That didn’t work. Chrome said no."
+ },
+ "closedN_one": {
+  "message": "Closed $1 tab"
+ },
+ "closedN_other": {
+  "message": "Closed $1 tabs"
+ },
+ "copiedN_one": {
+  "message": "Copied $1 link"
+ },
+ "copiedN_other": {
+  "message": "Copied $1 links"
+ },
+ "copyFailed": {
+  "message": "This page won’t let Tabatha use the clipboard. Try from the popup (New Tab page)."
+ },
+ "groupedN_one": {
+  "message": "Grouped $1 tab"
+ },
+ "groupedN_other": {
+  "message": "Grouped $1 tabs"
+ },
+ "groupPinned": {
+  "message": "Pinned tabs can’t go into a group."
+ },
+ "sleptN_one": {
+  "message": "$1 tab is asleep"
+ },
+ "sleptN_other": {
+  "message": "$1 tabs are asleep"
+ },
+ "sleptNone": {
+  "message": "Nothing to put to sleep (Chrome won’t unload the tab you’re on)."
+ },
+ "pinnedN_one": {
+  "message": "Pinned $1 tab"
+ },
+ "pinnedN_other": {
+  "message": "Pinned $1 tabs"
+ },
+ "unpinnedN_one": {
+  "message": "Unpinned $1 tab"
+ },
+ "unpinnedN_other": {
+  "message": "Unpinned $1 tabs"
+ },
+ "mutedN_one": {
+  "message": "Muted $1 tab"
+ },
+ "mutedN_other": {
+  "message": "Muted $1 tabs"
+ },
+ "unmutedN_one": {
+  "message": "Unmuted $1 tab"
+ },
+ "unmutedN_other": {
+  "message": "Unmuted $1 tabs"
+ },
+ "bookmarkedN_one": {
+  "message": "Bookmarked $1 tab in “$2”"
+ },
+ "bookmarkedN_other": {
+  "message": "Bookmarked $1 tabs in “$2”"
+ },
+ "marksFolderName": {
+  "message": "Tabs, $1"
+ },
+ "groupsPaneOff": {
+  "message": "Turn on tab groups and the groups you close are kept here, like layers, until you remove them."
+ },
+ "groupsPaneEmpty": {
+  "message": "No tab groups yet. Tick some tabs and choose Group, or make one in Chrome. Closed groups stay here until you delete them."
+ },
+ "groupsPaneNoMatch": {
+  "message": "No saved group matches your search."
+ },
+ "reopenGroup": {
+  "message": "Reopen the whole group ($1)"
+ },
+ "removeGroup": {
+  "message": "Remove this saved group"
+ },
+ "removeQ": {
+  "message": "Remove?"
+ },
+ "collapse": {
+  "message": "Collapse"
+ },
+ "expand": {
+  "message": "Expand"
+ },
+ "marksPaneOff": {
+  "message": "See and tidy your Chrome bookmarks here: open them, drag tabs into folders, rename and move them."
+ },
+ "marksPaneOffNote": {
+  "message": "Chrome will ask to let Tabatha read and change your bookmarks. They stay in Chrome; Tabatha keeps no copy and sends nothing."
+ },
+ "marksOn": {
+  "message": "Turn on bookmarks"
+ },
+ "marksLoadFailed": {
+  "message": "Couldn’t read your bookmarks just now."
+ },
+ "marksNoMatch": {
+  "message": "No bookmark matches your search."
+ },
+ "marksAddPicked_one": {
+  "message": "Bookmark the selected tab"
+ },
+ "marksAddPicked_other": {
+  "message": "Bookmark $1 selected tabs"
+ },
+ "newFolder": {
+  "message": "New folder here"
+ },
+ "newFolderName": {
+  "message": "New folder"
+ },
+ "rename": {
+  "message": "Rename"
+ },
+ "editMark": {
+  "message": "Edit"
+ },
+ "openRemove": {
+  "message": "Open and remove from bookmarks"
+ },
+ "deleteMark": {
+  "message": "Delete bookmark"
+ },
+ "markTitle": {
+  "message": "Name"
+ },
+ "markUrl": {
+  "message": "Address"
+ },
+ "moveTo": {
+  "message": "Folder"
+ },
+ "save": {
+  "message": "Save"
+ },
+ "cancel": {
+  "message": "Cancel"
+ },
+ "badUrl": {
+  "message": "That address doesn’t look right."
+ },
+ "tourBtn": {
+  "message": "How it works"
+ },
+ "tourTitle": {
+  "message": "A short tour of Tabatha"
+ },
+ "help": {
+  "message": "Help"
+ },
+ "helpTitle": {
+  "message": "The Tabatha manual, on the website"
+ },
+ "feedback": {
+  "message": "Feedback"
+ },
+ "coffee": {
+  "message": "Buy me a coffee"
+ },
+ "coffeeTitle": {
+  "message": "Tabatha is free. If it saves you time, you can buy me a coffee."
+ },
+ "proBtn": {
+  "message": "Tabatha Pro · Join the waitlist"
+ },
+ "proTitle": {
+  "message": "Tabatha stays free. Pro would add extras for heavy tab users: join the list to hear first."
+ },
+ "tour1Title": {
+  "message": "Press $1"
+ },
+ "tour1Say": {
+  "message": "That’s it."
+ },
+ "tour1Body": {
+  "message": "Every open tab, with a preview."
+ },
+ "tour2Title": {
+  "message": "Move"
+ },
+ "keyPick": {
+  "message": "pick"
+ },
+ "keyOpen": {
+  "message": "open"
+ },
+ "keyClose": {
+  "message": "close tab"
+ },
+ "keyLeave": {
+  "message": "leave"
+ },
+ "tour3Title": {
+  "message": "Search"
+ },
+ "tour3Body": {
+  "message": "Just type, anywhere in Tabatha. It finds open tabs and ones you closed in the last 7 days."
+ },
+ "tourManyTitle": {
+  "message": "Many at once"
+ },
+ "tourManyBody": {
+  "message": "Tick tabs with the box (or Ctrl+click). Then close, copy, group or bookmark them together from the bar at the bottom."
+ },
+ "tour4Title": {
+  "message": "Tab groups"
+ },
+ "tour4Say": {
+  "message": "Optional."
+ },
+ "tour4Body": {
+  "message": "Your groups become sections. Closed ones stay saved until you remove them."
+ },
+ "tour4On": {
+  "message": "Groups are on."
+ },
+ "tour5Title": {
+  "message": "Anything off?"
+ },
+ "tour5Say": {
+  "message": "I read every one."
+ },
+ "tour5Body": {
+  "message": "Tell me what’s broken or missing. I’ll fix it."
+ },
+ "turnOn": {
+  "message": "Turn on"
+ },
+ "tellMe": {
+  "message": "Tell me"
+ },
+ "back": {
+  "message": "Back"
+ },
+ "skip": {
+  "message": "Skip"
+ },
+ "next": {
+  "message": "Next"
+ },
+ "done": {
+  "message": "Done"
+ },
+ "askTitle": {
+  "message": "How is Tabatha working for you?"
+ },
+ "askBody": {
+  "message": "Ten seconds. It tells me what to build next. Your answer stays on your computer; the buttons only open a page where you choose what to send."
+ },
+ "moodGood": {
+  "message": "Love it"
+ },
+ "moodOkay": {
+  "message": "It’s okay"
+ },
+ "moodBad": {
+  "message": "Needs work"
+ },
+ "askGoodTitle": {
+  "message": "Glad to hear it!"
+ },
+ "askGoodBody": {
+  "message": "A review is the best way to help other people find Tabatha."
+ },
+ "askBadTitle": {
+  "message": "Thanks for being honest"
+ },
+ "askBadBody": {
+  "message": "Tell me what would make it work for you. A review is welcome too, whenever you like."
+ },
+ "reviewBtn": {
+  "message": "Review on the Chrome Web Store"
+ },
+ "surveyBtn": {
+  "message": "Tell me what would help"
+ },
+ "proAsk": {
+  "message": "Join the Tabatha Pro waitlist"
+ },
+ "askNote": {
+  "message": "Each opens in a new tab. Tabatha itself sends nothing."
+ },
+ "notNow": {
+  "message": "Not now"
+ },
+ "dontAsk": {
+  "message": "Don’t ask again"
+ },
+ "hostBlocked": {
+  "message": "Chrome is keeping Tabatha away from your sites, so there are no previews yet."
+ },
+ "hostAllow": {
+  "message": "Allow on all sites"
+ },
+ "hostBlockedTip": {
+  "message": "Chrome’s “Site access” for Tabatha isn’t set to “On all sites”. Without it Tabatha can’t take previews or hear Alt+Q on web pages."
+ },
+ "hostThanks": {
+  "message": "Thanks. Tabatha can see your sites now. Previews fill in as you visit tabs."
+ },
+ "capErrHost": {
+  "message": "Chrome isn’t letting Tabatha look at this page, so it has no picture. Allowing Tabatha on all sites usually fixes that."
+ },
+ "capErrPage": {
+  "message": "Chrome doesn’t allow pictures of this kind of page."
+ },
+ "capErrOther": {
+  "message": "Tabatha couldn’t take a picture of this page just now."
+ },
+ "thisPage": {
+  "message": "This page"
+ },
+ "justNow": {
+  "message": "just now"
+ },
+ "flyoutTitle": {
+  "message": "Tabatha is ready"
+ },
+ "flyoutBody": {
+  "message": "Press $1 to see all your tabs."
+ },
+ "flyoutSub": {
+  "message": "Or click the Tabatha icon in the toolbar."
+ },
+ "dismiss": {
+  "message": "Dismiss"
+ },
+ "nudgeTitle": {
+  "message": "Looking for a tab?"
+ },
+ "nudgeBody": {
+  "message": "$1 shows all of them at once, with previews. Type to find one."
+ },
+ "nudgeTry": {
+  "message": "Try it"
+ },
+ "nudgeOk": {
+  "message": "Got it"
+ },
+ "nudgeNever": {
+  "message": "Don’t show again"
+ },
+ "sweepPageTitle": {
+  "message": "Tabatha: capturing previews"
+ },
+ "sweepH": {
+  "message": "Tabatha is capturing previews"
+ },
+ "sweepStarting": {
+  "message": "Starting…"
+ },
+ "sweepDone": {
+  "message": "Done."
+ },
+ "sweepTabOf": {
+  "message": "Tab $1 of $2"
+ },
+ "sweepNote": {
+  "message": "Each tab shows for a moment. You’ll be back where you were."
+ },
+ "sweepStop": {
+  "message": "Stop"
+ },
+ "sweepStopping": {
+  "message": "Stopping…"
+ },
+ "captureBlocked": {
+  "message": "Chrome doesn’t allow a preview of this page."
+ },
+ "captureFailed": {
+  "message": "No preview this time: the page didn’t finish loading. Try again in a moment."
+ },
+ "sleepUndone": {
+  "message": "Won’t sleep."
+ },
+ "sleepLaterN_one": {
+  "message": "$1 tab will sleep when you leave Tabatha"
+ },
+ "sleepLaterN_other": {
+  "message": "$1 tabs will sleep when you leave Tabatha"
+ },
+ "willSleep": {
+  "message": "Sleeps when you leave"
+ },
+ "sleepUndo": {
+  "message": "Don’t put to sleep"
+ },
+ "sweepNothing": {
+  "message": "Nothing to capture: every tab here already has a preview, or can’t have one."
+ },
+ "actCloseTitle": {
+  "message": "Close the selected tabs. They stay under Recently closed."
+ },
+ "actCopyTitle": {
+  "message": "Copy their addresses, one per line"
+ },
+ "actCopyMdTitle": {
+  "message": "Copy “- [Title](link)” lines: they paste as clickable titles in Notion, Obsidian, GitHub, Slack or Docs"
+ },
+ "actBookmarkTitle": {
+  "message": "Save them as bookmarks (several go into a new folder)"
+ },
+ "actGroupTitle": {
+  "message": "Put them in a new Chrome tab group with a name and colour"
+ },
+ "actNewWindowTitle": {
+  "message": "Move them into a window of their own"
+ },
+ "selAllMatches_one": {
+  "message": "Select the matching tab"
+ },
+ "selAllMatches_other": {
+  "message": "Select all $1 matching tabs"
+ },
+ "selAllTabs_one": {
+  "message": "Select the tab"
+ },
+ "selAllTabs_other": {
+  "message": "Select all $1 tabs"
+ },
+ "dupesSummary_one": {
+  "message": "$1 extra copy: one tab of each page stays"
+ },
+ "dupesSummary_other": {
+  "message": "$1 extra copies: one tab of each page stays"
+ },
+ "dupesNone": {
+  "message": "No duplicates left."
+ },
+ "dupesClose_one": {
+  "message": "Close $1 copy"
+ },
+ "dupesClose_other": {
+  "message": "Close $1 copies"
+ },
+ "dupesBack": {
+  "message": "Back"
+ },
+ "dupeCloses": {
+  "message": "Closes"
+ },
+ "dupeStays": {
+  "message": "Stays"
+ },
+ "groupName": {
+  "message": "Group name"
+ },
+ "groupNamePh": {
+  "message": "e.g. Research"
+ },
+ "groupCreate_one": {
+  "message": "Group $1 tab"
+ },
+ "groupCreate_other": {
+  "message": "Group $1 tabs"
+ },
+ "groupNeedsPerm": {
+  "message": "Chrome will ask to let Tabatha name and colour groups (once)."
+ },
+ "groupMenu": {
+  "message": "Group options"
+ },
+ "groupsOpenH": {
+  "message": "Open"
+ },
+ "groupsSavedH": {
+  "message": "Saved (closed)"
+ },
+ "gmRename": {
+  "message": "Rename or recolour"
+ },
+ "gmSelect": {
+  "message": "Select its tabs"
+ },
+ "gmBookmark": {
+  "message": "Bookmark the group"
+ },
+ "gmWindow": {
+  "message": "Move to a new window"
+ },
+ "gmSleep": {
+  "message": "Put its tabs to sleep"
+ },
+ "gmUngroup": {
+  "message": "Ungroup (keep the tabs)"
+ },
+ "gmClose": {
+  "message": "Close (keep it saved)"
+ },
+ "gmCloseSure": {
+  "message": "Close $1 tabs? Click again"
+ },
+ "gmDelete": {
+  "message": "Delete the group and its tabs"
+ },
+ "gmDeleteSure": {
+  "message": "Delete it and close $1 tabs? Click again"
+ },
+ "gmReopen": {
+  "message": "Reopen"
+ },
+ "gmForget": {
+  "message": "Delete this saved group"
+ },
+ "gmForgetSure": {
+  "message": "Delete it? Click again"
+ },
+ "folderMenu": {
+  "message": "Folder options"
+ },
+ "folderDelete": {
+  "message": "Delete folder"
+ },
+ "folderDeleteSure_one": {
+  "message": "Delete it and the bookmark inside? Click again"
+ },
+ "folderDeleteSure_other": {
+  "message": "Delete it and the $1 bookmarks inside? Click again"
+ },
+ "marksAddHere_one": {
+  "message": "Bookmark the ticked tab here"
+ },
+ "marksAddHere_other": {
+  "message": "Bookmark the $1 ticked tabs here"
+ },
+ "settings": {
+  "message": "Settings"
+ },
+ "setLang": {
+  "message": "Language"
+ },
+ "setLangAuto": {
+  "message": "Auto (Chrome’s language)"
+ },
+ "setStartup": {
+  "message": "Open Tabatha when Chrome starts"
+ },
+ "setStartupNote": {
+  "message": "Shows all your tabs, where you left off, a few seconds after Chrome opens."
+ },
+ "setShortcut": {
+  "message": "Change the Alt+Q shortcut"
+ },
+ "shortcutMissing": {
+  "message": "Alt+Q isn’t set for Tabatha: another app or extension may have it. Pick a shortcut in Chrome."
+ },
+ "iconTip": {
+  "message": "Tip: $1 opens Tabatha from anywhere, no mouse needed."
+ },
+ "keySearch": {
+  "message": "jump to search"
+ },
+ "tourWinTitle": {
+  "message": "Your windows"
+ },
+ "tourWinBody": {
+  "message": "Each Chrome window, with a picture of what it shows. Click one, or press Alt+W, to see only its tabs."
+ },
+ "tourPanelTitle": {
+  "message": "Groups and bookmarks"
+ },
+ "tourPanelBody": {
+  "message": "Your tab groups and Chrome bookmarks live in this panel. Closed groups stay saved until you delete them."
+ },
+ "tourSetTitle": {
+  "message": "Settings"
+ },
+ "tourSetBody": {
+  "message": "Language, and opening Tabatha when Chrome starts."
+ },
+ "actMore": {
+  "message": "More"
+ }
+}

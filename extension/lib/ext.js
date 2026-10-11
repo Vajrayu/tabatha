@@ -24,6 +24,17 @@ export function normalizeUrl(url) {
   }
 }
 
+// Sites Chrome never lets an extension screenshot or draw on, even with access to all sites.
+const NO_CAPTURE_HOSTS = /^(chromewebstore\.google\.com|chrome\.google\.com|microsoftedge\.microsoft\.com)$/;
+export function isCapturableUrl(url) {
+  try {
+    const u = new URL(url);
+    if (!/^https?:$/.test(u.protocol)) return false;
+    if (NO_CAPTURE_HOSTS.test(u.host) && (u.host !== 'chrome.google.com' || u.pathname.startsWith('/webstore'))) return false;
+    return true;
+  } catch { return false; }
+}
+
 // Blank pages, New Tab pages and our own pages aren't worth listing as "recently closed".
 export function isWorthReopening(url) {
   if (!url || isOwnUrl(url)) return false;
