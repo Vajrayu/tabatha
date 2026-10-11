@@ -11,3 +11,16 @@ videos/*.mov
 videos/*.mp4
 # Gavency is a demo-licence font (personal use only). The video engine uses it locally; never publish it.
 video/assets/fonts/Gavency-*.woff2
+
+# Private working notes (kept on the owner's machine only, since 12 Oct 2026)
+CLAUDE.md
+releases/*/PLAN-*.md
+videos/*.md
+# Office lock files
+~$*
+# Rendered videos, and the Yuvsualy design system (all rights reserved: not for this public repo)
+video/out/
+video/assets/yuvsualy/
+# The Reddit cut is made from a personal screen recording: kept local
+video/reddit/
+video/VIDEO-PROMPT.md
