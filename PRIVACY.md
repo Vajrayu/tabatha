@@ -1,6 +1,6 @@
 # Tabatha Privacy Policy
 
-_Last updated: 4 October 2026 (version 1.3.2). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
+_Last updated: 12 October 2026 (version 1.3.3). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
 
 Tabatha is a Chrome extension that shows previews of your open tabs when you press Alt+Q. This policy explains what it handles and what it doesn't. In short: **nothing ever leaves your computer.**
 
@@ -17,8 +17,14 @@ To work, Tabatha uses the following on your device:
 | **Tabs you closed: title, address (URL) and icon address**, and when you closed them | To find and reopen tabs beyond Chrome's own 25-item list, and to search them | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Deleted automatically after 7 days, at most 200 entries. Uninstalling Tabatha deletes them. |
 | **Saved tab groups: each group's name and colour, and the title and address (URL) of its tabs** (only if you switch on tab groups, see Permissions) | To keep a tab group after Chrome has forgotten it (its window or its last tab was closed), and let you reopen it | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Kept until you remove the group in Tabatha (or uninstall it). While a group is open, its saved copy follows it. At most 100 groups and about 2 MB (beyond that, the oldest closed groups are dropped). |
 | **The outcome of the last preview attempt**: when it happened, "saved" or the error text Chrome gave, and the site's host name (for example `example.com`), never page content | To tell you why a preview is missing (for example that Chrome is limiting Tabatha's site access) | `chrome.storage.session`: in memory only | Until Chrome quits |
-| **Review reminder counters**: when Tabatha was installed, how many times you opened it, how many times a review reminder was shown, and whether you have answered it | To ask for a review a few times, never too often, and never again once you answer | `chrome.storage.local` on your computer | Until you uninstall Tabatha. Never sent anywhere. |
+| **"How is Tabatha working for you?" counters**: when Tabatha was installed, how many times you opened it, the day you last opened it, how many times the question was shown, and whether you have answered it. Your answer itself is not stored | To ask a couple of times, never too often, never on the first open of a day, and never again once you answer | `chrome.storage.local` on your computer | Until you uninstall Tabatha. Never sent anywhere. |
+| **"Use Alt+Q" note counters**: on which day, and how many times, Tabatha noticed you flipping through tabs one by one (for example with Ctrl+Tab), how many times it showed its note, and whether you chose "Don't show again". Only these counts: not which tabs, not which sites, no keystrokes | To suggest Alt+Q at most once a day and three times in all | `chrome.storage.local` on your computer, plus the time Tabatha was last opened in `chrome.storage.session` (memory only) | Until you uninstall Tabatha. Never sent anywhere. |
 | **A first-run flag**: whether the welcome notice and tour have been shown | To show them only once | `chrome.storage.local` on your computer | Until you uninstall Tabatha |
+| **Starred pages: the address (URL) and title of each page you star**, and when you starred it | To show your starred tabs with the Starred filter, and to reopen a starred page that is no longer open. The preview of a starred page is kept like an open tab's | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Until you unstar the page (or uninstall Tabatha). At most 300 (beyond that, the oldest stars are dropped). Not Chrome bookmarks: they stay inside Tabatha. |
+| **Layout choices**: how you sort the switcher, which sections you collapsed (a group's name and colour, or a site's name), whether the side panel is open and which of its tabs, and the bookmark folder you used last (its ID number) | To open the switcher the way you left it | `chrome.storage.local` on your computer | Until you uninstall Tabatha |
+| **Settings**: the language you chose for Tabatha (or "auto"), and whether it opens when Chrome starts | To show Tabatha in your language, and to open it at start-up only if you asked | `chrome.storage.local` on your computer | Until you change them or uninstall Tabatha |
+| **Small display notes**: the day Y-bit last peeked from behind the corner buttons, the order you dragged saved groups into, and (in memory only) which pages Chrome refused to screenshot | So Y-bit peeks at most once a day, your order is kept, and Tabatha stops offering a capture Chrome will refuse | `chrome.storage.local`; the refused pages in `chrome.storage.session` (memory only) | Until you uninstall Tabatha; the refused pages until Chrome quits |
+| **Your Chrome bookmarks** (only if you switch on bookmarks, see Permissions) | To show them in the side panel, and to add, rename, move or delete one when you ask | Read from and written to Chrome's own bookmarks when you use the panel. **Tabatha keeps no copy of them.** Chrome may sync bookmarks to your Google account if you have Chrome sync on, as it does for any bookmark | Chrome keeps them as usual |
 
 Screenshots are taken of the visible tab only, and only in normal windows. Tabatha never captures Incognito windows (it isn't allowed to run in them).
 
@@ -26,11 +32,14 @@ Right after you install Tabatha, a small "Press Alt+Q" notice is shown once on a
 
 The shortcut listener that runs on web pages only checks whether you pressed Alt+Q. It doesn't read page content and doesn't record any other keystrokes.
 
+The number on Tabatha's toolbar icon is your count of open tabs, worked out on your computer each time a tab opens or closes. "Copy links" puts the addresses of the tabs you chose on your clipboard, only when you click it.
+
 ## What Tabatha does not do
 
 - It does **not** send any data anywhere. The extension has no server, and its security policy (`connect-src 'none'`) blocks all network requests.
 - The switcher has an optional **Buy Me a Coffee** button. Only if you click it, Chrome opens buymeacoffee.com in a new tab, like any link. Tabatha sends nothing to that site and loads nothing from it before you click.
-- The switcher has **Help** and **Feedback** links, and the review reminder has a **Review** button and a **Tell me what to fix** button. Only if you click one, Chrome opens the Tabatha website (tabatha-vert.vercel.app) or the Chrome Web Store in a new tab. The Feedback link tells the website only that you came from the extension and which version it is. Tabatha itself sends nothing. What you choose to type into the website's feedback form is covered by the website's privacy page.
+- The switcher has **Help** and **Feedback** links, a **Pro · join the waitlist** button, and the "How is Tabatha working for you?" question has **Review**, **Tell me what would help** and **Join the Tabatha Pro waitlist** buttons. Only if you click one, Chrome opens the Tabatha website (tabatha-vert.vercel.app) or the Chrome Web Store in a new tab. The link tells the website only where you clicked (for example `extension-prompt`), Tabatha's version and its interface language (en, ru or es), and for the survey the answer you picked (good, okay or bad). Tabatha itself sends nothing: nothing reaches the website unless you fill in its form and press its button. What you choose to send there (a message, your email for the waitlist) is covered by the website's privacy page.
+- **When you remove Tabatha**, Chrome opens a page on the Tabatha website asking, optionally, why. Its address carries only Tabatha's version and interface language. Removing Tabatha sends nothing by itself; your answer is sent only if you pick one and press Send.
 - **Capture all previews** is a button you press. Tabatha then shows each of your tabs for a moment to take its screenshot, skips tabs Chrome has put to sleep, and puts you back on your tabs. The screenshots are stored as described above and go nowhere.
 - It does **not** use analytics, tracking, advertising or third-party code.
 - It does **not** sell, share or transfer your data to anyone.
@@ -48,6 +57,7 @@ The shortcut listener that runs on web pages only checks whether you pressed Alt
 | `favicon` | Showing site icons from Chrome's local icon cache |
 | `sessions` | Showing and reopening recently closed tabs |
 | `tabGroups` (optional) | Not requested when you install Tabatha. Only if you click "Turn on tab groups", Chrome asks you for it. It lets Tabatha show your Chrome tab groups as sections (with their names and colours) and keep a saved copy of them. You can take it back at any time at chrome://extensions. |
+| `bookmarks` (optional) | Not requested when you install Tabatha. Only if you click "Turn on bookmarks" in the side panel (or use "Bookmark" on a tab), Chrome asks you for it. It lets Tabatha show your Chrome bookmarks in the panel and add, rename, move or delete them when you ask. Tabatha keeps no copy. You can take it back at any time at chrome://extensions. |
 | Access to all sites | Chrome only lets extensions screenshot a tab, or draw on top of it, if they have access to that site. If you have set Tabatha's "Site access" to "On click" in chrome://extensions, Tabatha says so and offers a button to allow all sites |
 
 ## Children
@@ -60,12 +70,33 @@ If this policy changes, the new version will be published here with a new date. 
 
 ## Contact
 
-Questions or concerns: open an issue at https://github.com/Vajrayu/tabatha/issues, or use the contact email shown on the Chrome Web Store listing.
+Questions or concerns: email viewtabatha@gmail.com, or open an issue at https://github.com/Vajrayu/tabatha/issues.
 
 ## Store
-https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_source=item-share-cb
+https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_source=privacy
 
 ## Changes to this policy (newest first)
+
+**12 October 2026 (1.3.3, before submission): settings and the contact address**
+- Added: **Settings** (language, "open Tabatha when Chrome starts"), saved on your computer.
+- Added: small display notes (Y-bit's daily peek, the order of saved groups, pages Chrome refused to screenshot), on your computer or in memory.
+- Added: the contact email viewtabatha@gmail.com.
+- Changed: "Sleep" now marks tabs and unloads them as Tabatha closes; nothing new is stored for it.
+- Still true: the extension itself makes no network requests and has no analytics.
+
+**11 October 2026 (1.3.3): bookmarks panel, quick actions, the "use Alt+Q" note, the Pro waitlist and the uninstall page**
+- Added: an optional **`bookmarks`** permission, asked for only when you turn on bookmarks. Tabatha reads and changes Chrome's own bookmarks when you ask, and keeps no copy.
+- Added: small counters for the **"use Alt+Q" note** (how often it noticed one-by-one tab flipping, and how often it showed the note), kept on your computer.
+- Changed: the review reminder is now the question **"How is Tabatha working for you?"**, asked a little sooner (after 3 days and 15 opens), at most twice; it keeps the day you last opened Tabatha. Your answer is not stored or sent.
+- Added: buttons that open the website's **Pro waitlist** and **survey** pages, and Chrome now opens a website page **after you remove Tabatha**. Each address carries only where you clicked, the version and the interface language (and, for the survey, the answer you picked). Nothing is sent unless you press Send on the website.
+- Added: the number of open tabs on the toolbar icon, worked out on your computer.
+- Changed: layout choices now also remember the side panel and the last bookmark folder used.
+- Still true: the extension itself makes no network requests and has no analytics.
+
+**8 October 2026 (1.3.3): stars and layout choices**
+- Added: **starred pages**. When you star a tab, Tabatha saves that page's address and title on your computer, and keeps its preview while it is starred. Nothing is added to Chrome's bookmarks.
+- Added: **layout choices** (sort order, collapsed sections) are saved on your computer.
+- Still true: nothing leaves your computer.
 
 **4 October 2026 (1.3.2, still being submitted): tab groups, welcome tour, review reminder and "Capture all previews"**
 - Added: **saved tab groups**. If you switch on tab groups, Tabatha keeps a copy of each tab group's name, colour and tabs (title and address) on your computer until you remove it, so a group survives its window being closed. This uses a new *optional* permission, `tabGroups`, which is only requested when you click "Turn on tab groups".

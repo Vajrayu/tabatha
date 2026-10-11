@@ -1,6 +1,14 @@
 # Tabatha roadmap
 
-Ideas Yuvaraj proposed on 27 Sep 2026, right after 1.3.0 went into Chrome Web Store review, plus Claude's assessment. Nothing here is built yet. Update this file as decisions get made.
+Long-form notes on the bigger feature ideas. The status of every idea is tracked privately (see below).
+
+## Where ideas are tracked
+Every feature and idea (status, version, free or Pro, priority) is tracked in a private spreadsheet outside this repo. This file keeps the longer public write-ups of the bigger ideas.
+
+Tabatha stays free. A "Pro" waitlist (a button in the switcher that opens a page on the website) measures whether anyone would want paid extras; nothing that Tabatha does today will move behind it.
+
+## Earlier notes
+Ideas proposed on 27 Sep 2026, right after 1.3.0 went into Chrome Web Store review, plus Claude's assessment. Their status now lives in the private tracker.
 
 ## Guiding principles (don't break these)
 - **Nothing leaves the computer.** This is the core promise in the store listing and PRIVACY.md. Any feature that sends page content or tab data to a server (e.g. a cloud AI) breaks it. Prefer on-device approaches. If something ever must go off-device, it has to be opt-in, clearly labelled, and disclosed in PRIVACY.md and on the store's Privacy tab.
@@ -8,7 +16,7 @@ Ideas Yuvaraj proposed on 27 Sep 2026, right after 1.3.0 went into Chrome Web St
 - **Tabatha = never lose a tab.** Features should fit "find / switch / keep your tabs". Anything else is probably a separate extension.
 - **Don't add permissions casually.** `<all_urls>` already triggers the slow in-depth review. Every new permission adds install warnings and review time.
 
-## Order of work (set by Yuvaraj, 2 Oct 2026)
+## Order of work (set 2 Oct 2026)
 1. **Ship 1.3.2.** Built and documented (`releases/v1.3.2/`); waiting on the store submission.
 2. **Store, then discoverability.** Submit 1.3.2 together with listing updates meant to rank better on the Chrome Web Store. After that, a **new website for Tabatha** for SEO and AEO (answer-engine) discoverability. *Priority only: not started, not designed.*
 3. **Then discuss the new feature ideas below.** The older list further down still applies to the items it names; where these new ideas rank against the stash is still to be decided.
@@ -16,7 +24,7 @@ Ideas Yuvaraj proposed on 27 Sep 2026, right after 1.3.0 went into Chrome Web St
 ## New ideas (2 Oct 2026) and assessment
 Not built. Assessment is Claude's; items marked "not verified" need a quick test before relying on them.
 
-1. **"Power Search".** Chrome's address bar can't be extended for normal typing; only a keyword works (e.g. `tb` + Space) via the `omnibox` API, no new permission. Suggestions would come from open tabs plus the 7-day closed-tab list. Chrome reports which Enter was pressed (Ctrl/Cmd+Enter = background tab, Alt+Enter = foreground tab), so Ctrl+Enter = reopen a closed tab fits. Searching full browser history needs the `history` permission (install warning): avoid. **Open question:** did Yuvaraj mean Tabatha's own search box or Chrome's address bar?
+1. **"Power Search".** Chrome's address bar can't be extended for normal typing; only a keyword works (e.g. `tb` + Space) via the `omnibox` API, no new permission. Suggestions would come from open tabs plus the 7-day closed-tab list. Chrome reports which Enter was pressed (Ctrl/Cmd+Enter = background tab, Alt+Enter = foreground tab), so Ctrl+Enter = reopen a closed tab fits. Searching full browser history needs the `history` permission (install warning): avoid. **Open question:** was this meant as Tabatha's own search box or Chrome's address bar?
 2. **Shortcut for "Switch to tab".** Only possible inside Tabatha or the keyword mode above; extensions can't add buttons to Chrome's own dropdown. In Tabatha, Enter on an open tab already switches. Shift+Tab is taken (moves selection backwards).
 3. **Tab groups as sections on top.** **Built in 1.3.2 (4 Oct).** `tabGroups` has an install warning ("View and manage your tab groups", per the Chrome docs), so it is an *optional* permission, requested when the user clicks "Turn on tab groups". Closed groups are kept until the user removes them. Not built: collapsing a section, renaming or editing a saved group, saving a group's previews.
 4. **Move tabs between machines.** Phase 0 (no new permission, no server): read Chrome's own "tabs from other devices" list with `sessions.getDevices` and reopen with `sessions.restore` (not verified; needs two synced machines). Only works if both machines use the same Google account with sync on, which managed browser profiles often don't. Phase 1: export/import a tab set as a file or code, no server. Phase 2 (own cloud sync) breaks "nothing leaves the computer": not recommended. Anything that moves browsing data between machines must be explicit and opt-in, and is a privacy decision to make deliberately.
