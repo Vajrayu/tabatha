@@ -12,7 +12,7 @@ background:radial-gradient(900px 500px at 15% 0%,#6d5cf6 0%,transparent 60%),rad
 
 const captioned = (img, title, sub) => `<style>${BASE}
 .t{position:absolute;top:44px;left:0;right:0;text-align:center}h1{font-size:44px;font-weight:700;letter-spacing:-.02em}p{font-size:21px;opacity:.8;margin-top:8px}
-.s{position:absolute;left:90px;right:90px;top:180px;border-radius:14px 14px 0 0;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.12)}
+.s{position:absolute;left:150px;right:150px;top:158px;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.12)}
 .s img{display:block;width:100%}</style>
 <div class=t><h1>${title}</h1><p>${sub}</p></div><div class=s><img src="${img}"></div>`;
 
@@ -39,9 +39,10 @@ const marquee = `<style>${BASE}
     await p.setContent(html); await p.waitForTimeout(300);
     await p.screenshot({ path: path.join(OUT, name) }); await p.close(); console.log('saved', name);
   };
-  await render(captioned(shot('01-overview.png'), 'See every tab at a glance', 'Press Alt+Q for live previews of all your tabs, like Alt+Tab for Chrome'), 1280, 800, 'captioned-01-overview.png');
-  await render(captioned(shot('02-search.png'), 'Find any tab in a keystroke', 'Just start typing to search open and recently closed tabs'), 1280, 800, 'captioned-02-search.png');
-  await render(captioned(shot('03-windows.png'), 'Jump between windows', 'Filter by window with Alt+W and bring back tabs you just closed'), 1280, 800, 'captioned-03-windows.png');
+  await render(captioned(shot('01-overview.png'), 'See every tab at a glance', 'Press Alt+Q for live previews of all your tabs, sorted into your tab groups'), 1280, 800, 'captioned-01-overview.png');
+  await render(captioned(shot('02-search.png'), 'Find any tab in a keystroke', 'Just start typing to search open tabs and tabs closed in the last 7 days'), 1280, 800, 'captioned-02-search.png');
+  await render(captioned(shot('03-actions.png'), 'Act on many tabs at once', 'Tick tabs, then close, copy links, bookmark or group them in one go'), 1280, 800, 'captioned-03-actions.png');
+  await render(captioned(shot('04-bookmarks.png'), 'Groups and bookmarks, side by side', 'Bring back closed tab groups and file tabs into bookmark folders'), 1280, 800, 'captioned-04-bookmarks.png');
   await render(small, 440, 280, 'promo-small-440x280.png');
   await render(marquee, 1400, 560, 'promo-marquee-1400x560.png');
   await b.close();

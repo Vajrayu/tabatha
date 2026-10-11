@@ -9,6 +9,6 @@ export PORT=${PORT:-8080}
 python3 serve.py & SERVER=$!
 trap 'kill $SERVER' EXIT
 sleep 1
-node shoot.js     # raw 1280x800 captures: 01-overview, 01b-overview-cycled, 02-search, 03-windows
+node shoot.js     # raw 1280x800 captures: 01-overview, 02-search, 03-actions, 04-bookmarks
 node compose.js   # captioned screenshots + 440x280 / 1400x560 promo tiles
 echo "Done: see ./out"
