@@ -1,5 +1,7 @@
 # Tabatha 1.3.3
 
+**Submitted and live on the Chrome Web Store: 12 October 2026** (tag `v1.3.3`, the zip in this folder). Fixes found after that are in 1.3.4.
+
 _Adds to 1.3.2: a toolbar with sort, stars, collapsible sections and per-card preview capture (8 Oct); quick actions, a side panel with saved groups and bookmarks, Russian and Spanish, the "use Alt+Q" note, a two-step "How is Tabatha working for you?" with a Pro waitlist button, the tab count on the icon and an uninstall page (11 Oct). One new **optional** permission (`bookmarks`); no new required one. The privacy policy changed (PRIVACY.md, 11 October 2026)._
 
 ## What changed (12 Oct, from the review)
