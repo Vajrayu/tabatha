@@ -626,6 +626,19 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       }, 400);
       return;
     }
+    case MSG.TO_WINDOW: {
+      // The page hides or covers the overlay: open Tabatha as its own window for the same tab and window.
+      if (!fromSwitcher(sender) || !Number.isInteger(msg.src) || !Number.isInteger(msg.win)) return;
+      disarmWatchdog();
+      opening = null;
+      clearOverlayTab();
+      const ctx = { src: msg.src, win: msg.win, dir: msg.dir === -1 ? -1 : 1, via: 'key', state: WINDOW_STATES.includes(msg.state) ? msg.state : 'normal' };
+      (async () => {
+        const w = await chrome.windows.get(msg.win).catch(() => ({}));
+        await openPopupWindow(w, await createLaunch({ ...ctx, mode: 'window' }));
+      })().catch(() => {});
+      return;
+    }
     case MSG.CLOSE_HERE: {
       // The switcher's own tab is being closed: close the tabs, show the tab next to it, open Tabatha there.
       if (!fromSwitcher(sender) || !Array.isArray(msg.tabIds)) return;
