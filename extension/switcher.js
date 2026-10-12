@@ -75,7 +75,8 @@ const state = {
   hostOk: true,   // does Tabatha have access to all sites (not withheld by Chrome's Site access setting)?
   armed: null,     // key of a saved group waiting for a second Delete / click on x
   modal: null,     // 'tour' | 'ask' while a dialog is open
-  sort: 'recent',  // 'recent' | 'newest' | 'oldest' | 'name' | 'site' (Alt+Q always cycles by recent use)
+  sort: 'recent',  // 'recent' | 'newest' | 'oldest' | 'name' (Alt+Q always cycles by recent use)
+  group: 'groups', // sections: 'groups' (Chrome tab groups) | 'site' | 'recent' (last used) | 'none'
   starOnly: false, // the Starred filter is on
   stars: {},       // normalized URL -> { u, ti, t } starred pages
   collapsed: new Set(), // section keys the user collapsed (kept between opens)
@@ -154,6 +155,7 @@ async function load() {
   state.stars = stars;
   if (view) {
     state.sort = view.sort;
+    state.group = view.group;
     state.collapsed = new Set(view.collapsed);
     state.folder = view.folder;
     state.gorder = view.gorder;
@@ -305,8 +307,18 @@ const SORTERS = {
   newest: (a, b) => b.tab.id - a.tab.id,
   oldest: (a, b) => a.tab.id - b.tab.id,
   name: byTitle,
-  site: (a, b) => siteOf(urlOf(a.tab)).localeCompare(siteOf(urlOf(b.tab))) || byTitle(a, b),
 };
+// "Last used" sections, from Chrome's lastAccessed time (newest first). Tabs Chrome gives no time for go under "Older".
+const RECENT = [['h', 3600e3, 'recentHour'], ['d', null, 'recentToday'], ['w', 7 * 86400e3, 'recentWeek'], ['o', Infinity, 'recentOlder']];
+function recentBucket(tab, now = Date.now()) {
+  const at = Number.isFinite(tab.lastAccessed) ? tab.lastAccessed : 0;
+  if (!at) return RECENT[3];
+  const midnight = new Date(now).setHours(0, 0, 0, 0);
+  if (now - at < RECENT[0][1]) return RECENT[0];
+  if (at >= midnight) return RECENT[1];
+  if (now - at < RECENT[2][1]) return RECENT[2];
+  return RECENT[3];
+}
 
 // The sections the open tabs are shown in. Each has a stable `key` (what collapsing remembers).
 function sectionsFor(open) {
@@ -323,8 +335,14 @@ function sectionsFor(open) {
     out.forEach((x) => x.entries.sort((a, b) => close.has(a.tab.id) - close.has(b.tab.id)));
     return out;
   }
-  if (state.sort === 'site') {
-    // "By site": one section per site with two or more tabs (biggest first), the rest under "Other sites".
+  if (state.group === 'none') { for (const e of open) add('u', { title: t('ungrouped') }, e); return [...secs.values()]; }
+  if (state.group === 'recent') { // "Last used": last hour, earlier today, this week, older (in that order, only the ones with tabs)
+    const now = Date.now();
+    for (const e of open) { const [k, , label] = recentBucket(e.tab, now); add('r:' + k, { title: t(label) }, e); }
+    return RECENT.map(([k]) => secs.get('r:' + k)).filter(Boolean);
+  }
+  if (state.group === 'site') {
+    // "Site": one section per site with two or more tabs (biggest first), the rest under "Other sites".
     const n = new Map();
     for (const e of open) { const s = siteOf(urlOf(e.tab)) || 'other'; n.set(s, (n.get(s) || 0) + 1); }
     for (const e of open) {
@@ -364,7 +382,9 @@ function derive() {
   // A collapsed section keeps its header and hides its cards, except while searching.
   for (const sec of all) sec.collapsed = !q && state.collapsed.has(sec.key) && !state.peek.has(sec.key);
   // One plain list (no headers) when there's nothing to group by.
-  state.sections = all.length === 1 && !all[0].group && state.sort !== 'site' ? [{ ...all[0], plain: true, collapsed: false }] : all;
+  // Tab groups or no grouping with a single ungrouped section: one plain list, no header. Site and Last used keep their headers.
+  const headed = state.group === 'site' || state.group === 'recent';
+  state.sections = all.length === 1 && !all[0].group && !headed ? [{ ...all[0], plain: true, collapsed: false }] : all;
   const shown = state.sections.flatMap((x) => (x.collapsed ? [] : x.entries));
 
   let closed = [];
@@ -414,17 +434,13 @@ function renderWindows() {
     const b = h('button', 'win');
     b.type = 'button';
     b.setAttribute('aria-pressed', String(state.scope === w.id));
-    if (w.activeTitle) b.title = t('activeTab', w.activeTitle);
-    const pic = h('span', 'wpic');
-    if (w.id === 'all') pic.innerHTML = ICON.windows;
-    else {
-      const p = w.activeId && state.previews[w.activeId];
-      if (p && p.img) { const img = h('img'); img.src = p.img; img.alt = ''; pic.append(img); }
-      else { const img = h('img', 'wfav'); img.src = favicon(w.activeUrl || ''); img.alt = ''; pic.append(img); }
-    }
-    const text = h('span', 'wtext');
-    text.append(h('span', 'wlabel', w.label), h('span', 'wsub', tn('tabs', w.count)));
-    b.append(pic, text);
+    b.title = w.label + (w.activeTitle ? '\n' + t('activeTab', w.activeTitle) : ''); // also the name when the list is icons only
+    // A side navbar: the window's name and its tab count (the icon of the tab it shows, for a quick look).
+    const ico = h('span', 'wico');
+    if (w.id === 'all') ico.innerHTML = ICON.windows;
+    else { const img = h('img'); img.src = favicon(w.activeUrl || ''); img.alt = ''; ico.append(img); }
+    b.setAttribute('aria-label', w.label + ', ' + tn('tabs', w.count));
+    b.append(ico, h('span', 'wlabel', w.label), h('span', 'wn', String(w.count)));
     b.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!pointerAllowed()) return;
@@ -637,6 +653,7 @@ function renderTools() {
   el.starFilter.setAttribute('aria-pressed', String(state.starOnly));
   el.starN.textContent = String(Object.keys(state.stars).length);
   el.sort.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.sort === state.sort)));
+  $('group-by-v').textContent = t(GROUP_LABEL[state.group]);
   // Offer tab groups to people who use them, until they turn them on.
   el.groupsBtn.hidden = state.groupsOn || !state.tabs.some((x) => x.groupId >= 0);
   const d = duplicates().length;
@@ -770,6 +787,18 @@ function setSort(sort) {
   updateView({ sort }).catch(() => {});
   refresh();
   toTop();
+}
+
+const GROUP_LABEL = { groups: 'groupTabGroups', site: 'groupSite', recent: 'groupRecent', none: 'groupNone' };
+function setGroup(group) {
+  if (group === state.group) return;
+  state.group = group;
+  updateView({ group }).catch(() => {});
+  refresh();
+  toTop();
+}
+function groupMenu(anchor) {
+  menu(anchor, ['groups', 'site', 'recent', 'none'].map((g) => ({ label: (state.group === g ? '✓ ' : '\u2003') + t(GROUP_LABEL[g]), fn: () => setGroup(g) })));
 }
 
 function toggleStarFilter() {
@@ -1915,8 +1944,33 @@ function placeTour(target) {
 }
 function endTour() {
   updateOnboard({ tour: true, flyout: true }).catch(() => {});
+  chrome.storage.local.set({ [KEY.WHATS_NEW]: VERSION }).catch(() => {}); // the tour already showed what's there
   closeDialog();
   el.pro.hidden = !SHOW_PRO;
+}
+
+// ---- "What's new": one short card on the first open after an update, once per version. Only versions with
+// notes here get one. People who just took the tour don't see it (the tour covered it).
+const VERSION = chrome.runtime.getManifest().version;
+const WHATS_NEW = { '1.3.5': ['wn1', 'wn2', 'wn3', 'wn4'] };
+async function whatsNew() {
+  const items = WHATS_NEW[VERSION];
+  if (!items) return false;
+  const seen = (await chrome.storage.local.get(KEY.WHATS_NEW).catch(() => ({})))[KEY.WHATS_NEW];
+  if (seen === VERSION) return false;
+  whenTapMode(() => {
+    chrome.storage.local.set({ [KEY.WHATS_NEW]: VERSION }).catch(() => {});
+    const title = h('h3', '', t('whatsNewTitle', VERSION));
+    title.id = 'dlg-title';
+    const ul = h('ul', 'news');
+    for (const k of items) ul.append(h('li', '', t(k)));
+    const says = h('div', 'says');
+    says.append(ybit('happy', 3));
+    const row = h('div', 'row');
+    row.append(h('span', 'grow'), button(t('gotIt'), 'primary', closeDialog));
+    showDialog('news', [title, ul, says, row]);
+  });
+  return true;
 }
 
 // ---- "How is Tabatha working for you?": two steps, at most twice (lib/review.js has the timing).
@@ -2119,6 +2173,7 @@ async function firstRun() {
   } catch { return; }
   el.pro.hidden = !SHOW_PRO || !onb.tour; // the waitlist button appears once the tour has been seen
   if (!onb.tour) return whenTapMode(() => tourStep(0));
+  if (await whatsNew()) return; // that's enough for this open: no peek, no question
   dailyPeek();
   const plan = reviewPrompt(rv, Date.now(), { firstToday });
   if (plan === 'ask') {
@@ -2130,7 +2185,7 @@ async function firstRun() {
 // While a dialog is open it takes the keyboard: Esc closes it, the tour has arrow keys,
 // everything else (Tab, Enter, typing in the feedback box) works on the dialog itself.
 function dialogKey(e) {
-  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return state.modal === 'tour' ? endTour() : askLater(); }
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return state.modal === 'tour' ? endTour() : state.modal === 'news' ? closeDialog() : askLater(); }
   if (state.modal === 'tour' && !e.altKey && !e.ctrlKey && !e.metaKey) {
     if (e.key === 'ArrowRight') { e.preventDefault(); tourAt < TOUR.length - 1 ? tourStep(tourAt + 1) : endTour(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); tourStep(tourAt - 1); }
@@ -2317,6 +2372,7 @@ function listen() {
       .catch(() => { asking = false; toast(t('actFailed')); });
   });
   el.starFilter.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) toggleStarFilter(); });
+  $('group-by').addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) groupMenu(e.currentTarget); });
   el.sort.addEventListener('click', (e) => {
     e.stopPropagation();
     const b = e.target.closest('button[data-sort]');

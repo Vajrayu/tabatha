@@ -928,5 +928,53 @@
  },
  "actMore": {
   "message": "Más"
+ },
+ "groupBy": {
+  "message": "Agrupar"
+ },
+ "groupByTitle": {
+  "message": "Ordenar las pestañas en secciones"
+ },
+ "groupTabGroups": {
+  "message": "Grupos de pestañas"
+ },
+ "groupSite": {
+  "message": "Sitio"
+ },
+ "groupRecent": {
+  "message": "Último uso"
+ },
+ "groupNone": {
+  "message": "Sin agrupar"
+ },
+ "recentHour": {
+  "message": "Última hora"
+ },
+ "recentToday": {
+  "message": "Hoy"
+ },
+ "recentWeek": {
+  "message": "Esta semana"
+ },
+ "recentOlder": {
+  "message": "Antes"
+ },
+ "whatsNewTitle": {
+  "message": "Novedades de Tabatha $1"
+ },
+ "gotIt": {
+  "message": "Entendido"
+ },
+ "wn1": {
+  "message": "Ordenar y Agrupar funcionan juntos: agrupa tus pestañas por sitio o por cuándo las usaste."
+ },
+ "wn2": {
+  "message": "Una lista de ventanas más estrecha a la izquierda, y más sitio para las tarjetas."
+ },
+ "wn3": {
+  "message": "Cierra la pestaña en la que estás y Tabatha sigue abierta, en la de al lado."
+ },
+ "wn4": {
+  "message": "Capturar desde una ventana te devuelve a esa misma ventana."
  }
 }

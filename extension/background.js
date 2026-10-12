@@ -18,7 +18,7 @@ import {
   markDiscarded, moveDiscarded, ensureBoot,
   rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
   setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard,
-  updateNudge, getReview, getPrefs,
+  updateNudge, getReview, getPrefs, updatePrefs,
 } from './lib/store.js';
 import { dayOf } from './lib/review.js';
 import { t, loadLang } from './lib/i18n.js';
@@ -287,6 +287,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   await setup({ fresh: true });
   if (details.reason === 'install') {
     await updateOnboard({ at: Date.now(), flyout: false, tour: false }).catch(() => {});
+    // New installs open Tabatha when Chrome starts (Settings can turn it off). Updates keep whatever the user had.
+    await updatePrefs({ startup: true }).catch(() => {});
     const [t] = await chrome.tabs.query({ active: true, lastFocusedWindow: true }).catch(() => []);
     if (t) offerFlyout(t);
   }

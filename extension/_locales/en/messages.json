@@ -928,5 +928,53 @@
  },
  "actMore": {
   "message": "More"
+ },
+ "groupBy": {
+  "message": "Group"
+ },
+ "groupByTitle": {
+  "message": "Put the tabs into sections"
+ },
+ "groupTabGroups": {
+  "message": "Tab groups"
+ },
+ "groupSite": {
+  "message": "Site"
+ },
+ "groupRecent": {
+  "message": "Last used"
+ },
+ "groupNone": {
+  "message": "No grouping"
+ },
+ "recentHour": {
+  "message": "Last hour"
+ },
+ "recentToday": {
+  "message": "Earlier today"
+ },
+ "recentWeek": {
+  "message": "This week"
+ },
+ "recentOlder": {
+  "message": "Older"
+ },
+ "whatsNewTitle": {
+  "message": "What’s new in Tabatha $1"
+ },
+ "gotIt": {
+  "message": "Got it"
+ },
+ "wn1": {
+  "message": "Sort and Group work together: group your tabs by site or by when you last used them."
+ },
+ "wn2": {
+  "message": "A slimmer window list on the left, so the cards get more room."
+ },
+ "wn3": {
+  "message": "Close the tab you’re on and Tabatha stays open, on the tab next to it."
+ },
+ "wn4": {
+  "message": "Capture from one window comes back to that window."
  }
 }

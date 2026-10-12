@@ -386,11 +386,16 @@ export function toggleStar(url, title) {
 }
 
 // ---------- switcher layout (storage.local) ----------
-export const SORTS = Object.freeze(['recent', 'newest', 'oldest', 'name', 'site']);
+export const SORTS = Object.freeze(['recent', 'newest', 'oldest', 'name']);
+// How the open tabs are put into sections. Works together with the sort (which orders the tabs inside them).
+export const GROUPINGS = Object.freeze(['groups', 'site', 'recent', 'none']);
 export async function getView() {
   const v = (await L.get(KEY.VIEW))[KEY.VIEW] || {};
+  // Before 1.3.5 "By site" was a sort: it is now a grouping, with the tabs sorted by recent use.
+  const oldSite = v.sort === 'site' && !GROUPINGS.includes(v.group);
   return {
     sort: SORTS.includes(v.sort) ? v.sort : 'recent',
+    group: oldSite ? 'site' : GROUPINGS.includes(v.group) ? v.group : 'groups',
     collapsed: Array.isArray(v.collapsed) ? v.collapsed.filter((x) => typeof x === 'string' && x.length <= 300).slice(0, LIMITS.MAX_COLLAPSED) : [],
     panel: typeof v.panel === 'boolean' ? v.panel : null, // the right panel: null = not chosen yet (open on wide screens)
     ptab: v.ptab === 'marks' ? 'marks' : 'groups',
