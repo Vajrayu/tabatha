@@ -23,7 +23,7 @@ To work, Tabatha uses the following on your device:
 | **Starred pages: the address (URL) and title of each page you star**, and when you starred it | To show your starred tabs with the Starred filter, and to reopen a starred page that is no longer open. The preview of a starred page is kept like an open tab's | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Until you unstar the page (or uninstall Tabatha). At most 300 (beyond that, the oldest stars are dropped). Not Chrome bookmarks: they stay inside Tabatha. |
 | **Layout choices**: how you sort the switcher, which sections you collapsed (a group's name and colour, or a site's name), whether the side panel is open and which of its tabs, and the bookmark folder you used last (its ID number) | To open the switcher the way you left it | `chrome.storage.local` on your computer | Until you uninstall Tabatha |
 | **Settings**: the language you chose for Tabatha (or "auto"), and whether it opens when Chrome starts | To show Tabatha in your language, and to open it at start-up only if you asked | `chrome.storage.local` on your computer | Until you change them or uninstall Tabatha |
-| **Small display notes**: the day Y-bit last peeked from behind the corner buttons, the order you dragged saved groups into, and (in memory only) which pages Chrome refused to screenshot | So Y-bit peeks at most once a day, your order is kept, and Tabatha stops offering a capture Chrome will refuse | `chrome.storage.local`; the refused pages in `chrome.storage.session` (memory only) | Until you uninstall Tabatha; the refused pages until Chrome quits |
+| **Small display notes**: the day Y-bit last peeked from behind the corner buttons, the day you said "Not now" to the note that Alt+Q isn't set (1.3.4), the order you dragged saved groups into, and (in memory only) which pages Chrome refused to screenshot | So Y-bit peeks at most once a day, your order is kept, and Tabatha stops offering a capture Chrome will refuse | `chrome.storage.local`; the refused pages in `chrome.storage.session` (memory only) | Until you uninstall Tabatha; the refused pages until Chrome quits |
 | **Your Chrome bookmarks** (only if you switch on bookmarks, see Permissions) | To show them in the side panel, and to add, rename, move or delete one when you ask | Read from and written to Chrome's own bookmarks when you use the panel. **Tabatha keeps no copy of them.** Chrome may sync bookmarks to your Google account if you have Chrome sync on, as it does for any bookmark | Chrome keeps them as usual |
 
 Screenshots are taken of the visible tab only, and only in normal windows. Tabatha never captures Incognito windows (it isn't allowed to run in them).
@@ -40,6 +40,7 @@ The number on Tabatha's toolbar icon is your count of open tabs, worked out on y
 - The switcher has an optional **Buy Me a Coffee** button. Only if you click it, Chrome opens buymeacoffee.com in a new tab, like any link. Tabatha sends nothing to that site and loads nothing from it before you click.
 - The switcher has **Help** and **Feedback** links, a **Pro · join the waitlist** button, and the "How is Tabatha working for you?" question has **Review**, **Tell me what would help** and **Join the Tabatha Pro waitlist** buttons. Only if you click one, Chrome opens the Tabatha website (tabatha-vert.vercel.app) or the Chrome Web Store in a new tab. The link tells the website only where you clicked (for example `extension-prompt`), Tabatha's version and its interface language (en, ru or es), and for the survey the answer you picked (good, okay or bad). Tabatha itself sends nothing: nothing reaches the website unless you fill in its form and press its button. What you choose to send there (a message, your email for the waitlist) is covered by the website's privacy page.
 - **When you remove Tabatha**, Chrome opens a page on the Tabatha website asking, optionally, why. Its address carries only Tabatha's version and interface language. Removing Tabatha sends nothing by itself; your answer is sent only if you pick one and press Send.
+- **What the website stores when you send something** (feedback, the Pro waitlist, the survey, the uninstall answer, a vote or a feature request): what you wrote or picked, your email only if you add it, the page language and Tabatha's version, and a one-way scrambled form of your IP address (it can't be turned back into the address; it is used only to stop spam floods). Feedback messages also keep your browser's name and version, to help with bug reports. Nothing is shared or sold; ask on the feedback page to have anything deleted.
 - **Capture all previews** is a button you press. Tabatha then shows each of your tabs for a moment to take its screenshot, skips tabs Chrome has put to sleep, and puts you back on your tabs. The screenshots are stored as described above and go nowhere.
 - It does **not** use analytics, tracking, advertising or third-party code.
 - It does **not** sell, share or transfer your data to anyone.
@@ -76,6 +77,14 @@ Questions or concerns: email viewtabatha@gmail.com, or open an issue at https://
 https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_source=privacy
 
 ## Changes to this policy (newest first)
+
+**12 October 2026 (1.3.4, not yet released): one date**
+- Added: if you press "Not now" on the note that says Alt+Q isn't set, Tabatha keeps the date on your computer, so the note stays away for a week.
+- Unchanged: no new permissions; the extension makes no network requests and has no analytics.
+
+**12 October 2026 (website forms, wording)**
+- Clarified: what the website keeps when you send something. It always kept a scrambled (one-way) form of the sender's IP address to stop spam, and the browser's name and version; this was not written down before. From now on the browser's name and version are kept only with feedback messages, not with the waitlist, survey or uninstall answers.
+- Unchanged: the extension itself makes no network requests and has no analytics.
 
 **12 October 2026 (1.3.3, before submission): settings and the contact address**
 - Added: **Settings** (language, "open Tabatha when Chrome starts"), saved on your computer.
