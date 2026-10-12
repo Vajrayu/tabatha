@@ -13,6 +13,7 @@ _Fixes on top of 1.3.3 (live 12 Oct 2026): from a hand test on Windows and an en
 - **The pressed "N duplicates" button shows its icon** (it was amber on amber and looked like empty space).
 - **More cards a row:** three or more beside the side panel, also on a laptop screen; the window list and the panel get narrower on small windows, and the popup window (pages where the overlay can't draw) is larger. On narrow cards the "Window 2" label moves into the tooltip.
 - **The "Alt+Q isn't set" note** says what still works (web pages), offers "Set it in Chrome", and "Not now" keeps it away for a week.
+- **Clicks work on every page.** Tabatha only takes clicks when Chrome confirms nothing is hiding or covering it (a guard against click tricks). On some pages Chrome can't confirm that, e.g. with a dark-mode extension's colour filter or the page's own pop-up on top, and clicks did nothing. Now Tabatha moves into its own small window there, where clicks work.
 - **Alt+Q no longer goes dead on a frozen page.** If the page Tabatha would draw on has stopped responding, Tabatha opens as a window after a moment instead of waiting for that page (it used to need a Chrome restart).
 
 ## From the audit (12 Oct)

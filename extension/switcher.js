@@ -2327,7 +2327,25 @@ function watchVisibility() {
 }
 function pointerAllowed() {
   if (CTX.mode !== 'overlay') return true;
-  return visibleSince > 0 && performance.now() - visibleSince >= LIMITS.POINTER_VISIBLE_MS;
+  const ok = visibleSince > 0 && performance.now() - visibleSince >= LIMITS.POINTER_VISIBLE_MS;
+  // Not the short settling moment after it appeared, but the page really hiding or covering it (a dark-mode
+  // filter, the page's own dialog drawn on top): a dead click helps nobody, so move into Tabatha's own window.
+  if (!ok && visibleSince === 0 && performance.now() - bootedAt > LIMITS.VISIBLE_CONFIRM_MS) reopenAsWindow();
+  return ok;
+}
+
+// The overlay is safe only while Chrome confirms it's fully visible (see above). When a page filters or covers
+// it, Tabatha opens again as a small window of its own, which no page can touch, where it was (search, window,
+// filter, the selection). The page and its tabs are left exactly as they are.
+let movedOut = false;
+function reopenAsWindow() {
+  if (movedOut || state.done || CTX.mode !== 'overlay') return;
+  movedOut = true;
+  const sel = state.entries[state.sel];
+  setResume({ query: state.query, scope: state.scope, starred: state.starOnly, key: sel ? sel.key : null }).catch(() => {});
+  chrome.runtime.sendMessage({ type: MSG.TO_WINDOW, src: CTX.srcTab, win: CTX.srcWin, state: CTX.srcState, dir: CTX.dir }).catch(() => {});
+  state.done = true;
+  parent.postMessage({ tabatha: FRAME_MSG.CLOSE }, '*');
 }
 // Keys may act while the overlay is visible, and during the first moments
 // before Chrome has reported visibility (so a quick Alt+Q flick still works).
@@ -2482,7 +2500,11 @@ function getLaunch() {
   document.documentElement.classList.add('intro'); // cards pop in on the first draw only, not on every redraw
   setTimeout(() => document.documentElement.classList.remove('intro'), 500);
   render();
-  if (CTX.mode === 'overlay') parent.postMessage({ tabatha: FRAME_MSG.READY }, '*');
+  if (CTX.mode === 'overlay') {
+    parent.postMessage({ tabatha: FRAME_MSG.READY }, '*');
+    // Chrome never confirmed the overlay as visible (the page filters or covers it): use a window instead.
+    setTimeout(() => { if (!everVisible) reopenAsWindow(); }, LIMITS.VISIBLE_CONFIRM_MS);
+  }
   window.focus();
   el.search.focus({ preventScroll: true });
   if (!resume) firstRun();

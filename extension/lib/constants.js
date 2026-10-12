@@ -15,6 +15,7 @@ export const MSG = Object.freeze({
   FLYOUT_DONE: 'tabatha:flyout-done', // first-run flyout dismissed (content script -> background)
   NUDGE: 'tabatha:nudge',   // "use Alt+Q" toast answered (content script -> background): { act: 'try'|'ok'|'never' }
   SLEEP: 'tabatha:sleep',   // switcher -> background, as it closes: unload these tabs ({ tabIds })
+  TO_WINDOW: 'tabatha:to-window', // switcher -> background: the page hides or covers the overlay, open Tabatha as a window instead
   CLOSE_HERE: 'tabatha:close-here', // switcher -> background: close the tab the overlay sits on, then open Tabatha over `next`
 });
 
@@ -73,6 +74,7 @@ export const LIMITS = Object.freeze({
   OPENING_LOCK_MS: 1500,        // presses during this window are queued, not re-opened
   OVERLAY_WATCHDOG_MS: 2500,    // no READY by then -> overlay failed, use the popup window
   POINTER_VISIBLE_MS: 300,      // overlay must be fully visible this long before clicks count
+  VISIBLE_CONFIRM_MS: 1200,     // ...and if Chrome hasn't confirmed it visible by then, Tabatha moves into its own window
   KEYS_GRACE_MS: 800,           // keys work right away (quick Alt+Q flick) until visibility is known
   LAUNCH_WAIT_MS: 5000,         // how long an overlay waits for its launch token
   RECENTLY_CLOSED: 8,           // most "Recently closed" entries shown

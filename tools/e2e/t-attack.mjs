@@ -49,15 +49,16 @@ await ev(async () => { for (const w of await chrome.windows.getAll()) if (w.type
 for (let i = 0; i < 3; i++) await a.keyboard.press('Escape');
 await a.waitForTimeout(500);
 
-// 4. The page makes the overlay invisible to trick a click: the click does nothing.
+// 4. The page makes the overlay invisible to trick a click: the click does nothing to your tabs, and
+// (since 1.3.4) Tabatha moves into its own window, which no page can hide or cover.
+const normalTabs = () => ev(async () => (await chrome.tabs.query({ windowType: 'normal' })).length);
 await T.tap(a); await a.waitForTimeout(800);
-const before = await ev(async () => (await chrome.tabs.query({})).length);
+const before = await normalTabs();
 await a.evaluate(() => { document.querySelector('iframe[aria-label="Tabatha tab switcher"]').style.setProperty('opacity', '0.01', 'important'); });
 await a.waitForTimeout(600);
 await f().locator('#newtab').click({ force: true }).catch(() => {});
-await a.waitForTimeout(600);
-T.log('a click on an overlay the page made invisible is ignored', (await ev(async () => (await chrome.tabs.query({})).length)) === before);
-// …and Enter while hidden closes Tabatha instead of acting.
-await a.keyboard.press('Enter'); await a.waitForTimeout(600);
-T.log('…and Enter then closes Tabatha instead of switching', !(await T.isOpen(a)) && (await ev(async () => (await chrome.tabs.query({})).length)) === before);
+await a.waitForTimeout(1500);
+T.log('a click on an overlay the page made invisible does nothing to your tabs', (await normalTabs()) === before);
+const win = T.ctx.pages().find((p) => p.url().includes('switcher.html') && !p.isClosed());
+T.log('…and Tabatha moves into its own window instead', !!win && !(await T.isOpen(a)));
 await T.close();
