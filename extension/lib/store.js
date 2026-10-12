@@ -440,7 +440,9 @@ export const setResume = (r) => S.set({ [KEY.RESUME]: { ...r, t: Date.now() } })
 export async function takeResume() {
   const r = (await S.get(KEY.RESUME))[KEY.RESUME];
   await S.remove(KEY.RESUME);
-  return r && isTime(r.t) && Date.now() - r.t < LIMITS.RESUME_TTL_MS ? r : null;
+  // A note can ask to live longer (a capture run of many tabs), but never more than 10 minutes.
+  const ttl = r && Number.isFinite(r.ttl) ? Math.min(Math.max(r.ttl, LIMITS.RESUME_TTL_MS), 10 * 60 * 1000) : LIMITS.RESUME_TTL_MS;
+  return r && isTime(r.t) && Date.now() - r.t < ttl ? r : null;
 }
 
 // ---------- capture diagnostics (storage.session) ----------

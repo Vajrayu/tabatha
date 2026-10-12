@@ -19,11 +19,11 @@
 
 import { MSG, KEY, FRAME_MSG, LIMITS, COFFEE_URL, REVIEW_URL, feedbackUrl, HELP_URL, SHOW_COFFEE, SHOW_PRO, siteUrl } from './lib/constants.js';
 import { ybit } from './lib/ybit.js';
-import { getNoCapture, getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, getReview, updateReview, getOnboard, updateOnboard, getCaptureNote, getStars, toggleStar, getView, updateView, setResume, takeResume, getPrefs, updatePrefs } from './lib/store.js';
+import { getNoCapture, getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, updateReview, getOnboard, updateOnboard, getCaptureNote, getStars, toggleStar, getView, updateView, setResume, takeResume, getPrefs, updatePrefs } from './lib/store.js';
 import { reviewPrompt, dayOf } from './lib/review.js';
-import { t, tn, timeAgo, localizePage, loadLang, setLang, uiLang } from './lib/i18n.js';
+import { t, tn, timeAgo, localizePage, loadLang, setLang } from './lib/i18n.js';
 import * as marks from './lib/bookmarks.js';
-import { hasGroupsApi, syncGroups, getSavedGroups, removeSavedGroup, reopenGroup, updateSavedGroup, recordFor } from './lib/groups.js';
+import { hasGroupsApi, syncGroups, getSavedGroups, removeSavedGroup, reopenGroup, updateSavedGroup, recordFor, GROUP_COLORS } from './lib/groups.js';
 import { isOwnUrl, normalizeUrl, isWorthReopening, isCapturableUrl } from './lib/ext.js';
 
 let CTX = null; // set once the launch token has been verified (see boot)
@@ -38,7 +38,7 @@ const el = {
   winHint: $('hint-win'), coffee: $('coffee'), pro: $('pro'),
   feedbackBtn: $('feedback-btn'), helpBtn: $('help-btn'), tourBtn: $('tour-btn'), groupsBtn: $('groups-btn'), sweepBtn: $('sweep-btn'),
   dupesBtn: $('dupes-btn'), dupesText: $('dupes-text'),
-  alert: $('alert'), alertText: $('alert-text'), alertBtn: $('alert-btn'),
+  alert: $('alert'), alertText: $('alert-text'), alertBtn: $('alert-btn'), alertLater: $('alert-later'),
   acts: $('acts'), actsN: $('acts-n'), actsBtns: $('acts-btns'), selAll: $('sel-all'), selNone: $('sel-none'),
   body: $('body'), panel: $('panel'), panelBtn: $('panel-btn'), panelClose: $('panel-close'),
   paneGroups: $('pane-groups'), paneMarks: $('pane-marks'), ptabGroupsN: $('ptab-groups-n'),
@@ -389,16 +389,17 @@ function derive() {
 }
 
 // ------------------------------------------------------------------ render
-// Cards are sized for the space between the window list and the side panel (sizes from switcher.css), and
-// shrink to fit at least two to a row before they ever fall to one per row.
+// Cards are sized for the space the card area really has (measured, once the window list and the side
+// panel are placed), and shrink to fit several to a row before they ever fall to one per row.
+const CARD_MIN = 176; // px: small enough for three a row beside the panel on a laptop screen
 function cardWidth(n) {
-  const left = state.windows.length > 1 ? 24 + 196 + 16 : 40;
-  const right = state.panel ? 330 + 24 + 20 : 40;
+  const main = el.scroller;
+  const cs = getComputedStyle(main);
   const indent = state.sections.some((x) => !x.plain) ? 24 : 0; // .gsec.grouped: border + padding
-  const avail = Math.min(window.innerWidth - left - right - indent, 1640);
-  const [cols, cap] = n <= 2 ? [2, 420] : n <= 6 ? [3, 340] : [4, 320];
-  for (let c = cols; c > 1; c--) { const w = (avail - 20 * (c - 1)) / c; if (w >= 240) return Math.min(cap, w); }
-  return Math.max(200, Math.min(cap, avail));
+  const avail = Math.min(main.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - indent - 4, 1640);
+  const [cols, cap] = n <= 2 ? [2, 420] : n <= 6 ? [3, 340] : [5, 320];
+  for (let c = cols; c > 1; c--) { const w = (avail - 20 * (c - 1)) / c; if (w >= CARD_MIN) return Math.min(cap, w); }
+  return Math.max(180, Math.min(cap, avail));
 }
 
 // The window list on the left: "All windows", then each window with a small picture of the tab it shows.
@@ -434,8 +435,10 @@ function renderWindows() {
   }));
 }
 
+// "Window 2" on a card from another window. Narrow cards leave it out (the title needs the room; the window
+// list on the left and the card's tooltip still say which window it is in).
 function windowTag(tab) {
-  if (state.scope !== 'all' || state.windows.length < 2 || tab.windowId === CTX.srcWin) return null;
+  if (state.scope !== 'all' || state.windows.length < 2 || tab.windowId === CTX.srcWin || state.cardW < 240) return null;
   const w = state.windows.find((x) => x.id === tab.windowId);
   return w ? h('span', 'tag', w.label) : null;
 }
@@ -531,9 +534,10 @@ function renderCard(entry, index) {
     x.title = t('closeTabTitle');
     x.setAttribute('aria-label', t('closeTab'));
     x.innerHTML = ICON.close;
-    x.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) closeTab(entry); });
+    x.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) closeTab(entry, { mouse: true }); });
     head.append(x);
-    card.title = (tab.title || '') + '\n' + entry.url + (asleep ? '\n' + t('sleepingTip') : '');
+    const win = tab.windowId !== CTX.srcWin && state.windows.length > 1 ? state.windows.find((x) => x.id === tab.windowId) : null;
+    card.title = (tab.title || '') + '\n' + entry.url + (win ? '\n' + win.label : '') + (asleep ? '\n' + t('sleepingTip') : '');
     // No preview just means Chrome only lets us screenshot the visible tab and
     // we haven't seen this one yet; it's an awake background tab, not asleep.
     // The placeholder shows the domain, since narrow cards hide it in the header.
@@ -575,7 +579,7 @@ function renderCard(entry, index) {
     });
   }
   card.addEventListener('auxclick', (e) => {
-    if (e.button === 1 && entry.kind === 'tab') { e.preventDefault(); if (pointerAllowed()) closeTab(entry); }
+    if (e.button === 1 && entry.kind === 'tab') { e.preventDefault(); if (pointerAllowed()) closeTab(entry, { mouse: true }); }
   });
   card.addEventListener('mousemove', () => {
     const i = state.entries.indexOf(entry);
@@ -645,9 +649,13 @@ function renderTools() {
   updateSweepButton();
 }
 
-function render() {
+// `follow`: scroll the selected card into view. Off for redraws after a mouse action (closing a tab with
+// its x, the quick actions), so the view stays where the user scrolled it.
+function render({ follow = true } = {}) {
   const closed = state.entries.slice(state.openCount);
-
+  const scrolled = el.scroller.scrollTop; // a redraw (closing a tab, ticking one) stays where the user is
+  renderWindows(); // placed first: the card size depends on the room they leave
+  renderPanel();
   state.cardW = Math.floor(cardWidth(state.matchCount));
   el.openGrid.classList.toggle('has-groups', state.sections.some((x) => !x.plain));
   let at = 0;
@@ -661,12 +669,11 @@ function render() {
 
   const n = state.matchCount;
   el.count.textContent = state.query ? t(state.starOnly ? 'countSearchStarred' : 'countSearch', n, closed.length) : tn('tabs', n);
-  renderWindows();
   renderTools();
   renderActs();
-  renderPanel();
   setTop();
-  select(state.sel, { scroll: true });
+  el.scroller.scrollTop = scrolled;
+  select(state.sel, { scroll: follow });
   requestAnimationFrame(tipTruncated);
 }
 
@@ -679,17 +686,18 @@ function tipTruncated() {
 
 // The card area starts below the header, the toolbar, the alert bar and the quick-actions bar (if shown).
 function setTop() {
-  const top = el.bar.offsetHeight + el.tools.offsetHeight + (el.alert.hidden ? 0 : el.alert.offsetHeight + 4); // the actions pill floats: not counted
+  let top = el.bar.offsetHeight + el.tools.offsetHeight + (el.alert.hidden ? 0 : el.alert.offsetHeight + 4);
+  if (!el.acts.hidden) { el.acts.style.top = (top + 2) + 'px'; top += el.acts.offsetHeight + 10; } // the actions bar sits right under the toolbar
   el.body.style.setProperty('--top', top + 'px');
 }
 
 function toTop() { el.scroller.scrollTop = 0; }
-function refresh({ keepKey } = {}) {
+function refresh({ keepKey, follow = true } = {}) {
   const prevKey = keepKey || (state.entries[state.sel] || {}).key;
   derive();
   const i = state.entries.findIndex((e) => e.key === prevKey);
   state.sel = i >= 0 ? i : 0;
-  render();
+  render({ follow });
 }
 
 // -------------------------------------------------------------- selection
@@ -887,28 +895,48 @@ function armed(key) {
   return false;
 }
 
-// Saved groups are only ever deleted by the user: the first press asks, the second removes.
-async function removeSaved(g) {
-  if (!armed('sg' + g.id)) return;
-  await removeSavedGroup(g.id).catch(() => {});
-  state.saved = state.saved.filter((x) => x.id !== g.id);
-  refresh();
-}
 
-async function closeTab(entry) {
+// With the keyboard (Del) the selection moves to the next card; with the mouse (x, middle click) the
+// view and the selection stay where they are, so nothing jumps.
+async function closeTab(entry, { mouse = false } = {}) {
   if (entry && entry.kind === 'star') return star(entry); // Del on a starred, not-open page unstars it
   if (!entry || entry.kind !== 'tab' || state.done) return;
   const id = entry.tab.id;
   const i = state.entries.indexOf(entry);
-  const neighbour = [state.entries[i + 1], state.entries[i - 1]].find((e) => e && e.kind === 'tab');
-  try { await chrome.tabs.remove(id); } catch { return; }
-  if (id === CTX.srcTab && CTX.mode === 'overlay') return; // overlay closes with its tab
-  forgetTab(id, neighbour && neighbour.key);
+  const selected = state.entries[state.sel];
+  const neighbour = mouse && selected && selected !== entry ? selected
+    : [state.entries[i + 1], state.entries[i - 1]].find((e) => e && e.kind === 'tab');
+  await animateOut([id]);
+  if (id === CTX.srcTab && CTX.mode === 'overlay') return closeHere([id], neighbour);
+  try { await chrome.tabs.remove(id); } catch { const c = document.getElementById('opt-t' + id); if (c) c.classList.remove('closing'); return; }
+  forgetTab(id, neighbour && neighbour.key, { follow: !mouse });
   // Give Chrome a moment to add it to "Recently closed", then show it there.
-  setTimeout(async () => { await loadClosed(); if (!state.done) refresh(); }, 200);
+  setTimeout(async () => { await loadClosed(); if (!state.done) refresh({ follow: false }); }, 200);
 }
 
-function forgetTab(id, keepKey) {
+// Closing the tab the overlay is drawn on would end Tabatha with it. Instead the background closes it,
+// switches to a tab next to it in the same window and opens Tabatha there again, where it was
+// (search, window, filter, the selection). `ids` are all the tabs to close, the overlay's tab among them.
+async function closeHere(ids, prefer) {
+  const gone = new Set(ids);
+  const same = (x) => x && x.kind === 'tab' && x.tab.windowId === CTX.srcWin && !gone.has(x.tab.id);
+  const next = (same(prefer) ? prefer : null) || state.entries.find(same) || null;
+  const nextTab = next ? next.tab : state.tabs.find((x) => x.windowId === CTX.srcWin && !gone.has(x.id));
+  if (nextTab) await setResume({ query: state.query, scope: state.scope, starred: state.starOnly, key: 't' + nextTab.id }).catch(() => {});
+  chrome.runtime.sendMessage({ type: MSG.CLOSE_HERE, tabIds: ids, next: nextTab ? nextTab.id : null }).catch(() => {});
+  state.done = true; // the background closes this page with its tab
+}
+
+// The cards of tabs about to close shrink and fade out (skipped when the system asks for less motion).
+const CLOSE_MS = 180;
+function animateOut(ids) {
+  const cards = ids.map((id) => document.getElementById('opt-t' + id)).filter(Boolean);
+  if (!cards.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return Promise.resolve();
+  cards.forEach((c) => c.classList.add('closing'));
+  return new Promise((r) => setTimeout(r, CLOSE_MS));
+}
+
+function forgetTab(id, keepKey, { follow = true } = {}) {
   const tab = state.tabs.find((x) => x.id === id);
   if (!tab) return;
   state.tabs = state.tabs.filter((x) => x.id !== id);
@@ -916,13 +944,13 @@ function forgetTab(id, keepKey) {
   state.windows = state.windows
     .map((w) => (w.id === tab.windowId ? { ...w, count: w.count - 1 } : w))
     .filter((w) => w.count > 0);
-  refresh({ keepKey });
+  refresh({ keepKey, follow });
 }
 
 // ------------------------------------------------------------ quick actions
 // Tick tabs (the box on a card, Ctrl/Cmd+click, Shift+click for a range, or "Select all" while
-// searching), then act on all of them at once. With nothing ticked, the bar acts on every tab the
-// search found. Everything here only calls Chrome's own tab and bookmark APIs.
+// searching), then act on all of them at once. Nothing acts until something is ticked.
+// Everything here only calls Chrome's own tab and bookmark APIs.
 function pickBox(entry, on) {
   const b = h('button', 'pick' + (on ? ' on' : ''));
   b.type = 'button';
@@ -968,7 +996,8 @@ const ACTIONS = [
 // and in the duplicates view (to confirm). It floats over the cards, so nothing below it moves.
 function renderActs() {
   document.documentElement.classList.toggle('picking', state.picked.size > 0);
-  if (state.dupesView) return renderDupesBar();
+  // The duplicates view offers "Close N copies" until you tick some: then the usual bar acts on just those.
+  if (state.dupesView && !state.picked.size) return renderDupesBar();
   const tabs = targets();
   const n = tabs.length;
   const show = n > 0 || (!!state.query && state.matchCount > 1);
@@ -1057,15 +1086,16 @@ async function reload() {
   if (state.done) return;
   const key = (state.entries[state.sel] || {}).key;
   await load();
-  if (!state.done) refresh({ keepKey: key });
+  if (!state.done) refresh({ keepKey: key, follow: false }); // after a click: the view stays put
 }
 
 async function closeMany(tabs) {
   const ids = tabs.map((x) => x.id);
-  const own = CTX.mode === 'overlay' && ids.includes(CTX.srcTab); // closing the tab we sit on closes us: do it last
-  await chrome.tabs.remove(ids.filter((id) => !own || id !== CTX.srcTab));
+  await animateOut(ids);
+  const own = CTX.mode === 'overlay' && ids.includes(CTX.srcTab); // closing the tab we sit on: Tabatha reopens next door
   state.picked.clear();
-  if (own) return chrome.tabs.remove(CTX.srcTab);
+  if (own) return closeHere(ids);
+  await chrome.tabs.remove(ids);
   ids.forEach((id) => { state.tabs = state.tabs.filter((x) => x.id !== id); });
   toast(tn('closedN', ids.length));
   setTimeout(async () => { await loadClosed(); await reload(); }, 200);
@@ -1097,7 +1127,6 @@ async function moveToWindow(tabs) {
 }
 
 // Group: a small card asks for a name (the search word to start with) and one of Chrome's colours.
-const GROUP_COLORS = ['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
 function groupPopover(tabs, anchor) {
   const ids = tabs.filter((x) => !x.pinned).map((x) => x.id); // Chrome can't group pinned tabs
   if (!ids.length) return toast(t('groupPinned'));
@@ -1174,12 +1203,20 @@ async function bookmarkTabs(tabs, folderName = '') {
   if (!folder) return toast(t('actFailed'));
   let parent = folder;
   if (tabs.length > 1) parent = await marks.create(folder.id, folderName || state.query.trim() || t('marksFolderName', new Date().toLocaleDateString()));
-  for (const x of tabs) await marks.create(parent.id, x.title || hostOf(urlOf(x)), urlOf(x));
+  const n = await addMarks(parent.id, tabs);
+  if (!n && parent !== folder) await marks.remove(parent.id).catch(() => {}); // nothing went in: no empty folder left behind
   state.picked.clear();
   state.openFolders.add(folder.id).add(parent.id);
-  toast(tn('bookmarkedN', tabs.length, folder.title || t('paneMarks')));
+  toast(n ? tn('bookmarkedN', n, folder.title || t('paneMarks')) : t('actFailed'));
   await loadMarks();
   openPanel('marks');
+}
+
+// Bookmark tabs into a folder, in order. A page Chrome won't bookmark is skipped. Resolves to how many were added.
+async function addMarks(folderId, tabs) {
+  let n = 0;
+  for (const x of tabs) { try { await marks.create(folderId, x.title || hostOf(urlOf(x)), urlOf(x)); n++; } catch {} }
+  return n;
 }
 
 function quickActions(entry) {
@@ -1305,9 +1342,7 @@ function groupRow(g, kind) {
     e.stopPropagation();
     if (!pointerAllowed()) return;
     if (kind === 'live') { state.openFolders.has(key) ? state.openFolders.delete(key) : state.openFolders.add(key); return renderPanel(); }
-    if (CTX.mode === 'window') await chrome.windows.update(CTX.srcWin, { focused: true }).catch(() => {});
-    await reopenGroup(g, CTX.srcWin).catch(() => {});
-    finish('restore');
+    reopenSaved(g).catch(() => {});
   });
   head.append(name, panelBtn('more', 'more', t('groupMenu'), (ev) => (kind === 'live' ? liveGroupMenu(g.id, ev.currentTarget) : savedGroupMenu(g, ev.currentTarget))));
   // Drag to reorder (within open groups, or within saved groups).
@@ -1336,6 +1371,17 @@ function groupRow(g, kind) {
   return row;
 }
 
+// Open a saved group again and close Tabatha. Runs once: a double click must not open the group twice.
+let reopening = false;
+async function reopenSaved(g) {
+  if (reopening || state.done) return;
+  reopening = true;
+  try {
+    if (CTX.mode === 'window') await chrome.windows.update(CTX.srcWin, { focused: true }).catch(() => {});
+    await reopenGroup(g, CTX.srcWin);
+  } finally { finish('restore'); }
+}
+
 // Dropped group `id` onto group `target`: open groups move in Chrome's tab strip; saved ones only in the panel.
 async function moveGroup(id, target, kind) {
   if (kind === 'saved') {
@@ -1355,6 +1401,7 @@ async function moveGroup(id, target, kind) {
 
 // A small menu next to a button: [{ label, fn, danger, sure }]; `sure` items ask again before acting.
 function menu(anchor, items) {
+  if (closeIfOpen(anchor)) return; // a second click on the same button closes its menu
   document.querySelectorAll('.pop, .menu').forEach((x) => x.remove());
   const m = h('div', 'menu');
   m.setAttribute('role', 'menu');
@@ -1374,15 +1421,25 @@ function menu(anchor, items) {
     m.append(b);
   }
   m.addEventListener('click', (e) => e.stopPropagation());
+  m._anchor = anchor;
   el.app.append(m);
   const r = anchor.getBoundingClientRect();
   const w = 230;
   m.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w)) + 'px';
   const below = r.bottom + 6, h0 = m.offsetHeight;
   m.style.top = (below + h0 > window.innerHeight - 8 ? Math.max(8, r.top - h0 - 6) : below) + 'px';
-  const close = (e) => { if (!m.contains(e.target)) { m.remove(); document.removeEventListener('mousedown', close, true); } };
+  // A press anywhere else closes it; a press on its own button is left to that button's click (which closes it).
+  const close = (e) => { if (!m.contains(e.target) && !anchor.contains(e.target)) { m.remove(); document.removeEventListener('mousedown', close, true); } };
   setTimeout(() => document.addEventListener('mousedown', close, true), 0);
   m.querySelector('button').focus({ preventScroll: true });
+}
+// Is a menu or card already open from this button? Then close it and say so.
+function closeIfOpen(anchor) {
+  const open = [...document.querySelectorAll('.pop, .menu')].find((x) => x._anchor === anchor);
+  if (!open) return false;
+  open.remove();
+  el.search.focus({ preventScroll: true });
+  return true;
 }
 
 // Rename / recolour: the name + colour card, used for open and saved groups.
@@ -1448,8 +1505,19 @@ function liveGroupMenu(gid, anchor) {
     { label: t('gmClose'), danger: true, sure: t('gmCloseSure', ids.length), fn: async () => { await closeTabs(); setTimeout(() => reload(), 900); } },
     { label: t('gmDelete'), danger: true, sure: t('gmDeleteSure', ids.length), fn: async () => {
       const rec = await recordFor(gid);
-      await closeTabs();
-      if (rec) setTimeout(() => removeSavedGroup(rec.id).then(() => reload()).catch(() => {}), 1200);
+      const own = CTX.mode === 'overlay' && ids.includes(CTX.srcTab);
+      if (!own) {
+        await closeTabs();
+        if (rec) setTimeout(() => removeSavedGroup(rec.id).then(() => reload()).catch(() => {}), 1200);
+        return;
+      }
+      // Closing the tab Tabatha sits on ends this page, so nothing can run after it: close the other tabs,
+      // let the group sync settle (the group is still open), forget the saved copy, then close that tab.
+      const others = ids.filter((id) => id !== CTX.srcTab);
+      if (others.length) await chrome.tabs.remove(others).catch(() => {}); // one may have closed meanwhile
+      await new Promise((r) => setTimeout(r, LIMITS.GROUP_SYNC_MS + 400));
+      if (rec) await removeSavedGroup(rec.id).catch(() => {});
+      await chrome.tabs.remove(CTX.srcTab);
     } },
   ]);
 }
@@ -1458,7 +1526,7 @@ function liveGroupMenu(gid, anchor) {
 function savedGroupMenu(g, anchor) {
   const name = g.title || t('unnamedGroup');
   menu(anchor, [
-    { label: t('gmReopen'), fn: async () => { if (CTX.mode === 'window') await chrome.windows.update(CTX.srcWin, { focused: true }).catch(() => {}); await reopenGroup(g, CTX.srcWin); finish('restore'); } },
+    { label: t('gmReopen'), fn: () => reopenSaved(g) },
     { label: t('gmRename'), fn: () => nameColorPopover(anchor, { title: g.title, color: g.color }, async (title, color) => { await updateSavedGroup(g.id, { title, color }); await loadGroups(); refresh(); }) },
     { label: t('gmBookmark'), fn: () => bookmarkTabs(g.tabs.map((x) => ({ title: x.ti, url: x.u })), name) },
     null,
@@ -1478,6 +1546,21 @@ async function openUrlHere(url) {
       if (CTX.mode === 'window') await chrome.windows.update(CTX.srcWin, { focused: true }).catch(() => {});
       await chrome.tabs.create({ url, windowId: CTX.srcWin, active: true });
     }
+  } catch {}
+  finish('switch');
+}
+
+// "Move it out of bookmarks": the tab is opened first (in the background), and the bookmark is only
+// removed once it exists, so an address Chrome refuses never costs the bookmark.
+async function openAndRemove(n) {
+  const k = normalizeUrl(n.url);
+  let tab = state.tabs.find((x) => normalizeUrl(urlOf(x)) === k);
+  try { if (!tab) tab = await chrome.tabs.create({ url: n.url, windowId: CTX.srcWin, active: false }); }
+  catch (err) { return toast(t('actFailed'), err); }
+  await marks.remove(n.id).catch(() => {});
+  try {
+    await chrome.tabs.update(tab.id, { active: true });
+    if (CTX.mode === 'window' || tab.windowId !== CTX.srcWin) await chrome.windows.update(tab.windowId, { focused: true });
   } catch {}
   finish('switch');
 }
@@ -1534,12 +1617,12 @@ function folderRow(n, open) {
     try { ids = JSON.parse(e.dataTransfer.getData('application/x-tabatha-tabs')); } catch {}
     const tabs = state.tabs.filter((x) => ids.includes(x.id));
     if (!tabs.length || !pointerAllowed()) return;
-    for (const x of tabs) await marks.create(n.id, x.title || hostOf(urlOf(x)), urlOf(x)).catch(() => {});
+    const added = await addMarks(n.id, tabs);
     state.folder = n.id;
     updateView({ folder: n.id }).catch(() => {});
     state.openFolders.add(n.id);
     state.picked.clear();
-    toast(tn('bookmarkedN', tabs.length, n.title));
+    toast(added ? tn('bookmarkedN', added, n.title) : t('actFailed'));
     await loadMarks();
     refresh();
   });
@@ -1585,11 +1668,10 @@ function folderMenu(n, anchor) {
     ...(top ? [] : [{ label: t('rename'), fn: () => { state.editing = n.id; renderPanel(); } }]),
     { label: t('newFolder'), fn: () => newFolder(n) },
     ...(state.picked.size ? [{ label: tn('marksAddHere', state.picked.size), fn: async () => {
-      const tabs = targets();
-      for (const x of tabs) await marks.create(n.id, x.title || hostOf(urlOf(x)), urlOf(x));
+      const added = await addMarks(n.id, targets());
       state.folder = n.id; updateView({ folder: n.id }).catch(() => {});
       state.openFolders.add(n.id); state.picked.clear();
-      toast(tn('bookmarkedN', tabs.length, n.title)); await loadMarks(); refresh();
+      toast(added ? tn('bookmarkedN', added, n.title) : t('actFailed')); await loadMarks(); refresh();
     } }] : []),
     ...(top ? [] : [null, { label: t('folderDelete'), danger: true, sure: inside ? tn('folderDeleteSure', inside) : t('gmForgetSure'), fn: async () => {
       await marks.removeFolder(n.id); state.openFolders.delete(n.id); await loadMarks(); refresh();
@@ -1619,6 +1701,7 @@ async function cancelEdit() {
   el.search.focus({ preventScroll: true });
 }
 
+const isBookmarklet = (url) => /^\s*javascript:/i.test(url || '');
 function markRow(n, flat) {
   if (state.editing === n.id) return editRow(n);
   const row = h('div', 'mrow');
@@ -1635,13 +1718,13 @@ function markRow(n, flat) {
   const img = h('img'); img.src = favicon(n.url); img.alt = '';
   name.append(img, h('span', 'ltitle', n.title || hostOf(n.url)));
   if (flat) { const f = state.tree.byId.get(n.parentId); if (f) name.append(h('span', 'n', f.title)); }
-  name.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) openUrlHere(n.url); });
-  row.append(name,
-    panelBtn('', 'edit', t('editMark'), () => { state.editing = n.id; renderPanel(); }),
-    panelBtn('', 'out', t('openRemove'), async () => { // "move it out of bookmarks": open it as a tab, then remove the bookmark
-      await marks.remove(n.id).catch(() => {});
-      openUrlHere(n.url);
-    }));
+  // Chrome refuses javascript: addresses from an extension, so a bookmarklet can't be opened (or moved out) from here.
+  const bookmarklet = isBookmarklet(n.url);
+  name.addEventListener('click', (e) => { e.stopPropagation(); if (!pointerAllowed()) return; if (bookmarklet) toast(t('bookmarkletTip')); else openUrlHere(n.url); });
+  row.append(name, panelBtn('', 'edit', t('editMark'), () => { state.editing = n.id; renderPanel(); }));
+  if (!bookmarklet) {
+    row.append(panelBtn('', 'out', t('openRemove'), () => openAndRemove(n)));
+  }
   const key = 'bm' + n.id;
   row.append(state.armed === key
     ? button(t('removeQ'), 'danger small', () => deleteMark(n))
@@ -1694,8 +1777,10 @@ function editRow(n) {
       const changes = { title: title.value.trim() };
       if (url) {
         const u = url.value.trim();
-        if (!/^(https?|file|chrome|about|ftp):/i.test(u)) { url.focus(); return toast(t('badUrl')); }
-        changes.url = u;
+        if (u !== n.url) { // an address it already had (a bookmarklet's, say) is kept as it is
+          if (!/^(https?|file|chrome|about|ftp):/i.test(u)) { url.focus(); return toast(t('badUrl')); }
+          changes.url = u;
+        }
       }
       await marks.update(n.id, changes);
       if (where && where.value !== n.parentId) { await marks.move(n.id, where.value); state.openFolders.add(where.value); }
@@ -1718,7 +1803,6 @@ let asking = false; // a browser permission prompt is open: its focus change mus
 
 const K = (win, mac) => h('kbd', '', IS_MAC && mac ? mac : win);
 const para = (...parts) => { const p = h('p'); p.append(...parts); return p; };
-const list = (...items) => { const u = h('ul'); items.forEach((it) => { const li = h('li'); li.append(...[].concat(it)); u.append(li); }); return u; };
 const button = (label, cls, fn) => { const b = h('button', 'btn ' + (cls || ''), label); b.type = 'button'; b.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) fn(); }); return b; };
 
 function showDialog(kind, nodes) {
@@ -1875,12 +1959,15 @@ function askLater() { closeDialog(); }
 // Tabatha needs to screenshot pages and to react to Alt+Q on them. Detect that, and say why a
 // preview is missing when the screenshot itself failed.
 // `detail` (Chrome's own wording, for whoever wants it) goes in the tooltip, never on screen.
-function showAlert(text, label, fn, detail = '') {
+function showAlert(text, label, fn, detail = '', later = null) {
   el.alertText.textContent = text;
   el.alert.title = detail;
   el.alertBtn.hidden = !label;
   el.alertBtn.onclick = label ? (e) => { e.stopPropagation(); if (pointerAllowed()) fn(); } : null;
   if (label) el.alertBtn.textContent = label;
+  el.alertLater.hidden = !later;
+  el.alertLater.onclick = later ? (e) => { e.stopPropagation(); if (pointerAllowed()) later(); } : null;
+  if (later) el.alertLater.textContent = t('shortcutLater');
   el.alert.hidden = false;
   setTop();
 }
@@ -1915,12 +2002,22 @@ function plainCaptureError(msg) {
   if (/chrome:|extensions gallery|cannot access/i.test(m)) return { text: t('capErrPage') };
   return { text: t('capErrOther') };
 }
+const SHORTCUT_QUIET_MS = 7 * 24 * 3600 * 1000; // "Not now" on the Alt+Q note keeps it away for a week
 async function healthCheck() {
   try { state.hostOk = await chrome.permissions.contains({ origins: ['<all_urls>'] }); } catch { state.hostOk = true; }
   // Alt+Q itself can be left unassigned by Chrome (another app or extension owns it): say so, with the fix.
   let shortcut = 'assigned';
   try { const c = (await chrome.commands.getAll()).find((x) => x.name === 'open-switcher'); if (c && !c.shortcut) shortcut = 'missing'; } catch {}
-  if (shortcut === 'missing') return showAlert(t('shortcutMissing'), t('setShortcut'), () => openUrl('chrome://extensions/shortcuts'));
+  if (shortcut === 'missing') {
+    const said = (await chrome.storage.local.get(KEY.SHORTCUT_LATER).catch(() => ({})))[KEY.SHORTCUT_LATER] || 0;
+    if (Date.now() - said > SHORTCUT_QUIET_MS) {
+      return showAlert(t('shortcutMissing', IS_MAC ? 'Option+Q' : 'Alt+Q'), t('shortcutFix'), () => openUrl('chrome://extensions/shortcuts'), '', () => {
+        chrome.storage.local.set({ [KEY.SHORTCUT_LATER]: Date.now() }).catch(() => {});
+        el.alert.hidden = true;
+        render();
+      });
+    }
+  }
   if (CTX.via === 'icon') toast(t('iconTip', IS_MAC ? 'Option+Q' : 'Alt+Q'));
   if (!state.hostOk) showAlert(t('hostBlocked'), t('hostAllow'), requestHostAccess, t('hostBlockedTip'));
   else {
@@ -1971,7 +2068,8 @@ async function dailyPeek() {
 }
 
 // ---- Settings (the gear in the footer): language, and opening Tabatha when Chrome starts.
-async function openSettings(anchor) {
+async function openSettings(anchor, { redraw = false } = {}) {
+  if (!redraw && closeIfOpen(anchor)) return; // the gear again closes Settings
   document.querySelectorAll('.pop, .menu').forEach((x) => x.remove());
   const prefs = await getPrefs().catch(() => ({ lang: 'auto', startup: false }));
   const pop = h('div', 'pop settings');
@@ -1987,7 +2085,7 @@ async function openSettings(anchor) {
     setLang(lang.value);
     localizePage();
     render();
-    openSettings(anchor); // redraw this card in the new language
+    openSettings(anchor, { redraw: true }); // redraw this card in the new language
   });
   const start = h('input');
   start.type = 'checkbox';
@@ -2002,11 +2100,12 @@ async function openSettings(anchor) {
   pop.append(h('h4', '', t('settings')), h('label', '', t('setLang')), lang, startLabel, h('p', 'pfine', t('setStartupNote')), sc);
   pop.addEventListener('click', (e) => e.stopPropagation());
   pop.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); pop.remove(); el.search.focus(); } });
+  pop._anchor = anchor;
   el.app.append(pop);
   const r = anchor.getBoundingClientRect();
   pop.style.left = Math.max(12, r.left) + 'px';
   pop.style.top = Math.max(12, r.top - pop.offsetHeight - 10) + 'px';
-  const close = (e) => { if (!pop.contains(e.target) && e.target !== anchor) { pop.remove(); document.removeEventListener('mousedown', close, true); } };
+  const close = (e) => { if (!pop.contains(e.target) && !anchor.contains(e.target)) { pop.remove(); document.removeEventListener('mousedown', close, true); } };
   setTimeout(() => document.addEventListener('mousedown', close, true), 0);
 }
 
@@ -2064,6 +2163,18 @@ function onKeyDown(e) {
     }
     return;
   }
+  // An open ⋯ menu: arrows move between its items; Esc and Tab close it (not the switcher behind it).
+  const menuEl = target && target.closest('.menu');
+  if (menuEl && ['ArrowDown', 'ArrowUp', 'Home', 'End', 'Escape', 'Tab'].includes(e.key)) {
+    e.preventDefault(); e.stopPropagation();
+    if (e.key === 'Escape' || e.key === 'Tab') { menuEl.remove(); el.search.focus({ preventScroll: true }); return; }
+    const items = [...menuEl.querySelectorAll('.mi')];
+    const i = items.indexOf(target);
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1
+      : (i + (e.key === 'ArrowUp' ? -1 : 1) + items.length) % items.length;
+    if (items[next]) items[next].focus({ preventScroll: true });
+    return;
+  }
   if (own && (e.key === 'Enter' || e.key === ' ')) return;
   const typing = document.activeElement === el.search && el.search.value !== '';
   const k = e.key;
@@ -2097,8 +2208,8 @@ function onKeyDown(e) {
       e.preventDefault();
       e.stopPropagation();
       if (el.search.value) { el.search.value = ''; state.query = ''; refresh(); }
+      else if (state.picked.size) clearPicks(); // first the ticks (also in the duplicates view), then the view
       else if (state.dupesView) dupesView(false);
-      else if (state.picked.size) clearPicks();
       else finish('cancel');
       return;
     case 'Enter': e.preventDefault(); return choose(state.sel);
@@ -2195,9 +2306,14 @@ function listen() {
     e.stopPropagation();
     if (!pointerAllowed()) return;
     const tabIds = missingPreviews().map((x) => x.id).slice(0, LIMITS.SWEEP_MAX_TABS);
+    // Tabatha opens again when the run is over: in the same window, filter and search, not "All windows".
+    // A run takes about a second a tab, so the note lives that long (plus a margin).
+    const sel = state.entries[state.sel];
+    const reopens = CTX.mode === 'overlay'; // the popup window doesn't come back by itself: no note then
+    if (reopens) setResume({ query: state.query, scope: state.scope, starred: state.starOnly, key: sel ? sel.key : null, ttl: 20000 + tabIds.length * 4000 }).catch(() => {});
     asking = true; // the progress window takes focus: that is not the user leaving
-    chrome.runtime.sendMessage({ type: MSG.SWEEP, tabIds, reopen: CTX.mode === 'overlay' ? CTX.srcTab : null })
-      .then((r) => { asking = false; if (r && r.n) finish('switch'); else toast(t('sweepNothing')); })
+    chrome.runtime.sendMessage({ type: MSG.SWEEP, tabIds, reopen: reopens ? CTX.srcTab : null })
+      .then((r) => { asking = false; if (r && r.n) finish('switch'); else { takeResume().catch(() => {}); toast(t('sweepNothing')); } })
       .catch(() => { asking = false; toast(t('actFailed')); });
   });
   el.starFilter.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) toggleStarFilter(); });
@@ -2251,7 +2367,7 @@ function listen() {
     if (state.done || sender.id !== chrome.runtime.id || sender.tab) return;
     if (msg && msg.type === MSG.CYCLE) { qPress(msg.dir === -1 ? -1 : 1); respond({ ok: true }); }
   });
-  chrome.tabs.onRemoved.addListener((id) => { if (!state.done) forgetTab(id); });
+  chrome.tabs.onRemoved.addListener((id) => { if (!state.done) forgetTab(id, undefined, { follow: false }); }); // closed elsewhere (or by us, first): the view stays put
 }
 
 // ------------------------------------------------------------------- boot

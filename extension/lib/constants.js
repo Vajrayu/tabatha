@@ -14,8 +14,8 @@ export const MSG = Object.freeze({
   CAPTURE_ONE: 'tabatha:capture-one', // switcher -> background: show one tab for a moment and capture it
   FLYOUT_DONE: 'tabatha:flyout-done', // first-run flyout dismissed (content script -> background)
   NUDGE: 'tabatha:nudge',   // "use Alt+Q" toast answered (content script -> background): { act: 'try'|'ok'|'never' }
-  OPENED: 'tabatha:opened', // switcher -> background: it opened (the nudge keeps quiet for a while after)
   SLEEP: 'tabatha:sleep',   // switcher -> background, as it closes: unload these tabs ({ tabIds })
+  CLOSE_HERE: 'tabatha:close-here', // switcher -> background: close the tab the overlay sits on, then open Tabatha over `next`
 });
 
 // Messages between the overlay iframe and the content-script code that hosts it.
@@ -39,6 +39,7 @@ export const KEY = Object.freeze({
   LAST_OPEN: 'lastOpen',      // storage.session: when the switcher last opened
   PREFS: 'prefs',             // storage.local: { lang: 'auto'|'en'|'ru'|'es', startup: boolean } Settings
   PEEK: 'peek',               // storage.local: the day Y-bit last peeked from behind the corner buttons
+  SHORTCUT_LATER: 'scLater',  // storage.local: when the user said "Not now" to the Alt+Q-isn't-set note
   NOCAP: 'nocap',             // storage.session: normalized URLs Chrome refused to screenshot (the Web Store, some built-in pages)
   RESUME: 'resume',           // storage.session: { t, query, scope, sort, starred, key } reopen the switcher where it was (after a one-tab capture)
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
@@ -78,8 +79,8 @@ export const LIMITS = Object.freeze({
   RECENTLY_CLOSED_WINDOWS: 2,   // of which at most this many whole windows
   RECENTLY_CLOSED_MAX_AGE_S: 4 * 3600, // only things closed in the last 4 hours
   MAX_SAVED_GROUPS: 100,        // saved tab groups kept (closed ones are only ever removed by the user, or beyond this cap, oldest first)
-  MAX_GROUP_TABS: 100,
-  MAX_GROUPS_BYTES: 2 * 1024 * 1024, // saved groups stay well inside storage.local's 10 MB (previews have 6 MB): over this, the oldest closed groups go          // tabs remembered per group
+  MAX_GROUP_TABS: 100,          // tabs remembered per group
+  MAX_GROUPS_BYTES: 2 * 1024 * 1024, // saved groups stay well inside storage.local's 10 MB (previews have 6 MB): over this, the oldest closed groups go
   GROUP_SYNC_MS: 600,           // tab/group events are batched; a burst (closing a window) becomes one sync
   GROUP_TITLE_MAX: 120,
   MAX_STARS: 300,               // most starred pages kept (their previews are kept like an open tab's)

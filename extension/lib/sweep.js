@@ -95,7 +95,7 @@ export async function runSweep({ only = null, force = false, quiet = false } = {
       await sleep(LIMITS.CAPTURE_GAP_MS); // Chrome allows about 2 captures a second
     }
   } finally {
-    for (const [windowId, tabId] of originals) {
+    for (const tabId of originals.values()) {
       try { await chrome.tabs.update(tabId, { active: true }); } catch {}
     }
     if (focusedWin !== null) { try { await chrome.windows.update(focusedWin, { focused: true }); } catch {} }

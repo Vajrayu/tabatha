@@ -488,6 +488,9 @@
  "badUrl": {
   "message": "Esa dirección no parece correcta."
  },
+ "bookmarkletTip": {
+  "message": "Es un bookmarklet: se ejecuta desde la barra de marcadores de Chrome, no desde Tabatha."
+ },
  "tourBtn": {
   "message": "Cómo funciona"
  },
@@ -891,7 +894,13 @@
   "message": "Cambiar el atajo Alt+Q"
  },
  "shortcutMissing": {
-  "message": "Tabatha no tiene asignado Alt+Q: puede que otra app o extensión lo use. Elige un atajo en Chrome."
+  "message": "Chrome no ha asignado $1 a Tabatha (puede que otra extensión lo use). En las páginas web funciona igualmente; asígnalo en Chrome para usarlo en todas partes, también en pestañas nuevas."
+ },
+ "shortcutFix": {
+  "message": "Asignarlo en Chrome"
+ },
+ "shortcutLater": {
+  "message": "Ahora no"
  },
  "iconTip": {
   "message": "Consejo: $1 abre Tabatha desde cualquier sitio, sin ratón."

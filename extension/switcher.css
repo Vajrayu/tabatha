@@ -232,8 +232,8 @@ section { max-width: 1640px; margin: 0 auto; }
   background: rgba(10,12,16,.78); color: var(--fg); }
 .qbtn:hover, .qbtn:focus-visible { background: #FFD166; color: #1B2A4A; outline: none; }
 
-/* quick actions: a floating pill above the footer (it never pushes the cards down) */
-.acts { position: fixed; left: 0; right: 0; margin: 0 auto; width: fit-content; bottom: 66px; z-index: 4; max-width: calc(100% - 60px);
+/* quick actions: a bar right under the toolbar (setTop() moves the cards down while it shows) */
+.acts { position: fixed; left: 0; right: 0; margin: 0 auto; width: fit-content; top: 120px; z-index: 4; max-width: calc(100% - 60px);
   padding: 9px 10px 9px 20px; border-radius: 30px; background: #262a33; border: 1px solid rgba(255,209,102,.5); box-shadow: 0 10px 34px rgba(0,0,0,.55);
   display: flex; align-items: center; gap: 16px; flex-wrap: nowrap; font-size: 12.5px; animation: pop .14s ease-out both; white-space: nowrap; }
 .acts .grow { display: block; width: 1px; height: 22px; flex: none; background: var(--line); }
@@ -253,6 +253,7 @@ section { max-width: 1640px; margin: 0 auto; }
 .tag.stays { background: rgba(129,201,149,.25); color: #b9f0c6; }
 .tag.goes { background: rgba(196,43,28,.35); color: #ffc9c2; }
 #dupes-btn[aria-pressed="true"] { color: #1B2A4A; background: #FFD166; border-color: #FFD166; }
+#dupes-btn[aria-pressed="true"] svg { color: #1B2A4A; } /* the icon was amber on amber: it looked like empty space */
 /* group popover: name + colour */
 .pop { position: fixed; z-index: 6; width: 290px; padding: 12px; border-radius: 12px; background: #1d2027; border: 1px solid rgba(255,255,255,.2); box-shadow: 0 16px 40px rgba(0,0,0,.6); display: grid; gap: 8px; user-select: text; }
 .pop label { font-size: 12px; font-weight: 600; color: var(--fg-2); }
@@ -484,3 +485,16 @@ html.window .foot { left: 22px; bottom: 16px; }
 .dialog.manual .dots { flex-wrap: wrap; max-width: 70px; }
 .dialog.manual .stepof { font: 700 13px ui-monospace, "SF Mono", Menlo, monospace; color: #1B2A4A; opacity: .7; }
 #acts:has(.acts-btns[hidden]) .grow { display: none; }
+
+/* A tab being closed: its card shrinks and fades before it goes, so the close is visible. */
+.card.closing { transition: opacity .18s ease-in, transform .18s ease-in; opacity: 0; transform: scale(.92); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .card.closing { transition: none; } }
+/* Narrow windows (a laptop, the popup window): the window list and the panel give the cards more room. */
+@media (max-width: 1240px) {
+  .wins { flex-basis: 160px; width: 160px; margin-left: 16px; }
+  .panel { flex-basis: 280px; width: 280px; margin-right: 16px; }
+  main { padding-left: 24px; padding-right: 24px; }
+}
+/* Off-screen cards skip layout and painting until they're scrolled to (hundreds of tabs stay fast).
+   They stay in the page, so search, keyboard moves and screen readers still see every card. */
+.card { content-visibility: auto; contain-intrinsic-size: auto 200px; }

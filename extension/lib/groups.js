@@ -130,12 +130,14 @@ export async function recordFor(chromeGroupId) {
 }
 
 // Open a saved group again in `windowId`, as a real Chrome tab group.
+// A page Chrome refuses to open (some chrome:// pages, a policy-blocked site) is skipped, so one bad
+// address can't leave the group half-reopened as loose tabs.
 export async function reopenGroup(g, windowId) {
   const ids = [];
   for (const t of g.tabs) {
-    const tab = await chrome.tabs.create({ url: t.u, windowId, active: false });
-    ids.push(tab.id);
+    try { ids.push((await chrome.tabs.create({ url: t.u, windowId, active: false })).id); } catch {}
   }
+  if (!ids.length) throw new Error('none of the group\'s pages could be opened');
   const gid = await chrome.tabs.group({ tabIds: ids, createProperties: { windowId } });
   await chrome.tabGroups.update(gid, { title: g.title, color: g.color });
   await chrome.tabs.update(ids[0], { active: true });

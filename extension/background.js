@@ -18,7 +18,7 @@ import {
   markDiscarded, moveDiscarded, ensureBoot,
   rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
   setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard,
-  getNudge, updateNudge, getReview, getPrefs,
+  updateNudge, getReview, getPrefs,
 } from './lib/store.js';
 import { dayOf } from './lib/review.js';
 import { t, loadLang } from './lib/i18n.js';
@@ -35,6 +35,12 @@ const SWITCHER_URL = chrome.runtime.getURL(SWITCHER_PAGE);
 const EXT_REAL_ORIGIN = `chrome-extension://${chrome.runtime.id}`;
 const INJECTABLE = /^(https?|file):/;
 
+// Only extension pages may read storage: content scripts run inside web pages, and a compromised page
+// renderer could otherwise read every stored screenshot through one. Tabatha's page-side code never
+// uses storage. (storage.session is like this by default; older Chrome versions may refuse it for local.)
+for (const area of [chrome.storage.local, chrome.storage.session]) {
+  Promise.resolve().then(() => area.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' })).catch(() => {});
+}
 // First worker start of a browser session: remember when it began (see maybeCleanup in store.js).
 ensureBoot().catch(() => {});
 // After someone removes Tabatha, Chrome opens this page (one optional question). The URL carries
@@ -117,7 +123,7 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 });
 chrome.tabs.onAttached.addListener(groupsChanged);
 chrome.tabs.onDetached.addListener(groupsChanged);
-chrome.windows.onRemoved.addListener(updateBadge);
+chrome.windows.onRemoved.addListener((windowId) => { updateBadge(); steps.delete(windowId); });
 chrome.tabs.onMoved.addListener(groupsChanged);
 
 // Previews are keyed by URL, so a closed or replaced tab keeps its preview
@@ -301,7 +307,10 @@ function trigger(dir, tab, via = 'key') {
   // this also rate-limits a misbehaving sender.
   if (Date.now() - lastTrigger < 120) return;
   lastTrigger = Date.now();
-  openSwitcher(dir, tab, via).catch((e) => console.warn('[Tabatha] could not open the switcher:', e && e.message));
+  openSwitcher(dir, tab, via).catch((e) => {
+    opening = null; // a failed open must not swallow the next presses for OPENING_LOCK_MS
+    console.warn('[Tabatha] could not open the switcher:', e && e.message);
+  });
 }
 
 async function openSwitcher(dir, fromTab, via = 'key') {
@@ -372,7 +381,9 @@ function armWatchdog(token, tabId, win, ctx) {
     timer: setTimeout(async () => {
       if (!watchdog || watchdog.token !== token) return;
       watchdog = null;
-      await chrome.scripting.executeScript({ target: { tabId }, func: removeOverlay }).catch(() => {});
+      // Not awaited: a frozen page never answers, and waiting for it left Alt+Q and the toolbar icon doing
+      // nothing until Chrome was restarted. The clean-up runs whenever the page comes back.
+      chrome.scripting.executeScript({ target: { tabId }, func: removeOverlay }).catch(() => {});
       await clearOverlayTab();
       opening = null;
       await openPopupWindow(win, await createLaunch({ ...ctx, mode: 'window' })).catch(() => {});
@@ -388,8 +399,8 @@ function disarmWatchdog() {
 async function openPopupWindow(win, token) {
   const url = SWITCHER_URL + '?t=' + token;
   const W = win.width || 1280, H = win.height || 800;
-  const w = Math.round(Math.min(1180, W - 80));
-  const h = Math.round(Math.min(780, H - 80));
+  const w = Math.round(Math.min(1440, W - 40)); // most of the window: room for the panel and several cards a row
+  const h = Math.round(Math.min(900, H - 40));
   try {
     await chrome.windows.create({
       url, type: 'popup', focused: true, width: w, height: h,
@@ -613,6 +624,18 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
           try { const t = await chrome.tabs.get(id); if (!t.active && !t.discarded) await chrome.tabs.discard(id); } catch {}
         }
       }, 400);
+      return;
+    }
+    case MSG.CLOSE_HERE: {
+      // The switcher's own tab is being closed: close the tabs, show the tab next to it, open Tabatha there.
+      if (!fromSwitcher(sender) || !Array.isArray(msg.tabIds)) return;
+      const ids = msg.tabIds.filter(Number.isInteger).slice(0, 500);
+      const next = Number.isInteger(msg.next) && !ids.includes(msg.next) ? msg.next : null;
+      (async () => {
+        if (next !== null) await chrome.tabs.update(next, { active: true }).catch(() => {});
+        await chrome.tabs.remove(ids).catch(() => {});
+        if (next !== null) await reopenOver(next);
+      })().catch(() => {});
       return;
     }
     case MSG.CAPTURE_ONE:
