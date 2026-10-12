@@ -69,7 +69,7 @@ M = {
  "marksAddPicked_one": "Bookmark the selected tab", "marksAddPicked_other": "Bookmark $1 selected tabs",
  "newFolder": "New folder here", "newFolderName": "New folder", "rename": "Rename",
  "editMark": "Edit", "openRemove": "Open and remove from bookmarks", "deleteMark": "Delete bookmark",
- "markTitle": "Name", "markUrl": "Address", "moveTo": "Folder", "save": "Save", "cancel": "Cancel", "badUrl": "That address doesn’t look right.",
+ "markTitle": "Name", "markUrl": "Address", "moveTo": "Folder", "save": "Save", "cancel": "Cancel", "badUrl": "That address doesn’t look right.", "bookmarkletTip": "This is a bookmarklet: it runs from Chrome’s bookmarks bar, not from Tabatha.",
  # footer
  "tourBtn": "How it works", "tourTitle": "A short tour of Tabatha", "help": "Help", "helpTitle": "The Tabatha manual, on the website", "feedback": "Feedback",
  "coffee": "Buy me a coffee", "coffeeTitle": "Tabatha is free. If it saves you time, you can buy me a coffee.",
@@ -164,7 +164,7 @@ M = {
  "setStartup": "Open Tabatha when Chrome starts",
  "setStartupNote": "Shows all your tabs, where you left off, a few seconds after Chrome opens.",
  "setShortcut": "Change the Alt+Q shortcut",
- "shortcutMissing": "Alt+Q isn’t set for Tabatha: another app or extension may have it. Pick a shortcut in Chrome.",
+ "shortcutMissing": "Chrome hasn’t given $1 to Tabatha (another extension may have it). It still works on web pages; set it in Chrome to use it everywhere, new tabs included.", "shortcutFix": "Set it in Chrome", "shortcutLater": "Not now",
  "iconTip": "Tip: $1 opens Tabatha from anywhere, no mouse needed.",
  "keySearch": "jump to search",
  "tourWinTitle": "Your windows",
