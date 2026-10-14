@@ -443,6 +443,9 @@ html.window .foot { left: 22px; bottom: 16px; }
 .dialog h3 .mark { margin-left: 10px; padding: 2px 8px; border-radius: 10px; vertical-align: 3px; font-size: 11px; font-weight: 650; letter-spacing: .02em; color: #1B2A4A; background: #FFD166; }
 .dialog .news li.more { list-style: none; margin-left: -18px; color: var(--fg-3); }
 .dialog .row.cap { gap: 8px; }
+.dialog.cap .capbit { margin: 0 0 10px; line-height: 0; }
+/* the small print (sleeping tabs, pages Chrome refuses): a note box at the text's size, so it is read */
+.dialog.cap .note { font-size: 14px; line-height: 1.5; color: var(--fg); margin: 4px 0 10px; padding: 9px 12px; border-radius: 8px; border-left: 3px solid #FFD166; background: rgba(255,209,102,.1); }
 .row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 .row .grow { flex: 1; }
 .btn { border: 1px solid var(--line); background: var(--fill); color: var(--fg); padding: 8px 14px; border-radius: 8px; font-size: 13.5px; cursor: pointer; }

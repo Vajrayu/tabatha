@@ -1862,6 +1862,7 @@ function showDialog(kind, nodes) {
   el.modal.hidden = false;
   el.modal.classList.toggle('tour', kind === 'tour');
   el.dialog.classList.toggle('manual', kind === 'tour');
+  el.dialog.classList.toggle('cap', kind === 'cap');
   const first = el.dialog.querySelector('textarea, .primary') || el.dialog.querySelector('button');
   if (first) first.focus({ preventScroll: true });
 }
@@ -2075,14 +2076,18 @@ function offerCapture({ scoped = false, first = false, walk = null } = {}) {
   const notes = [];
   if (plan.sleeping) notes.push(tn('capSleeping', plan.sleeping));
   if (plan.refused) notes.push(tn('capRefused', plan.refused));
-  if (notes.length) nodes.push(h('p', 'note', notes.join(' ')));
-  const says = h('div', 'says');
+  if (notes.length) { // one box, one note per line
+    const box = h('p', 'note');
+    notes.forEach((x, i) => { if (i) box.append(document.createElement('br')); box.append(x); });
+    nodes.push(box);
+  }
+  const says = h('div', 'says capbit'); // Y-bit leads: Y-bit, heading, text, note, buttons
   says.append(ybit('happy', 3));
   const row = h('div', 'row cap');
   btns.forEach(([label, fn], i) => row.append(button(label, i ? '' : 'primary', fn)));
   row.append(h('span', 'grow'), button(t('later'), 'quiet', later));
   state.capLater = later;
-  showDialog('cap', [...nodes, says, row]);
+  showDialog('cap', [says, ...nodes, row]);
   return true;
 }
 // The existing capture run (lib/sweep.js): Tabatha steps aside, the progress card with Stop shows, and
