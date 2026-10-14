@@ -347,7 +347,7 @@ async function openSwitcher(dir, fromTab, via = 'key') {
   if (!prev || Date.now() - prev.t > 1500) {
     await Promise.race([
       captureWindow(tab.windowId, { force: true }).catch(() => {}),
-      new Promise((r) => setTimeout(r, 900)),
+      new Promise((r) => setTimeout(r, LIMITS.PRE_CAPTURE_MS)),
     ]);
   }
 

@@ -43,6 +43,8 @@ const marquee = `<style>${BASE}
   await render(captioned(shot('02-search.png'), 'Find any tab in a keystroke', 'Just start typing to search open tabs and tabs closed in the last 7 days'), 1280, 800, 'captioned-02-search.png');
   await render(captioned(shot('03-actions.png'), 'Act on many tabs at once', 'Tick tabs, then close, copy links, bookmark or group them in one go'), 1280, 800, 'captioned-03-actions.png');
   await render(captioned(shot('04-bookmarks.png'), 'Groups and bookmarks, side by side', 'Bring back closed tab groups and file tabs into bookmark folders'), 1280, 800, 'captioned-04-bookmarks.png');
+  await render(captioned(shot('05-group.png'), 'Sort one way, group another', 'Group by tab group, site or when you last used a tab; the window list stays beside it'), 1280, 800, 'captioned-05-group.png');
+  await render(captioned(shot('06-capture.png'), 'Previews for all your tabs, on request', 'Chrome only shows the tab on screen, so Tabatha offers to flip through the rest once'), 1280, 800, 'captioned-06-capture.png');
   await render(small, 440, 280, 'promo-small-440x280.png');
   await render(marquee, 1400, 560, 'promo-marquee-1400x560.png');
   await b.close();

@@ -476,6 +476,7 @@ function thumbFor(entry, { label, sub, icon, action, soft }) {
     const box = h('div', 'nopreview soft');
     box.style.setProperty('--hue', String(siteHue(hostOf(entry.url))));
     const img = h('img', 'big');
+    img.decoding = 'async';
     img.src = bigFavicon(entry.url);
     img.alt = '';
     box.append(img, h('div', 'ptitle', soft));
@@ -483,6 +484,7 @@ function thumbFor(entry, { label, sub, icon, action, soft }) {
     thumb.append(box);
   } else if (entry.preview && entry.preview.img) {
     const img = h('img', 'shot');
+    img.decoding = 'async'; // off-screen cards' pictures decode off the main thread, not in the first draw
     img.src = entry.preview.img;
     img.alt = '';
     thumb.append(img);

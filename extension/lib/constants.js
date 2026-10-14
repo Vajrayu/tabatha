@@ -93,6 +93,7 @@ export const LIMITS = Object.freeze({
   RESUME_TTL_MS: 15000,         // a resume note older than this is ignored
   SWEEP_MAX_IDS: 5000,          // sanity limit on the tab ids one capture run is sent (the user chooses how many; no cap below that)
   SWEEP_STALE_MS: 6 * 60 * 60 * 1000, // tabs whose preview is newer than this are skipped
+  PRE_CAPTURE_MS: 350,          // most Alt+Q waits for a fresh screenshot of the current tab before drawing (a slow capture finishes behind the switcher)
   SWEEP_PAINT_MS: 300,         // wait after a tab finishes loading, so the screenshot isn't blank
   SWEEP_LOAD_MS: 2500,         // ...and give up waiting for a slow page after this long
   FLYOUT_WINDOW_MS: 30 * 60 * 1000, // the first-run flyout is offered for this long after install

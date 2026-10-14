@@ -49,8 +49,8 @@ function extCopy() {
   while (!sw) { const w = await ctx.waitForEvent('serviceworker'); if (w.url().endsWith('/background.js')) sw = w; }
   await sleep(1500);
   const bg = (fn, arg) => sw.evaluate(fn, arg);
-  // No first-run flyout, tour or What's new card; English UI; no review question.
-  await bg(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true }, wnSeen: chrome.runtime.getManifest().version, prefs: { lang: 'en', startup: false } }));
+  // No first-run flyout, tour, capture card or walkthrough; English UI; no review question.
+  await bg(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true, cap: chrome.runtime.getManifest().version }, prefs: { lang: 'en', startup: false } }));
 
   const initial = ctx.pages();
   const w1 = await bg(async ({ urls, W, H }) => (await chrome.windows.create({ url: urls, width: W, height: H + 139, left: 0, top: 0 })).id, { urls: WIN1.map(U), W, H });
@@ -133,6 +133,22 @@ function extCopy() {
   const work = frame().locator('#pane-marks .mrow.folder .mname', { hasText: 'Work' }).first();
   if (await work.count()) { await work.click(); await sleep(300); }
   await shot('04-bookmarks.png');
+  await close();
+
+  // 5. Sort and Group: the Group menu open (Site is chosen), the window navbar on the left.
+  await open();
+  await frame().evaluate(() => document.getElementById('group-by').click()); await sleep(400);
+  await shot('05-group.png');
+  await close();
+
+  // 6. First open on a new install: the capture card (every preview removed first).
+  await bg(async () => {
+    const all = await chrome.storage.local.get(null);
+    await chrome.storage.local.remove(Object.keys(all).filter((k) => k.startsWith('pv:') || k === 'pvidx'));
+    await chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: false, cap: '' } });
+  });
+  await open(); await sleep(700);
+  await shot('06-capture.png');
   await close();
 
   await ctx.close();
