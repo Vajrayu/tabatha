@@ -42,6 +42,7 @@ export const KEY = Object.freeze({
   PEEK: 'peek',               // storage.local: the day Y-bit last peeked from behind the corner buttons
   SHORTCUT_LATER: 'scLater',  // storage.local: when the user said "Not now" to the Alt+Q-isn't-set note
   NOCAP: 'nocap',             // storage.session: normalized URLs Chrome refused to screenshot (the Web Store, some built-in pages)
+  COVERED: 'covered',         // storage.session: origins where a page filtered or covered the overlay; Tabatha opens as a window there
   RESUME: 'resume',           // storage.session: { t, query, scope, sort, starred, key } reopen the switcher where it was (after a one-tab capture)
   OVERLAY: 'overlay',         // { tabId, t } tab currently covered by the overlay
   LAUNCH: 'launch',           // { token, t, ctx } one-time launch for the next switcher

@@ -1,6 +1,6 @@
 # Tabatha Privacy Policy
 
-_Last updated: 12 October 2026 (version 1.3.3). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
+_Last updated: 14 October 2026 (version 1.3.5). Earlier versions of this policy are kept at the end, under "Changes to this policy"._
 
 Tabatha is a Chrome extension that shows previews of your open tabs when you press Alt+Q. This policy explains what it handles and what it doesn't. In short: **nothing ever leaves your computer.**
 
@@ -23,7 +23,7 @@ To work, Tabatha uses the following on your device:
 | **Starred pages: the address (URL) and title of each page you star**, and when you starred it | To show your starred tabs with the Starred filter, and to reopen a starred page that is no longer open. The preview of a starred page is kept like an open tab's | `chrome.storage.local`: **saved on your computer's disk**, inside your Chrome profile folder | Until you unstar the page (or uninstall Tabatha). At most 300 (beyond that, the oldest stars are dropped). Not Chrome bookmarks: they stay inside Tabatha. |
 | **Layout choices**: how you sort the switcher, which sections you collapsed (a group's name and colour, or a site's name), whether the side panel is open and which of its tabs, and the bookmark folder you used last (its ID number) | To open the switcher the way you left it | `chrome.storage.local` on your computer | Until you uninstall Tabatha |
 | **Settings**: the language you chose for Tabatha (or "auto"), and whether it opens when Chrome starts | To show Tabatha in your language, and to open it at start-up only if you asked | `chrome.storage.local` on your computer | Until you change them or uninstall Tabatha |
-| **Small display notes**: the day Y-bit last peeked from behind the corner buttons, the day you said "Not now" to the note that Alt+Q isn't set (1.3.4), the order you dragged saved groups into, and (in memory only) which pages Chrome refused to screenshot | So Y-bit peeks at most once a day, your order is kept, and Tabatha stops offering a capture Chrome will refuse | `chrome.storage.local`; the refused pages in `chrome.storage.session` (memory only) | Until you uninstall Tabatha; the refused pages until Chrome quits |
+| **Small display notes**: the day Y-bit last peeked from behind the corner buttons, the day you said "Not now" to the note that Alt+Q isn't set (1.3.4), the order you dragged saved groups into, and (in memory only) which pages Chrome refused to screenshot and which sites (for example `https://docs.google.com`, the site only, no page addresses) hid or covered Tabatha's in-page view (1.3.5) | So Y-bit peeks at most once a day, your order is kept, Tabatha stops offering a capture Chrome will refuse, and opens as its own window straight away on sites where the in-page view can't take clicks | `chrome.storage.local`; the refused pages and the sites in `chrome.storage.session` (memory only) | Until you uninstall Tabatha; the refused pages and the sites until Chrome quits |
 | **Your Chrome bookmarks** (only if you switch on bookmarks, see Permissions) | To show them in the side panel, and to add, rename, move or delete one when you ask | Read from and written to Chrome's own bookmarks when you use the panel. **Tabatha keeps no copy of them.** Chrome may sync bookmarks to your Google account if you have Chrome sync on, as it does for any bookmark | Chrome keeps them as usual |
 
 Screenshots are taken of the visible tab only, and only in normal windows. Tabatha never captures Incognito windows (it isn't allowed to run in them).
@@ -78,7 +78,11 @@ https://chromewebstore.google.com/detail/edjglhlabdmgacehahfdjjffapbkaekk?utm_so
 
 ## Changes to this policy (newest first)
 
-**12 October 2026 (1.3.4, not yet released): one date**
+**14 October 2026 (1.3.5): one list in memory**
+- Added: the sites (site address only, never page addresses) where a dark-mode extension or the page itself hid or covered Tabatha's in-page view, kept in memory until Chrome quits, so Tabatha opens there as its own window straight away.
+- Unchanged: no new permissions; the extension makes no network requests and has no analytics.
+
+**12 October 2026 (1.3.4): one date**
 - Added: if you press "Not now" on the note that says Alt+Q isn't set, Tabatha keeps the date on your computer, so the note stays away for a week.
 - Unchanged: no new permissions; the extension makes no network requests and has no analytics.
 

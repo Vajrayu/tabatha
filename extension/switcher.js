@@ -2257,6 +2257,7 @@ function onKeyUp(e) {
 let visibleSince = 0;   // when the overlay last became fully visible (0 = not visible)
 let everVisible = false;
 let bootedAt = 0;
+let paintedAt = 0;   // when the first frame was on screen
 function watchVisibility() {
   bootedAt = performance.now();
   if (CTX.mode !== 'overlay') return;
@@ -2275,7 +2276,7 @@ function pointerAllowed() {
   const ok = visibleSince > 0 && performance.now() - visibleSince >= LIMITS.POINTER_VISIBLE_MS;
   // Not the short settling moment after it appeared, but the page really hiding or covering it (a dark-mode
   // filter, the page's own dialog drawn on top): a dead click helps nobody, so move into Tabatha's own window.
-  if (!ok && visibleSince === 0 && performance.now() - bootedAt > LIMITS.VISIBLE_CONFIRM_MS) reopenAsWindow();
+  if (!ok && visibleSince === 0 && paintedAt && performance.now() - paintedAt > LIMITS.VISIBLE_CONFIRM_MS) reopenAsWindow();
   return ok;
 }
 
@@ -2447,7 +2448,11 @@ function getLaunch() {
   if (CTX.mode === 'overlay') {
     parent.postMessage({ tabatha: FRAME_MSG.READY }, '*');
     // Chrome never confirmed the overlay as visible (the page filters or covers it): use a window instead.
-    setTimeout(() => { if (!everVisible) reopenAsWindow(); }, LIMITS.VISIBLE_CONFIRM_MS);
+    // Counted from the first frame on screen, so a slow first draw (hundreds of tabs) isn't taken for a covered page.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      paintedAt = performance.now();
+      setTimeout(() => { if (!everVisible) reopenAsWindow(); }, LIMITS.VISIBLE_CONFIRM_MS);
+    }));
   }
   window.focus();
   el.search.focus({ preventScroll: true });

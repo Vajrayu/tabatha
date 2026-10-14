@@ -474,6 +474,19 @@ export async function getCaptureNote() {
   const v = (await S.get(KEY.CAPDIAG))[KEY.CAPDIAG];
   return v && typeof v === 'object' && isTime(v.t) ? { t: v.t, stage: String(v.stage), msg: String(v.msg || ''), host: String(v.host || '') } : null;
 }
+// Sites where the overlay couldn't be shown clickable (a dark-mode filter, the page's own dialog on top):
+// for the rest of this browser session Tabatha opens there as its own window straight away.
+export async function isCovered(origin) {
+  const v = (await S.get(KEY.COVERED))[KEY.COVERED];
+  return Array.isArray(v) && v.includes(origin);
+}
+export function addCovered(origin) {
+  if (typeof origin !== 'string' || !origin || origin === 'null') return Promise.resolve();
+  return serial(async () => {
+    const v = ((await S.get(KEY.COVERED))[KEY.COVERED] || []).filter((x) => typeof x === 'string' && x !== origin);
+    await S.set({ [KEY.COVERED]: [origin, ...v].slice(0, 100) });
+  });
+}
 export function setMru(ids) {
   return serial(() => S.set({ [KEY.MRU]: ids.filter(isId).slice(0, LIMITS.MAX_MRU) }));
 }

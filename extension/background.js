@@ -17,7 +17,7 @@ import {
   touchMru, removeFromMru, replaceInMru, seedMru, getPreview, cleanupPreviews, markBoot,
   markDiscarded, moveDiscarded, ensureBoot,
   rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
-  setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard,
+  setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard, isCovered, addCovered,
   updateNudge, getReview, getPrefs,
 } from './lib/store.js';
 import { dayOf } from './lib/review.js';
@@ -34,6 +34,7 @@ const SWITCHER_URL = chrome.runtime.getURL(SWITCHER_PAGE);
 // postMessage target so the launch token can only ever reach our own frame.
 const EXT_REAL_ORIGIN = `chrome-extension://${chrome.runtime.id}`;
 const INJECTABLE = /^(https?|file):/;
+const originOf = (u) => { try { return new URL(u).origin; } catch { return ''; } };
 
 // Only extension pages may read storage: content scripts run inside web pages, and a compromised page
 // renderer could otherwise read every stored screenshot through one. Tabatha's page-side code never
@@ -352,17 +353,22 @@ async function openSwitcher(dir, fromTab, via = 'key') {
 
   // 4. Show it inside the page; fall back to a popup window where extensions
   //    can't inject (chrome://, New Tab, Web Store) or the overlay fails.
-  if (INJECTABLE.test(tab.url || '')) {
+  //    A site that filtered or covered the overlay before (dark-mode extensions) goes straight to the window:
+  //    drawing the overlay first, waiting for Chrome to call it visible and then moving costs a second or two.
+  if (INJECTABLE.test(tab.url || '') && !(await isCovered(originOf(tab.url)))) {
     try {
       const token = await createLaunch({ ...ctx, mode: 'overlay' });
       await setOverlayTab(tab.id);
       armWatchdog(token, tab.id, win, ctx); // before injecting: READY can arrive very quickly
-      await chrome.scripting.executeScript({
+      const [res] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: injectOverlay,
         args: [SWITCHER_URL, token, EXT_REAL_ORIGIN, FRAME_MSG],
       });
-      return;
+      if (!res || res.result !== 'filtered') return;
+      addCovered(originOf(tab.url)).catch(() => {});
+      disarmWatchdog();
+      await clearOverlayTab();
     } catch {
       disarmWatchdog();
       await clearOverlayTab();
@@ -424,6 +430,14 @@ async function openPopupWindow(win, token) {
 function injectOverlay(src, token, extOrigin, FRAME) {
   const prev = window.__tabathaOverlay;
   if (prev) prev.cleanup();
+  // A colour filter or transparency on the page (Dark Reader's filter mode, other dark-mode extensions) is a
+  // visual effect on every element in it, so Chrome could never confirm the overlay as visible and its clicks
+  // would stay blocked. Say so instead of drawing it: the worker opens Tabatha as its own window.
+  for (const n of [document.documentElement, document.body]) {
+    if (!n) continue;
+    const cs = getComputedStyle(n);
+    if (cs.filter !== 'none' || +cs.opacity < 1) return 'filtered';
+  }
 
   const prevFocus = document.activeElement;
   // The blur sits on a separate element *behind* the iframe. Putting it on
@@ -632,6 +646,7 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       disarmWatchdog();
       opening = null;
       clearOverlayTab();
+      if (sender.tab && sender.tab.url) addCovered(originOf(sender.tab.url)).catch(() => {});
       const ctx = { src: msg.src, win: msg.win, dir: msg.dir === -1 ? -1 : 1, via: 'key', state: WINDOW_STATES.includes(msg.state) ? msg.state : 'normal' };
       (async () => {
         const w = await chrome.windows.get(msg.win).catch(() => ({}));
