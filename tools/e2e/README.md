@@ -17,7 +17,10 @@ node t-acts.mjs      # quick actions, duplicates, the bookmarks panel (also t-nu
 node t-ui.mjs        # 12 Oct Windows review: close animation, scroll kept, actions bar on top, menus close on a 2nd click, duplicates icon, cards a row, the Alt+Q note
 node t-closehere.mjs # closing the tab Tabatha is on (the first card) reopens Tabatha next door
 node t-scope.mjs     # ticking in the duplicates view gives the usual actions; Capture from one window comes back to it
-node t-group.mjs     # 1.3.5: Group by (site, last used, none) with the sort, remembered; toolbar split; window navbar; panel tabs; What's new once; startup on for new installs
+node t-group.mjs     # 1.3.5: Group by (site, last used, none) with the sort, remembered; toolbar split; window navbar; panel tabs; the update walkthrough once; startup on for new installs
+node t-walk.mjs      # 1.3.5: the walkthrough built from the current UI: 1.3.3→ and 1.3.4→ show only what changed (New/Moved/Changed) + the fixes card; oldest update kept; skipped steps; once; replay; before the review question
+node t-capcard.mjs   # 1.3.5: the capture card on a new install (counts, sleeping/refused lines, Enter = Capture), most-recent-first run at ~0.6 s a tab, "Done: N previews.", then the walkthrough; Later; updaters; the toolbar opens it; cards without a preview
+node t-captiers.mjs  # 1.3.5: the card's wording for 5, 20 (one window), 30, 80, 180 and 500 real tabs, in en/ru/es; "Your 50 most recent" runs 50; Stop
 node t-attack.mjs    # what a hostile page can't do: fake Alt+Q, frame the switcher, spam launch tokens, hide the overlay to trick clicks
 node t-audit.mjs     # 12 Oct audit: bookmarklets, open-and-remove, deleting the group under Tabatha, reopen with a refused page, double-click reopen, menu keys, storage access
 ```

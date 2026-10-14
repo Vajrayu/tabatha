@@ -40,8 +40,9 @@ export const KEY = Object.freeze({
   LAST_OPEN: 'lastOpen',      // storage.session: when the switcher last opened
   PREFS: 'prefs',             // storage.local: { lang: 'auto'|'en'|'ru'|'es', startup: boolean } Settings
   PEEK: 'peek',               // storage.local: the day Y-bit last peeked from behind the corner buttons
-  SHORTCUT_LATER: 'scLater',
-  WHATS_NEW: 'wnSeen',         // storage.local: the Tabatha version whose "What's new" card was shown (or that the tour introduced)  // storage.local: when the user said "Not now" to the Alt+Q-isn't-set note
+  SHORTCUT_LATER: 'scLater',  // storage.local: when the user said "Not now" to the Alt+Q-isn't-set note
+  WN_FROM: 'wnFrom',          // storage.local: the version Tabatha was updated from, until its walkthrough has been shown (the oldest, if several updates came first)
+  SWEPT: 'swept',             // storage.session: { n, t } how many previews the last capture run took, for the "Done" note when Tabatha reopens
   NOCAP: 'nocap',             // storage.session: normalized URLs Chrome refused to screenshot (the Web Store, some built-in pages)
   COVERED: 'covered',         // storage.session: origins where a page filtered or covered the overlay; Tabatha opens as a window there
   RESUME: 'resume',           // storage.session: { t, query, scope, sort, starred, key } reopen the switcher where it was (after a one-tab capture)
@@ -90,7 +91,7 @@ export const LIMITS = Object.freeze({
   MAX_STARS: 300,               // most starred pages kept (their previews are kept like an open tab's)
   MAX_COLLAPSED: 200,           // most collapsed sections remembered
   RESUME_TTL_MS: 15000,         // a resume note older than this is ignored
-  SWEEP_MAX_TABS: 100,          // most tabs one "Capture all previews" run visits
+  SWEEP_MAX_IDS: 5000,          // sanity limit on the tab ids one capture run is sent (the user chooses how many; no cap below that)
   SWEEP_STALE_MS: 6 * 60 * 60 * 1000, // tabs whose preview is newer than this are skipped
   SWEEP_PAINT_MS: 300,         // wait after a tab finishes loading, so the screenshot isn't blank
   SWEEP_LOAD_MS: 2500,         // ...and give up waiting for a slow page after this long

@@ -6,6 +6,8 @@ const ls = (k) => T.sw.evaluate((k) => chrome.storage.local.get(k).then((o) => o
 const [a, b, c] = await T.open(['alpha', 'beta', 'gamma']);
 let onb = await ls('onb');
 T.log('install recorded first-run flags', !!onb && onb.at > 0 && !onb.flyout && !onb.tour, JSON.stringify(onb));
+// The capture card that comes first on a new install has its own test (t-walk); here it counts as answered.
+await T.sw.evaluate(() => chrome.storage.local.get('onb').then((o) => chrome.storage.local.set({ onb: { ...o.onb, cap: chrome.runtime.getManifest().version } })));
 await T.tap(c);
 const f = () => T.frame(c);
 await c.waitForTimeout(500);
@@ -21,7 +23,7 @@ for (let i = 0; i < 9; i++) {
   if (title === 'Anything off?') break;
   await c.keyboard.press('ArrowRight'); await c.waitForTimeout(150);
 }
-T.log('steps', /^Press (Alt|Option)\+Q,Move,Search,Many at once,Groups and bookmarks,Settings,Anything off\?$/.test(steps.join()), steps.join());
+T.log('steps', /^Press (Alt|Option)\+Q,Move,Search,Sort and group,Many at once,Groups and bookmarks,Settings,Anything off\?$/.test(steps.join()), steps.join());
 T.log('ends with the promise to fix things', steps[steps.length - 1] === 'Anything off?');
 const tellMe = (await f().$$eval('#dialog button', (x) => x.map((b) => b.textContent))).includes('Tell me');
 T.log('last step offers "Tell me"', tellMe);

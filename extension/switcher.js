@@ -19,12 +19,12 @@
 
 import { MSG, KEY, FRAME_MSG, LIMITS, COFFEE_URL, REVIEW_URL, feedbackUrl, HELP_URL, SHOW_COFFEE, SHOW_PRO, siteUrl } from './lib/constants.js';
 import { ybit } from './lib/ybit.js';
-import { getNoCapture, getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, updateReview, getOnboard, updateOnboard, getCaptureNote, getStars, toggleStar, getView, updateView, setResume, takeResume, getPrefs, updatePrefs } from './lib/store.js';
+import { getNoCapture, getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, updateReview, getOnboard, updateOnboard, getCaptureNote, getStars, toggleStar, getView, updateView, setResume, takeResume, getPrefs, updatePrefs, getWnFrom, clearWnFrom, takeSwept } from './lib/store.js';
 import { reviewPrompt, dayOf } from './lib/review.js';
 import { t, tn, timeAgo, localizePage, loadLang, setLang } from './lib/i18n.js';
 import * as marks from './lib/bookmarks.js';
 import { hasGroupsApi, syncGroups, getSavedGroups, removeSavedGroup, reopenGroup, updateSavedGroup, recordFor, GROUP_COLORS } from './lib/groups.js';
-import { isOwnUrl, normalizeUrl, isWorthReopening, isCapturableUrl } from './lib/ext.js';
+import { isOwnUrl, normalizeUrl, isWorthReopening, isCapturableUrl, cmpVersion } from './lib/ext.js';
 
 let CTX = null; // set once the launch token has been verified (see boot)
 
@@ -51,6 +51,7 @@ const IS_MAC = /mac/i.test((navigator.userAgentData && navigator.userAgentData.p
 
 // -------------------------------------------------------------------- state
 const state = {
+  capLater: () => {}, // what Esc does while the capture card is open (the same as its "Later")
   tabs: [],        // chrome.tabs.Tab[], most recently used first
   previews: {},    // tabId -> { img, url, t }
   closed: [],      // every closed tab/window we know of, newest first: [{ id, kind: 'tab'|'window', url, title, ts, count, session, fields, preview }]
@@ -459,9 +460,28 @@ function windowTag(tab) {
   return w ? h('span', 'tag', w.label) : null;
 }
 
-function thumbFor(entry, { label, sub, icon, action }) {
+// A soft colour made from the site's name: the same site always gets the same tint.
+function siteHue(host) {
+  let x = 0;
+  for (const c of String(host || '').replace(/^www\./, '')) x = (x * 31 + c.charCodeAt(0)) >>> 0;
+  return x % 360;
+}
+const bigFavicon = (url) => chrome.runtime.getURL('/_favicon/') + '?pageUrl=' + encodeURIComponent(url) + '&size=64';
+
+// `soft`: an awake tab with no preview yet (expected: Chrome only screenshots the tab on screen). Instead of an
+// empty box, the site's icon large on its own tint, and the page title; the camera button stays.
+function thumbFor(entry, { label, sub, icon, action, soft }) {
   const thumb = h('div', 'thumb');
-  if (entry.preview && entry.preview.img) {
+  if (soft && !(entry.preview && entry.preview.img)) {
+    const box = h('div', 'nopreview soft');
+    box.style.setProperty('--hue', String(siteHue(hostOf(entry.url))));
+    const img = h('img', 'big');
+    img.src = bigFavicon(entry.url);
+    img.alt = '';
+    box.append(img, h('div', 'ptitle', soft));
+    if (action) box.append(action);
+    thumb.append(box);
+  } else if (entry.preview && entry.preview.img) {
     const img = h('img', 'shot');
     img.src = entry.preview.img;
     img.alt = '';
@@ -560,7 +580,7 @@ function renderCard(entry, index) {
     const sub = host;
     const thumb = thumbFor(entry, asleep || willSleep
       ? { label: t(willSleep ? 'willSleep' : 'sleeping'), sub, icon: ICON.moon }
-      : { label: entry.preview ? '' : t('noPreview'), sub, icon: ICON.camera, action: !entry.preview && canCapture(tab) ? captureButton(entry) : null });
+      : { label: '', sub, icon: ICON.camera, soft: tab.title || host || t('untitled'), action: !entry.preview && canCapture(tab) ? captureButton(entry) : null });
     thumb.append(quickActions(entry));
     card.append(head, thumb);
   } else {
@@ -1875,40 +1895,81 @@ async function enableGroups() {
   if (state.modal === 'tour') tourStep(tourAt); // redraw the step: it now says the groups are on
 }
 
-// ---- first-run tour: short panels, like the manual. The last step ("Anything off?") links to the feedback form.
+// ---- the walkthrough: one list of steps, always written against today's interface (part D of the 1.3.5 plan).
+// since = the version a feature first appeared; changed = the last version its look or place changed. When
+// a feature goes, its step is deleted; when it moves or changes, the step is rewritten and `changed` bumped.
+// So nobody is ever shown something that is gone, and an update from any version shows the current look.
+// A new install (and "How it works") gets every step; an update from V gets the steps newer than V, marked
+// New / Moved / Changed, then the fixes since V. Steps whose `when()` is false or whose target isn't on
+// screen are skipped.
 const keyRows = (...rows) => { const d = h('div', 'keys'); rows.forEach(([keys, word]) => { const k = h('span'); k.append(...keys); d.append(k, h('span', '', word)); }); return d; };
-const TOUR_ALL = [
-  { id: 'press', title: () => t('tour1Title', IS_MAC ? 'Option+Q' : 'Alt+Q'), hl: '.card[aria-selected="true"]', say: () => t('tour1Say'), body: () => [para(t('tour1Body'))] },
-  { id: 'move', title: () => t('tour2Title'), hl: '.card[aria-selected="true"]', body: () => [keyRows([[K('←'), K('→'), K('↑'), K('↓')], t('keyPick')], [[K('Enter')], t('keyOpen')], [[K('Del', '⌘⌫')], t('keyClose')], [[K('Esc')], t('keyLeave')])] },
-  { id: 'search', title: () => t('tour3Title'), hl: '.search', body: () => [para(t('tour3Body')), keyRows([[K('Ctrl+F', '⌘F')], t('keySearch')])] },
-  { id: 'windows', title: () => t('tourWinTitle'), hl: '#wins', when: () => state.windows.length > 1, body: () => [para(t('tourWinBody'))] },
-  { id: 'many', title: () => t('tourManyTitle'), hl: '.card[aria-selected="true"] .head', body: () => [para(t('tourManyBody'))] },
-  { id: 'panel', title: () => t('tourPanelTitle'), hl: () => (state.panel ? '#panel' : '#panel-btn'), say: () => t('tour4Say'), body: () => [
+const WALK = [
+  { id: 'press', since: '1.3.0', title: () => t('tour1Title', IS_MAC ? 'Option+Q' : 'Alt+Q'), hl: '.card[aria-selected="true"]', say: () => t('tour1Say'), body: () => [para(t('tour1Body'))] },
+  { id: 'move', since: '1.3.0', title: () => t('tour2Title'), hl: '.card[aria-selected="true"]', body: () => [keyRows([[K('←'), K('→'), K('↑'), K('↓')], t('keyPick')], [[K('Enter')], t('keyOpen')], [[K('Del', '⌘⌫')], t('keyClose')], [[K('Esc')], t('keyLeave')])] },
+  { id: 'search', since: '1.3.0', title: () => t('tour3Title'), hl: '.search', body: () => [para(t('tour3Body')), keyRows([[K('Ctrl+F', '⌘F')], t('keySearch')])] },
+  { id: 'view', since: '1.3.5', title: () => t('walkViewTitle'), hl: '#group-by', body: () => [para(t('walkViewBody'))] },
+  { id: 'windows', since: '1.3.3', changed: '1.3.5', title: () => t('tourWinTitle'), hl: '#wins', when: () => state.windows.length > 1, body: () => [para(t('tourWinBody'))] },
+  { id: 'many', since: '1.3.3', changed: '1.3.4', moved: true, title: () => t('tourManyTitle'), hl: '.card[aria-selected="true"] .head', body: () => [para(t('tourManyBody'))] },
+  { id: 'panel', since: '1.3.3', changed: '1.3.5', title: () => t('tourPanelTitle'), hl: () => (state.panel ? '#panel' : '#panel-btn'), say: () => t('tour4Say'), body: () => [
     para(t('tourPanelBody')), ...(state.groupsOn ? [para(t('tour4On'))] : [])] },
-  { id: 'settings', title: () => t('tourSetTitle'), hl: '#settings-btn', body: () => [para(t('tourSetBody'))] },
-  { id: 'tell', title: () => t('tour5Title'), hl: '#feedback-btn', say: () => t('tour5Say'), body: () => [para(t('tour5Body'))] },
+  { id: 'settings', since: '1.3.3', title: () => t('tourSetTitle'), hl: '#settings-btn', body: () => [para(t('tourSetBody'))] },
+  { id: 'tell', since: '1.3.2', title: () => t('tour5Title'), hl: '#feedback-btn', say: () => t('tour5Say'), body: () => [para(t('tour5Body'))] },
 ];
-let TOUR = TOUR_ALL;
+// What was fixed in each version, for "Also fixed since you last looked". Delete a line when it stops being true.
+const FIXES = {
+  '1.3.5': ['fix135Dark', 'fix135Previews', 'fix135Smooth'],
+  '1.3.4': ['fix134CloseHere', 'fix134Capture', 'fix134Clicks', 'fix134Frozen'],
+};
+const MAX_FIX_LINES = 6;
+const VERSION = chrome.runtime.getManifest().version;
+const stepTarget = (step) => { const sel = typeof step.hl === 'function' ? step.hl() : step.hl; return sel ? document.querySelector(sel) : null; };
+const newer = (v, from) => !!v && cmpVersion(v, from) > 0;
+function fixLines(from) {
+  return Object.keys(FIXES).filter((v) => newer(v, from) && cmpVersion(v, VERSION) <= 0)
+    .sort((x, y) => cmpVersion(y, x)).flatMap((v) => FIXES[v]);
+}
+// The steps for someone coming from version `from` ('' = everything, as an introduction).
+function walkSteps(from) {
+  const shown = (s) => (!s.when || s.when()) && (!s.hl || !!(stepTarget(s) && stepTarget(s).getClientRects().length));
+  let steps = WALK.filter(shown);
+  if (!from) return steps;
+  steps = steps.filter((s) => newer(s.since, from) || newer(s.changed, from))
+    .map((s) => ({ ...s, mark: newer(s.since, from) ? 'walkNew' : s.moved ? 'walkMoved' : 'walkChanged' }));
+  const fixes = fixLines(from);
+  if (fixes.length) steps.push({ id: 'fixes', title: () => t('walkFixesTitle'), body: () => {
+    const ul = h('ul', 'news');
+    for (const k of fixes.slice(0, MAX_FIX_LINES)) ul.append(h('li', '', t(k)));
+    if (fixes.length > MAX_FIX_LINES) ul.append(h('li', 'more', tn('walkFixesMore', fixes.length - MAX_FIX_LINES)));
+    return [ul];
+  } });
+  return steps;
+}
+let TOUR = [];
 let tourAt = 0;
+// Starts the walkthrough. Nothing to show (an update that changed nothing visible): it just counts as seen.
+function startWalk(from = '') {
+  TOUR = walkSteps(from);
+  if (!TOUR.length) return endTour();
+  tourStep(0);
+}
 function tourStep(i) {
-  if (i === 0) TOUR = TOUR_ALL.filter((x) => !x.when || x.when());
   tourAt = Math.max(0, Math.min(TOUR.length - 1, i));
   const step = TOUR[tourAt];
   const last = tourAt === TOUR.length - 1;
   document.querySelectorAll('.tour-hl').forEach((n) => n.classList.remove('tour-hl'));
-  const sel = typeof step.hl === 'function' ? step.hl() : step.hl;
-  const target = sel && document.querySelector(sel);
+  const target = stepTarget(step);
   if (target) target.classList.add('tour-hl');
   const row = h('div', 'row');
   row.append(h('span', 'stepof', `${tourAt + 1} / ${TOUR.length}`), h('span', 'grow'));
   if (step.id === 'panel' && !state.groupsOn) row.append(button(t('groupsOn'), '', enableGroups));
-  if (last) // Save first: opening the tab can close the switcher (and cut off an unfinished write).
-    row.append(button(t('tellMe'), '', async () => { await updateOnboard({ tour: true, flyout: true }).catch(() => {}); openUrl(feedbackUrl()); }));
+  if (step.id === 'tell') // Save first: opening the tab can close the switcher (and cut off an unfinished write).
+    row.append(button(t('tellMe'), '', async () => { await updateOnboard({ tour: true, flyout: true }).catch(() => {}); clearWnFrom().catch(() => {}); openUrl(feedbackUrl()); }));
   if (tourAt > 0) row.append(button(t('back'), 'quiet', () => tourStep(tourAt - 1)));
   if (!last) row.append(button(t('skip'), 'quiet', endTour));
   row.append(button(t(last ? 'done' : 'next'), 'primary', () => (last ? endTour() : tourStep(tourAt + 1))));
   const title = h('h3', '', step.title());
   title.id = 'dlg-title';
+  if (step.mark) title.append(h('span', 'mark', t(step.mark)));
   const num = h('span', 'num', String(tourAt + 1));
   const says = h('div', 'says');
   says.append(ybit(step.say ? 'happy' : 'idle', 3));
@@ -1944,33 +2005,92 @@ function placeTour(target) {
 }
 function endTour() {
   updateOnboard({ tour: true, flyout: true }).catch(() => {});
-  chrome.storage.local.set({ [KEY.WHATS_NEW]: VERSION }).catch(() => {}); // the tour already showed what's there
+  clearWnFrom().catch(() => {}); // seen: the walkthrough for this update is done
   closeDialog();
   el.pro.hidden = !SHOW_PRO;
 }
 
-// ---- "What's new": one short card on the first open after an update, once per version. Only versions with
-// notes here get one. People who just took the tour don't see it (the tour covered it).
-const VERSION = chrome.runtime.getManifest().version;
-const WHATS_NEW = { '1.3.5': ['wn1', 'wn2', 'wn3', 'wn4'] };
-async function whatsNew() {
-  const items = WHATS_NEW[VERSION];
-  if (!items) return false;
-  const seen = (await chrome.storage.local.get(KEY.WHATS_NEW).catch(() => ({})))[KEY.WHATS_NEW];
-  if (seen === VERSION) return false;
-  whenTapMode(() => {
-    chrome.storage.local.set({ [KEY.WHATS_NEW]: VERSION }).catch(() => {});
-    const title = h('h3', '', t('whatsNewTitle', VERSION));
-    title.id = 'dlg-title';
-    const ul = h('ul', 'news');
-    for (const k of items) ul.append(h('li', '', t(k)));
-    const says = h('div', 'says');
-    says.append(ybit('happy', 3));
-    const row = h('div', 'row');
-    row.append(h('span', 'grow'), button(t('gotIt'), 'primary', closeDialog));
-    showDialog('news', [title, ul, says, row]);
-  });
+// ---- "Want previews for all of them?" (part C of the 1.3.5 plan). Chrome only lets Tabatha screenshot the tab
+// on screen, so a new install sees cards without previews. The card offers the existing capture run, sized by
+// how many tabs need one: N = awake tabs Tabatha can capture that have no preview (sleeping ones are left
+// asleep, pages Chrome refuses are mentioned). Order: most recently used first, so Stop leaves the useful ones.
+const SECS_PER_TAB = 0.6;
+const RECENT_FIRST = 50;
+const tabsNoun = (n) => tn('capTabs', n);
+// "about 5 seconds", "about 2 minutes": rounded up to 5 s under a minute, to whole minutes above.
+function capTime(n, short = false) {
+  const s = n * SECS_PER_TAB;
+  if (s < 59) { const v = Math.max(5, Math.ceil(s / 5) * 5); return short ? t('capSecShort', v) : tn('capSec', v); }
+  const m = Math.max(1, Math.round(s / 60));
+  return short ? t('capMinShort', m) : tn('capMin', m);
+}
+// The tabs a capture card is about. `scoped`: only what the view shows (the toolbar button); else every tab.
+function capPlan(scoped) {
+  if (!state.hostOk) return null;
+  const pool = scoped ? state.sections.flatMap((x) => x.entries).filter((e) => e.kind === 'tab').map((e) => e.tab) : state.tabs;
+  const order = new Map(state.tabs.map((x, i) => [x.id, i])); // most recently used first
+  const bare = pool.filter((x) => !x.active && !state.previews[x.id]);
+  const todo = bare.filter(canCapture).sort((x, y) => order.get(x.id) - order.get(y.id));
+  const sleeping = bare.filter((x) => x.discarded).length;
+  const refused = bare.filter((x) => !x.discarded && !canCapture(x)).length;
+  return { todo, sleeping, refused, wins: new Set(todo.map((x) => x.windowId)).size, here: todo.filter((x) => x.windowId === CTX.srcWin) };
+}
+// More than half of the open tabs Tabatha could capture have no preview (an updater gets the card then).
+function mostlyBare() {
+  const can = state.tabs.filter((x) => !x.active && canCapture(x));
+  return can.length > 0 && can.filter((x) => !state.previews[x.id]).length * 2 > can.length;
+}
+// Shows the card. `walk` (first run and updates only): the walkthrough to start after "Later", or after the run
+// once Tabatha has reopened ('' = all of it, a version = what changed since). Returns false when there is nothing to offer.
+function offerCapture({ scoped = false, first = false, walk = null } = {}) {
+  const plan = capPlan(scoped);
+  if (!plan || !plan.todo.length) return false;
+  const n = plan.todo.length, w = plan.wins;
+  const answered = () => (first ? updateOnboard({ cap: VERSION }).catch(() => {}) : Promise.resolve());
+  const later = async () => { await answered(); closeDialog(); if (walk !== null) startWalk(walk); };
+  const go = (tabs) => async () => { await answered(); runCapture(tabs.map((x) => x.id), { scoped, walk }); };
+  let head, body;
+  const btns = [];
+  if (n <= 10) {
+    head = t('capH1', tabsNoun(n)); body = t('capB1', capTime(n));
+    btns.push([t('capThem'), go(plan.todo)]);
+  } else if (n <= 40) {
+    head = w > 1 ? t('capH2', tabsNoun(n), tn('capWins', w)) : t('capH1', tabsNoun(n)); body = t('capB2', capTime(n));
+    btns.push([t('capAll'), go(plan.todo)]);
+  } else if (n <= 100) {
+    head = w > 1 ? t('capH3', tabsNoun(n), tn('capWins', w)) : t('capH3One', tabsNoun(n)); body = t('capB3', capTime(n));
+    btns.push([t('capAllTime', capTime(n, true)), go(plan.todo)]);
+    if (w > 1 && plan.here.length && plan.here.length * 2 < n) btns.push([t('capHere', plan.here.length), go(plan.here)]);
+  } else {
+    head = t(n <= 300 ? 'capH4' : 'capH5', tabsNoun(n)); body = t(n <= 300 ? 'capB4' : 'capB5', capTime(n), RECENT_FIRST);
+    btns.push([t('capRecent', RECENT_FIRST, capTime(RECENT_FIRST, true)), go(plan.todo.slice(0, RECENT_FIRST))]);
+    btns.push([t('capAllN', n, capTime(n, true)), go(plan.todo)]);
+  }
+  const title = h('h3', '', head);
+  title.id = 'dlg-title';
+  const nodes = [title, para(body)];
+  const notes = [];
+  if (plan.sleeping) notes.push(tn('capSleeping', plan.sleeping));
+  if (plan.refused) notes.push(tn('capRefused', plan.refused));
+  if (notes.length) nodes.push(h('p', 'note', notes.join(' ')));
+  const says = h('div', 'says');
+  says.append(ybit('happy', 3));
+  const row = h('div', 'row cap');
+  btns.forEach(([label, fn], i) => row.append(button(label, i ? '' : 'primary', fn)));
+  row.append(h('span', 'grow'), button(t('later'), 'quiet', later));
+  state.capLater = later;
+  showDialog('cap', [...nodes, says, row]);
   return true;
+}
+// The existing capture run (lib/sweep.js): Tabatha steps aside, the progress card with Stop shows, and
+// Tabatha opens again where it was (same window, filter and search), in either mode.
+function runCapture(tabIds, { scoped = false, walk = null } = {}) {
+  const sel = state.entries[state.sel];
+  setResume({ query: scoped ? state.query : '', scope: scoped ? state.scope : 'all', starred: scoped && state.starOnly, key: sel ? sel.key : null, walk, ttl: 20000 + tabIds.length * 4000 }).catch(() => {});
+  asking = true; // the progress window takes focus: that is not the user leaving
+  chrome.runtime.sendMessage({ type: MSG.SWEEP, tabIds, reopen: CTX.srcTab })
+    .then((r) => { asking = false; if (r && r.n) finish('switch'); else { takeResume().catch(() => {}); closeDialog(); toast(t('sweepNothing')); } })
+    .catch(() => { asking = false; closeDialog(); toast(t('actFailed')); });
 }
 
 // ---- "How is Tabatha working for you?": two steps, at most twice (lib/review.js has the timing).
@@ -2042,11 +2162,10 @@ function missingPreviews() {
 }
 function updateSweepButton() {
   const n = missingPreviews().length;
-  const max = LIMITS.SWEEP_MAX_TABS;
   const scoped = state.scope !== 'all' || state.starOnly || state.query;
   el.sweepBtn.hidden = !state.hostOk || n === 0;
-  el.sweepText.textContent = n > max ? tn('sweepFirst', n, max) : tn(scoped ? 'sweepThese' : 'sweepAll', n);
-  el.sweepBtn.title = t(scoped ? 'sweepTitleThese' : 'sweepTitleAll') + (n > max ? ' ' + t('sweepTitleMax', max) : '') + ' ' + t('sweepTitleOne');
+  el.sweepText.textContent = tn(scoped ? 'sweepThese' : 'sweepAll', n);
+  el.sweepBtn.title = t(scoped ? 'sweepTitleThese' : 'sweepTitleAll') + ' ' + t('sweepTitleOne');
 }
 // Chrome's error text for a failed screenshot, in plain words (null = not worth mentioning).
 function plainCaptureError(msg) {
@@ -2172,8 +2291,15 @@ async function firstRun() {
     if (!onb.flyout) updateOnboard({ flyout: true }).catch(() => {}); // opened once: the "press Alt+Q" flyout has done its job
   } catch { return; }
   el.pro.hidden = !SHOW_PRO || !onb.tour; // the waitlist button appears once the tour has been seen
-  if (!onb.tour) return whenTapMode(() => tourStep(0));
-  if (await whatsNew()) return; // that's enough for this open: no peek, no question
+  // A new install: the capture card (once), then the whole walkthrough. After "Capture" Tabatha closes for the
+  // run and opens again; onb.cap is set by then, so this open goes straight on to the walkthrough.
+  if (!onb.tour) return whenTapMode(() => { if (onb.cap || !offerCapture({ first: true, walk: '' })) startWalk(); });
+  // An update: what changed since the version it came from, once (the capture card first if most previews are missing).
+  const from = await getWnFrom().catch(() => '');
+  if (from && cmpVersion(from, VERSION) >= 0) clearWnFrom().catch(() => {}); // nothing newer to show (a downgrade, or a reload)
+  else if (from) { // that's enough for this open: no peek, no question
+    return whenTapMode(() => { if (onb.cap === VERSION || !mostlyBare() || !offerCapture({ first: true, walk: from })) startWalk(from); });
+  }
   dailyPeek();
   const plan = reviewPrompt(rv, Date.now(), { firstToday });
   if (plan === 'ask') {
@@ -2185,7 +2311,7 @@ async function firstRun() {
 // While a dialog is open it takes the keyboard: Esc closes it, the tour has arrow keys,
 // everything else (Tab, Enter, typing in the feedback box) works on the dialog itself.
 function dialogKey(e) {
-  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return state.modal === 'tour' ? endTour() : state.modal === 'news' ? closeDialog() : askLater(); }
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return state.modal === 'tour' ? endTour() : state.modal === 'cap' ? state.capLater() : askLater(); }
   if (state.modal === 'tour' && !e.altKey && !e.ctrlKey && !e.metaKey) {
     if (e.key === 'ArrowRight') { e.preventDefault(); tourAt < TOUR.length - 1 ? tourStep(tourAt + 1) : endTour(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); tourStep(tourAt - 1); }
@@ -2376,19 +2502,11 @@ function listen() {
     try { await chrome.tabs.create({ url: COFFEE_URL, windowId: CTX.srcWin, active: true }); } catch {}
     finish('switch');
   });
+  // "N without preview · Capture" opens the capture card for what the view shows.
   el.sweepBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!pointerAllowed()) return;
-    const tabIds = missingPreviews().map((x) => x.id).slice(0, LIMITS.SWEEP_MAX_TABS);
-    // Tabatha opens again when the run is over: in the same window, filter and search, not "All windows".
-    // A run takes about a second a tab, so the note lives that long (plus a margin).
-    const sel = state.entries[state.sel];
-    const reopens = CTX.mode === 'overlay'; // the popup window doesn't come back by itself: no note then
-    if (reopens) setResume({ query: state.query, scope: state.scope, starred: state.starOnly, key: sel ? sel.key : null, ttl: 20000 + tabIds.length * 4000 }).catch(() => {});
-    asking = true; // the progress window takes focus: that is not the user leaving
-    chrome.runtime.sendMessage({ type: MSG.SWEEP, tabIds, reopen: reopens ? CTX.srcTab : null })
-      .then((r) => { asking = false; if (r && r.n) finish('switch'); else { takeResume().catch(() => {}); toast(t('sweepNothing')); } })
-      .catch(() => { asking = false; toast(t('actFailed')); });
+    if (!offerCapture({ scoped: true })) toast(t('sweepNothing'));
   });
   el.starFilter.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) toggleStarFilter(); });
   $('group-by').addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) groupMenu(e.currentTarget); });
@@ -2400,7 +2518,7 @@ function listen() {
   const on = (node, fn) => node.addEventListener('click', (e) => { e.stopPropagation(); if (pointerAllowed()) fn(e); });
   on(el.helpBtn, () => openUrl(HELP_URL));
   on(el.feedbackBtn, () => openUrl(feedbackUrl()));
-  on(el.tourBtn, () => tourStep(0));
+  on(el.tourBtn, () => startWalk());
   on($('settings-btn'), (e) => openSettings(e.currentTarget));
   on(el.groupsBtn, enableGroups);
   on(el.dupesBtn, closeDupes);
@@ -2475,6 +2593,7 @@ function getLaunch() {
   // issued (e.g. a website framing it) gets an empty page and no listeners.
   CTX = await getLaunch();
   if (!CTX) return;
+  if (CTX.via === 'resume') state.holding = false; // reopened by Tabatha after a capture run: no shortcut is held
   document.documentElement.classList.add(CTX.mode);
   await loadLang();
   localizePage();
@@ -2501,6 +2620,7 @@ function getLaunch() {
   document.documentElement.classList.add('intro'); // cards pop in on the first draw only, not on every redraw
   setTimeout(() => document.documentElement.classList.remove('intro'), 500);
   render();
+  takeSwept().then((n) => { if (n !== null) toast(tn('capDone', n)); }).catch(() => {}); // back from a capture run
   if (CTX.mode === 'overlay') {
     parent.postMessage({ tabatha: FRAME_MSG.READY }, '*');
     // Chrome never confirmed the overlay as visible (the page filters or covers it): use a window instead.
@@ -2513,6 +2633,8 @@ function getLaunch() {
   window.focus();
   el.search.focus({ preventScroll: true });
   if (!resume) firstRun();
+  // Back from the capture card's run: the walkthrough it was in front of comes next.
+  else if (resume.walk === '' || (typeof resume.walk === 'string' && /^\d+(\.\d+){0,3}$/.test(resume.walk))) whenTapMode(() => startWalk(resume.walk));
   healthCheck();
   el.feedbackBtn.hidden = false;
   try {

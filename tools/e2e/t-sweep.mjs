@@ -19,6 +19,10 @@ const label = await f().$eval('#sweep-btn', (n) => (n.hidden ? '(hidden)' : n.te
 T.log('capture button offered with a count', /\d+ without preview · Capture all/.test(label), label);
 const mruBefore = await mru(); const actBefore = await active();
 await f().click('#sweep-btn');
+await b.waitForTimeout(300);
+const card = await T.capCard(b);
+T.log('the button opens the capture card first (1.3.5)', !!card && /without|tabs open|Capture them/.test(card.text + card.buttons.join()), JSON.stringify(card));
+await T.capPress(b, 0);
 await b.waitForTimeout(500);
 T.log('switcher closes when the sweep starts', !(await T.isOpen(b)));
 const popup = T.ctx.pages().find((p) => p.url().includes('sweep.html'));

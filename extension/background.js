@@ -18,7 +18,7 @@ import {
   markDiscarded, moveDiscarded, ensureBoot,
   rememberTab, rememberTabs, forgetTabMeta, logClosedTab, cleanupClosedLog,
   setOverlayTab, clearOverlayTab, createLaunch, getOnboard, updateOnboard, isCovered, addCovered,
-  updateNudge, getReview, getPrefs, updatePrefs,
+  updateNudge, getReview, getPrefs, updatePrefs, noteUpdatedFrom, setSwept,
 } from './lib/store.js';
 import { dayOf } from './lib/review.js';
 import { t, loadLang } from './lib/i18n.js';
@@ -293,6 +293,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     const [t] = await chrome.tabs.query({ active: true, lastFocusedWindow: true }).catch(() => []);
     if (t) offerFlyout(t);
   }
+  // An update: the next open walks through what changed since this version (see WALK in switcher.js).
+  if (details.reason === 'update' && details.previousVersion && details.previousVersion !== chrome.runtime.getManifest().version)
+    await noteUpdatedFrom(details.previousVersion).catch(() => {});
   // Tabs that were open before install/reload don't have the content script
   // yet. hotkey.js guards itself, so injecting twice is harmless.
   const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*', 'file://*/*'] });
@@ -597,7 +600,7 @@ async function reopenOver(tabId) {
   try {
     const tab = await chrome.tabs.get(tabId);
     opening = null;
-    await openSwitcher(1, tab);
+    await openSwitcher(1, tab, 'resume'); // no key is held: what comes next (the walkthrough) needn't wait for Alt
   } catch {}
 }
 
@@ -621,11 +624,12 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       // Answer first (how many tabs need a picture), so the switcher can say "nothing to capture"
       // instead of closing for nothing; then run, and open the switcher again over the tab it came from.
       if (!fromSwitcher(sender)) return;
-      const only = Array.isArray(msg.tabIds) ? msg.tabIds.filter(Number.isInteger).slice(0, LIMITS.SWEEP_MAX_TABS) : null;
+      const only = Array.isArray(msg.tabIds) ? msg.tabIds.filter(Number.isInteger).slice(0, LIMITS.SWEEP_MAX_IDS) : null;
       sweepJobs({ only }).then((jobs) => {
         respond({ n: jobs.length });
         if (!jobs.length) return;
         setTimeout(() => runSweep({ only })
+          .then((n) => setSwept(n).catch(() => {}))
           .then(() => reopenOver(Number.isInteger(msg.reopen) ? msg.reopen : null))
           .catch((e) => console.warn('[Tabatha] preview sweep failed:', e && e.message)), 150);
       }, () => respond({ n: 0 }));

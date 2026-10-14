@@ -8,7 +8,7 @@
 
 import { KEY, LIMITS, SWEEP_PAGE } from './constants.js';
 import { getMru, setMru, getPreview } from './store.js';
-import { captureTab } from './capture.js';
+import { captureTab, captureWaitMs } from './capture.js';
 import { isCapturableUrl } from './ext.js';
 
 const S = chrome.storage.session;
@@ -23,7 +23,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const progress = (p) => S.set({ [KEY.SWEEP]: p }).catch(() => {});
 
 // Tabs worth visiting: awake, capturable, not the one each window already shows, no recent preview.
-// `only` limits the run to these tab ids (what the switcher shows right now, or one card);
+// `only` limits the run to these tab ids (what the switcher shows right now, or one card), and its order is
+// the order of the run (most recently used first, so Stop leaves the useful ones done);
 // `force` captures them even if their preview is recent, and even the one a window shows.
 export async function sweepJobs({ only = null, force = false } = {}) {
   const wins = await chrome.windows.getAll({ populate: true, windowTypes: ['normal'] });
@@ -40,7 +41,8 @@ export async function sweepJobs({ only = null, force = false } = {}) {
       jobs.push({ windowId: w.id, tabId: t.id, url: t.url });
     }
   }
-  return jobs.slice(0, LIMITS.SWEEP_MAX_TABS);
+  if (want) { const at = new Map(only.map((id, i) => [id, i])); jobs.sort((x, y) => at.get(x.tabId) - at.get(y.tabId)); }
+  return jobs;
 }
 
 async function waitLoaded(tabId) {
@@ -81,6 +83,8 @@ export async function runSweep({ only = null, force = false, quiet = false } = {
       catch { try { win = await chrome.windows.create({ url: chrome.runtime.getURL(SWEEP_PAGE), type: 'popup', width: W, height: H, focused: true }); } catch {} }
     }
 
+    // Chrome allows about 2 captures a second. The gap is counted from the last capture (any capture, not only
+    // this run's), so the next tab loads and paints during it instead of after it: about 0.6 s a tab, not 0.85.
     for (const j of jobs) {
       if (cancelled) break;
       try {
@@ -88,11 +92,14 @@ export async function runSweep({ only = null, force = false, quiet = false } = {
         const tab = await waitLoaded(j.tabId);
         if (tab && CAPTURABLE.test(tab.url || '')) {
           await sleep(LIMITS.SWEEP_PAINT_MS);
-          await captureTab(j.windowId, tab);
+          for (let tries = 0; tries < 2; tries++) { // a capture from elsewhere can still slip in between: one more try then
+            const wait = captureWaitMs();
+            if (wait > 0) await sleep(wait + 10);
+            if ((await captureTab(j.windowId, tab)) !== 'quota') break;
+          }
         }
       } catch { /* tab closed meanwhile */ }
       await progress({ running: true, done: ++done, total: jobs.length });
-      await sleep(LIMITS.CAPTURE_GAP_MS); // Chrome allows about 2 captures a second
     }
   } finally {
     for (const tabId of originals.values()) {

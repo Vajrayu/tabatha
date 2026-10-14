@@ -260,20 +260,11 @@
  "sweepThese_other": {
   "message": "$1 sin vista previa · Capturar estas"
  },
- "sweepFirst_one": {
-  "message": "$1 sin vista previa · Capturar las primeras $2"
- },
- "sweepFirst_other": {
-  "message": "$1 sin vista previa · Capturar las primeras $2"
- },
  "sweepTitleAll": {
   "message": "Muestra cada pestaña un momento para hacerle la foto y te devuelve a donde estabas."
  },
  "sweepTitleThese": {
   "message": "Muestra cada una de estas pestañas un momento para hacerle la foto y te devuelve a donde estabas."
- },
- "sweepTitleMax": {
-  "message": "$1 cada vez."
  },
  "sweepTitleOne": {
   "message": "También puedes capturar una sola pestaña desde su tarjeta."
@@ -912,13 +903,13 @@
   "message": "Tus ventanas"
  },
  "tourWinBody": {
-  "message": "Cada ventana de Chrome, con una imagen de lo que muestra. Haz clic en una, o pulsa Alt+W, para ver solo sus pestañas."
+  "message": "Una línea por ventana, con su número de pestañas. Haz clic en una, o pulsa Alt+W, para ver solo sus pestañas."
  },
  "tourPanelTitle": {
   "message": "Grupos y marcadores"
  },
  "tourPanelBody": {
-  "message": "Tus grupos de pestañas y los marcadores de Chrome están en este panel. Los grupos cerrados se guardan hasta que los elimines."
+  "message": "Los grupos guardados y tus marcadores de Chrome, cada uno en su pestaña arriba de este panel. Los grupos cerrados se guardan hasta que los elimines."
  },
  "tourSetTitle": {
   "message": "Ajustes"
@@ -959,22 +950,151 @@
  "recentOlder": {
   "message": "Antes"
  },
- "whatsNewTitle": {
-  "message": "Novedades de Tabatha $1"
+ "walkViewTitle": {
+  "message": "Ordenar y agrupar"
  },
- "gotIt": {
-  "message": "Entendido"
+ "walkViewBody": {
+  "message": "Ordenar pone las pestañas en orden. Agrupar las reparte en secciones: tus grupos de pestañas, por sitio o por cuándo las usaste por última vez. Se recuerdan las dos cosas."
  },
- "wn1": {
-  "message": "Ordenar y Agrupar funcionan juntos: agrupa tus pestañas por sitio o por cuándo las usaste."
+ "walkNew": {
+  "message": "Nuevo"
  },
- "wn2": {
-  "message": "Una lista de ventanas más estrecha a la izquierda, y más sitio para las tarjetas."
+ "walkMoved": {
+  "message": "Movido"
  },
- "wn3": {
-  "message": "Cierra la pestaña en la que estás y Tabatha sigue abierta, en la de al lado."
+ "walkChanged": {
+  "message": "Cambiado"
  },
- "wn4": {
-  "message": "Capturar desde una ventana te devuelve a esa misma ventana."
+ "walkFixesTitle": {
+  "message": "También arreglado desde la última vez"
+ },
+ "walkFixesMore_one": {
+  "message": "y $1 más"
+ },
+ "walkFixesMore_other": {
+  "message": "y $1 más"
+ },
+ "fix135Dark": {
+  "message": "En páginas con modo oscuro, Tabatha se abre como ventana desde el principio."
+ },
+ "fix135Previews": {
+  "message": "Las pestañas sin vista previa se ven más claras."
+ },
+ "fix135Smooth": {
+  "message": "Va fluido con cientos de pestañas."
+ },
+ "fix134CloseHere": {
+  "message": "Cerrar la pestaña en la que estás deja Tabatha abierta."
+ },
+ "fix134Capture": {
+  "message": "Capturar vuelve a la misma ventana."
+ },
+ "fix134Clicks": {
+  "message": "Los clics funcionan en todas las páginas."
+ },
+ "fix134Frozen": {
+  "message": "Alt+Q ya no deja de funcionar en una página congelada."
+ },
+ "capTabs_one": {
+  "message": "$1 pestaña abierta"
+ },
+ "capTabs_other": {
+  "message": "$1 pestañas abiertas"
+ },
+ "capWins_one": {
+  "message": "$1 ventana"
+ },
+ "capWins_other": {
+  "message": "$1 ventanas"
+ },
+ "capSec_one": {
+  "message": "$1 segundo"
+ },
+ "capSec_other": {
+  "message": "$1 segundos"
+ },
+ "capMin_one": {
+  "message": "$1 minuto"
+ },
+ "capMin_other": {
+  "message": "$1 minutos"
+ },
+ "capSecShort": {
+  "message": "~$1 s"
+ },
+ "capMinShort": {
+  "message": "~$1 min"
+ },
+ "capH1": {
+  "message": "Tienes $1."
+ },
+ "capH2": {
+  "message": "Tienes $1 en $2."
+ },
+ "capH3": {
+  "message": "$1 en $2. Una colección saludable."
+ },
+ "capH3One": {
+  "message": "$1. Una colección saludable."
+ },
+ "capH4": {
+  "message": "$1. Respeto."
+ },
+ "capH5": {
+  "message": "$1. He visto navegadores rendirse por menos."
+ },
+ "capB1": {
+  "message": "Dame cerca de $1 y todas tendrán vista previa."
+ },
+ "capB2": {
+  "message": "Cerca de $1 para tener una vista previa de cada una. Las recorreré una vez; mientras tanto, no toques Chrome."
+ },
+ "capB3": {
+  "message": "Cerca de $1 pasando pestañas, y puedes parar cuando quieras."
+ },
+ "capB4": {
+  "message": "Todas llevarían cerca de $1. Yo empezaría por las $2 que usaste por última vez; las demás tendrán vista previa cuando las visites."
+ },
+ "capB5": {
+  "message": "Todas llevarían cerca de $1. Empecemos por las $2 que usaste por última vez; las demás se irán completando."
+ },
+ "capThem": {
+  "message": "Capturarlas"
+ },
+ "capAll": {
+  "message": "Capturar todas"
+ },
+ "capAllTime": {
+  "message": "Capturar todas · $1"
+ },
+ "capHere": {
+  "message": "Solo esta ventana ($1)"
+ },
+ "capRecent": {
+  "message": "Las $1 más recientes · $2"
+ },
+ "capAllN": {
+  "message": "Todas ($1) · $2"
+ },
+ "later": {
+  "message": "Más tarde"
+ },
+ "capSleeping_one": {
+  "message": "$1 pestaña dormida sigue dormida (mostrarla la despertaría)."
+ },
+ "capSleeping_other": {
+  "message": "$1 pestañas dormidas siguen dormidas (mostrarlas las despertaría)."
+ },
+ "capRefused_one": {
+  "message": "$1 página que Chrome no me deja fotografiar (como la Web Store)."
+ },
+ "capRefused_other": {
+  "message": "$1 páginas que Chrome no me deja fotografiar (como la Web Store)."
+ },
+ "capDone_one": {
+  "message": "Listo: $1 vista previa."
+ },
+ "capDone_other": {
+  "message": "Listo: $1 vistas previas."
  }
 }

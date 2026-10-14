@@ -11,7 +11,7 @@
 // behaviour.
 
 import { KEY, LIMITS, previewKey, tabMetaKey, PREVIEW_PREFIX, WINDOW_STATES, MODES } from './constants.js';
-import { normalizeUrl, isWorthReopening } from './ext.js';
+import { normalizeUrl, isWorthReopening, cmpVersion } from './ext.js';
 import { emptyReview } from './review.js';
 
 const S = chrome.storage.session;
@@ -345,7 +345,8 @@ export function updateReview(change) {
 // ---------- first-run flags (storage.local) ----------
 export async function getOnboard() {
   const v = (await L.get(KEY.ONBOARD))[KEY.ONBOARD];
-  return { at: v && isTime(v.at) ? v.at : 0, flyout: !!(v && v.flyout), tour: !!(v && v.tour) };
+  // cap: the Tabatha version in which the "capture previews" card was answered ('' = not yet)
+  return { at: v && isTime(v.at) ? v.at : 0, flyout: !!(v && v.flyout), tour: !!(v && v.tour), cap: v && typeof v.cap === 'string' ? v.cap.slice(0, 20) : '' };
 }
 export function updateOnboard(patch) {
   return withLock('onboard', async () => {
@@ -353,6 +354,31 @@ export function updateOnboard(patch) {
     await L.set({ [KEY.ONBOARD]: next });
     return next;
   });
+}
+
+// ---------- the update walkthrough (storage.local) ----------
+// The version Tabatha was updated from, kept until the walkthrough for it has been shown. If Chrome
+// updates Tabatha twice before it is opened, the older version is kept, so nothing is skipped.
+const isVersion = (v) => typeof v === 'string' && /^\d+(\.\d+){0,3}$/.test(v);
+export async function getWnFrom() {
+  const v = (await L.get(KEY.WN_FROM))[KEY.WN_FROM];
+  return isVersion(v) ? v : '';
+}
+export function noteUpdatedFrom(prev) {
+  return withLock('wnfrom', async () => {
+    if (!isVersion(prev)) return;
+    const cur = await getWnFrom();
+    if (!cur || cmpVersion(prev, cur) < 0) await L.set({ [KEY.WN_FROM]: prev });
+  });
+}
+export const clearWnFrom = () => L.remove(KEY.WN_FROM);
+
+// How many previews the last capture run took: the switcher that reopens afterwards says "Done: N previews." once.
+export const setSwept = (n) => S.set({ [KEY.SWEPT]: { n: Math.max(0, n | 0), t: Date.now() } });
+export async function takeSwept() {
+  const v = (await S.get(KEY.SWEPT))[KEY.SWEPT];
+  await S.remove(KEY.SWEPT);
+  return v && Number.isInteger(v.n) && isTime(v.t) && Date.now() - v.t < 60 * 1000 ? v.n : null;
 }
 
 // ---------- stars (storage.local) ----------
@@ -534,7 +560,7 @@ export function consumeLaunch(token) {
       srcState: WINDOW_STATES.includes(c.state) ? c.state : 'normal',
       dir: c.dir === -1 ? -1 : 1,
       mode: MODES.includes(c.mode) ? c.mode : 'window',
-      via: ['key', 'icon', 'startup'].includes(c.via) ? c.via : 'key', // how it was opened
+      via: ['key', 'icon', 'startup', 'resume'].includes(c.via) ? c.via : 'key', // how it was opened ('resume': by Tabatha itself, after a capture run)
     });
   });
 }

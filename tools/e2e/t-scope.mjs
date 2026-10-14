@@ -33,6 +33,8 @@ const scopeLabel = await f().$eval('#wins .win[aria-pressed="true"] .wlabel', (x
 const sweep = await f().$eval('#sweep-btn', (x) => (x.hidden ? '' : document.getElementById('sweep-text').textContent.trim()));
 T.log('a window is chosen and Capture is offered there', scopeLabel !== 'All windows' && !!sweep, `${scopeLabel} / ${sweep}`);
 await f().locator('#sweep-btn').evaluate((b) => b.click());
+await a.waitForTimeout(300);
+await T.capPress(a, 0); // the capture card (1.3.5): its first button
 await a.waitForTimeout(700);
 T.log('…the capture really runs (Tabatha steps aside for it)', !(await T.isOpen(a)));
 await ev(() => new Promise((r) => setTimeout(r, 9000)));

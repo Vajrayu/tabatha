@@ -305,6 +305,16 @@ section { max-width: 1640px; margin: 0 auto; }
 .nopreview .label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); }
 .nopreview .sub { font-size: 11.5px; color: var(--fg-3); max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .small .nopreview .sub { display: none; }
+/* Awake tabs with no screenshot yet (expected, not a fault): the site's icon large on a tint made from the
+   site's name, and the page title. */
+.nopreview.soft { gap: 8px; background: linear-gradient(160deg, hsl(var(--hue) 34% 26%), hsl(var(--hue) 30% 15%)); }
+.nopreview.soft img.big { width: 44px; height: 44px; border-radius: 10px; filter: drop-shadow(0 3px 8px rgba(0,0,0,.35)); }
+.small .nopreview.soft img.big { width: 30px; height: 30px; }
+.nopreview.soft .ptitle {
+  max-width: 92%; font-size: 12.5px; font-weight: 600; line-height: 1.3; color: rgba(255,255,255,.88);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.small .nopreview.soft .ptitle { -webkit-line-clamp: 1; font-size: 11.5px; }
 /* Awake tabs with no screenshot yet: plain, full-colour favicon (not asleep). */
 .card:not(.asleep) .nopreview .tile img { filter: none; opacity: 1; }
 /* Sleeping (unloaded by Chrome, tab.discarded): faded, with a dashed ring
@@ -430,6 +440,9 @@ html.window .foot { left: 22px; bottom: 16px; }
 }
 .dialog textarea:focus { outline: 0; border-color: rgba(255,255,255,.45); }
 .dialog .note { font-size: 12px; color: var(--fg-3); }
+.dialog h3 .mark { margin-left: 10px; padding: 2px 8px; border-radius: 10px; vertical-align: 3px; font-size: 11px; font-weight: 650; letter-spacing: .02em; color: #1B2A4A; background: #FFD166; }
+.dialog .news li.more { list-style: none; margin-left: -18px; color: var(--fg-3); }
+.dialog .row.cap { gap: 8px; }
 .row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 .row .grow { flex: 1; }
 .btn { border: 1px solid var(--line); background: var(--fill); color: var(--fg); padding: 8px 14px; border-radius: 8px; font-size: 13.5px; cursor: pointer; }

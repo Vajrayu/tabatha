@@ -97,7 +97,8 @@ const sweepShown = !(await f().$eval('#sweep-btn', (n) => n.hidden));
 T.log('with every tab captured there is no Capture button', !sweepShown);
 await ev(async (u) => { await chrome.tabs.create({ url: u, active: false }); }, T.url('t1'));
 await a.keyboard.press('Escape'); await a.waitForTimeout(300); await T.tap(a); await a.waitForTimeout(300);
-await f().click('#sweep-btn'); await a.waitForTimeout(500);
+await f().click('#sweep-btn'); await a.waitForTimeout(300);
+await T.capPress(a, 0); await a.waitForTimeout(500); // the capture card (1.3.5): its first button
 T.log('Capture closes Tabatha while it works', !(await T.isOpen(a)));
 await a.waitForTimeout(4500);
 T.log('…and opens it again when done', await T.isOpen(a));

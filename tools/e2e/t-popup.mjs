@@ -18,7 +18,10 @@ async function openWindowMode() {
 }
 let page = await openWindowMode();
 T.log('popup mode renders cards', (await page.$$eval('#open-grid .card', (x) => x.length)) === 3);
-T.log('first-run tour shows in popup mode too', !(await page.$eval('#modal', (n) => n.hidden)));
+// 1.3.5: a new install sees the capture card first (two tabs without a preview); Later goes on to the tour.
+T.log('the capture card comes first, in popup mode too', !!(await page.$('#dialog .row.cap')));
+await page.evaluate(() => [...document.querySelectorAll('#dialog .row.cap .btn')].find((b) => b.textContent === 'Later').click()); await page.waitForTimeout(300);
+T.log('first-run tour shows in popup mode too', !(await page.$eval('#modal', (n) => n.hidden)) && !(await page.$('#dialog .row.cap')));
 await page.keyboard.press('ArrowRight'); await page.waitForTimeout(150);
 T.log('arrow keys step the tour', (await page.$eval('#dlg-title', (n) => n.textContent)) === 'Move');
 await page.keyboard.press('Escape'); await page.waitForTimeout(250);
@@ -26,7 +29,9 @@ T.log('Esc ends the tour', await page.$eval('#modal', (n) => n.hidden));
 T.log('health check ran: no alert', await page.$eval('#alert', (n) => n.hidden));
 const label = await page.$eval('#sweep-btn', (n) => (n.hidden ? '' : n.textContent));
 T.log('capture button offered', /\d+ without preview · Capture all/.test(label), label);
-await page.click('#sweep-btn'); await T.sw.evaluate(() => new Promise((r) => setTimeout(r, 6000)));
+await page.click('#sweep-btn'); await page.waitForTimeout(300);
+await page.evaluate(() => document.querySelector('#dialog .row.cap .btn').click()); // the capture card's first button
+await T.sw.evaluate(() => new Promise((r) => setTimeout(r, 6000)));
 const idx = await T.sw.evaluate(() => chrome.storage.local.get('pvidx').then((o) => Object.keys(o.pvidx || {}).map((u) => u.split('/').pop())));
 T.log('sweep from popup mode captured the background tabs', idx.includes('beta.html') && idx.includes('gamma.html'), idx.join());
 await T.close();

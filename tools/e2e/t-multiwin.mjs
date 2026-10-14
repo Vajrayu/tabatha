@@ -25,6 +25,8 @@ await a.keyboard.down('Alt'); await a.keyboard.press('KeyW'); await a.keyboard.u
 const label = await sweepLabel();
 T.log('capture button counts tabs in both windows', /^4 without preview · Capture all/.test(label), label);
 await f().click('#sweep-btn');
+await a.waitForTimeout(300);
+await T.capPress(a, 0); // the capture card (1.3.5): its first button captures them all
 await wait(9000);
 const after = await actives();
 T.log('each window is back on the tab it showed', JSON.stringify(before) === JSON.stringify(after), JSON.stringify([before, after]));

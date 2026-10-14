@@ -260,20 +260,11 @@
  "sweepThese_other": {
   "message": "$1 without preview · Capture these"
  },
- "sweepFirst_one": {
-  "message": "$1 without preview · Capture first $2"
- },
- "sweepFirst_other": {
-  "message": "$1 without preview · Capture first $2"
- },
  "sweepTitleAll": {
   "message": "Shows each of your tabs for a moment to take its picture, then puts you back where you were."
  },
  "sweepTitleThese": {
   "message": "Shows each of these tabs for a moment to take its picture, then puts you back where you were."
- },
- "sweepTitleMax": {
-  "message": "$1 at a time."
  },
  "sweepTitleOne": {
   "message": "You can also capture one tab from its card."
@@ -912,13 +903,13 @@
   "message": "Your windows"
  },
  "tourWinBody": {
-  "message": "Each Chrome window, with a picture of what it shows. Click one, or press Alt+W, to see only its tabs."
+  "message": "One line per window, with its tab count. Click one, or press Alt+W, to see only its tabs."
  },
  "tourPanelTitle": {
   "message": "Groups and bookmarks"
  },
  "tourPanelBody": {
-  "message": "Your tab groups and Chrome bookmarks live in this panel. Closed groups stay saved until you delete them."
+  "message": "Saved groups and your Chrome bookmarks, a tab each at the top of this panel. Closed groups stay saved until you delete them."
  },
  "tourSetTitle": {
   "message": "Settings"
@@ -959,22 +950,151 @@
  "recentOlder": {
   "message": "Older"
  },
- "whatsNewTitle": {
-  "message": "What’s new in Tabatha $1"
+ "walkViewTitle": {
+  "message": "Sort and group"
  },
- "gotIt": {
-  "message": "Got it"
+ "walkViewBody": {
+  "message": "Sort puts the tabs in order. Group puts them into sections: your tab groups, by site, or by when you last used them. Both are remembered."
  },
- "wn1": {
-  "message": "Sort and Group work together: group your tabs by site or by when you last used them."
+ "walkNew": {
+  "message": "New"
  },
- "wn2": {
-  "message": "A slimmer window list on the left, so the cards get more room."
+ "walkMoved": {
+  "message": "Moved"
  },
- "wn3": {
-  "message": "Close the tab you’re on and Tabatha stays open, on the tab next to it."
+ "walkChanged": {
+  "message": "Changed"
  },
- "wn4": {
-  "message": "Capture from one window comes back to that window."
+ "walkFixesTitle": {
+  "message": "Also fixed since you last looked"
+ },
+ "walkFixesMore_one": {
+  "message": "and $1 more"
+ },
+ "walkFixesMore_other": {
+  "message": "and $1 more"
+ },
+ "fix135Dark": {
+  "message": "On dark-mode pages, Tabatha opens as a window straight away."
+ },
+ "fix135Previews": {
+  "message": "Tabs without a preview yet look clearer."
+ },
+ "fix135Smooth": {
+  "message": "Smooth with hundreds of tabs."
+ },
+ "fix134CloseHere": {
+  "message": "Closing the tab you’re on keeps Tabatha open."
+ },
+ "fix134Capture": {
+  "message": "Capture comes back to the same window."
+ },
+ "fix134Clicks": {
+  "message": "Clicks work on every page."
+ },
+ "fix134Frozen": {
+  "message": "Alt+Q no longer goes dead on a frozen page."
+ },
+ "capTabs_one": {
+  "message": "$1 tab"
+ },
+ "capTabs_other": {
+  "message": "$1 tabs"
+ },
+ "capWins_one": {
+  "message": "$1 window"
+ },
+ "capWins_other": {
+  "message": "$1 windows"
+ },
+ "capSec_one": {
+  "message": "$1 second"
+ },
+ "capSec_other": {
+  "message": "$1 seconds"
+ },
+ "capMin_one": {
+  "message": "$1 minute"
+ },
+ "capMin_other": {
+  "message": "$1 minutes"
+ },
+ "capSecShort": {
+  "message": "~$1 s"
+ },
+ "capMinShort": {
+  "message": "~$1 min"
+ },
+ "capH1": {
+  "message": "You have $1 open."
+ },
+ "capH2": {
+  "message": "You have $1 open in $2."
+ },
+ "capH3": {
+  "message": "$1 in $2. A healthy collection."
+ },
+ "capH3One": {
+  "message": "$1. A healthy collection."
+ },
+ "capH4": {
+  "message": "$1. Respect."
+ },
+ "capH5": {
+  "message": "$1. I’ve seen browsers give up for less."
+ },
+ "capB1": {
+  "message": "Give me about $1 and they’ll all have previews."
+ },
+ "capB2": {
+  "message": "About $1 to get a preview for each. I’ll flip through them once; hands off Chrome meanwhile."
+ },
+ "capB3": {
+  "message": "About $1 of flipping, and you can stop any time."
+ },
+ "capB4": {
+  "message": "All of them takes about $1. I’d start with the $2 you used last; the rest get previews as you visit them."
+ },
+ "capB5": {
+  "message": "All of them would take about $1. Let’s start with the $2 you used last; the others fill in as you go."
+ },
+ "capThem": {
+  "message": "Capture them"
+ },
+ "capAll": {
+  "message": "Capture all"
+ },
+ "capAllTime": {
+  "message": "Capture all · $1"
+ },
+ "capHere": {
+  "message": "Just this window ($1)"
+ },
+ "capRecent": {
+  "message": "Your $1 most recent · $2"
+ },
+ "capAllN": {
+  "message": "All $1 · $2"
+ },
+ "later": {
+  "message": "Later"
+ },
+ "capSleeping_one": {
+  "message": "$1 sleeping tab stays asleep (showing it would wake it)."
+ },
+ "capSleeping_other": {
+  "message": "$1 sleeping tabs stay asleep (showing them would wake them)."
+ },
+ "capRefused_one": {
+  "message": "$1 page Chrome won’t let me photograph (like the Web Store)."
+ },
+ "capRefused_other": {
+  "message": "$1 pages Chrome won’t let me photograph (like the Web Store)."
+ },
+ "capDone_one": {
+  "message": "Done: $1 preview."
+ },
+ "capDone_other": {
+  "message": "Done: $1 previews."
  }
 }

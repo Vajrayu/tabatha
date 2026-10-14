@@ -46,8 +46,12 @@ export async function captureWindow(windowId, { force = false } = {}) {
   return captureTab(windowId, tab);
 }
 
+// How long until Chrome allows the next screenshot (about 2 a second, counted over every capture this worker makes).
+export const captureWaitMs = () => Math.max(0, lastCaptureAt + LIMITS.CAPTURE_GAP_MS - Date.now());
+
 // Screenshot the visible tab of `windowId` (which must be `tab`) and store it.
 // Every outcome is noted (storage.session) so the switcher can say why a preview is missing.
+// Resolves to 'quota' when Chrome refused because captures came too fast (worth one more try).
 export async function captureTab(windowId, tab) {
   lastCaptureAt = Date.now();
   let dataUrl;
@@ -56,7 +60,9 @@ export async function captureTab(windowId, tab) {
   } catch (e) {
     // chrome:// pages, the Web Store and the PDF viewer can't be captured; so can nothing at all if
     // Chrome withholds the extension's site access ("On click" in chrome://extensions).
-    return noteCapture('error', String((e && e.message) || e).slice(0, 200), tab.url);
+    const msg = String((e && e.message) || e).slice(0, 200);
+    await noteCapture('error', msg, tab.url);
+    return /MAX_CAPTURE|quota/i.test(msg) ? 'quota' : undefined;
   }
 
   // The user may have switched tabs or navigated while the capture was in flight.

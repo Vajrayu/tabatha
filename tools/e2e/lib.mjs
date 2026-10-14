@@ -33,9 +33,19 @@ export async function launch(ext, { profile, args = [], viewport = { width: 1280
   const log = (n, ok, x = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); if (!ok) process.exitCode = 1; };
   // Skip the first-run tour/flyout (they'd swallow keys): call after open().
   // …and the "What's new" card (a test that wants it removes `wnSeen`).
-  const skipFirstRun = () => sw.evaluate(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true }, wnSeen: chrome.runtime.getManifest().version }));
+  // A user who has seen everything: the walkthrough, the capture card, and no update walkthrough pending.
+  const skipFirstRun = () => sw.evaluate(async () => { await chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true, cap: chrome.runtime.getManifest().version }, wnSeen: chrome.runtime.getManifest().version }); await chrome.storage.local.remove('wnFrom'); });
+  // The capture card (1.3.5): its text, and a click on one of its buttons (0 = the first, the default).
+  const capCard = (page) => frame(page).evaluate(() => (document.getElementById('modal').hidden || !document.querySelector('#dialog .row.cap') ? null
+    : { text: document.getElementById('dialog').textContent, buttons: [...document.querySelectorAll('#dialog .row.cap .btn')].map((b) => b.textContent) }));
+  const capPress = (page, label) => frame(page).evaluate((label) => {
+    const bs = [...document.querySelectorAll('#dialog .row.cap .btn')];
+    const b = typeof label === 'number' ? bs[label] : bs.find((x) => x.textContent === label);
+    if (b) b.click();
+    return !!b;
+  }, label);
   const close = async () => { await ctx.close(); srv.close(); };
-  return { ctx, sw, url, open, frame, isOpen, tap, log, skipFirstRun, close, port };
+  return { ctx, sw, url, open, frame, isOpen, tap, log, skipFirstRun, capCard, capPress, close, port };
 }
 
 // A copy of the extension with optional permissions made normal ones (Playwright can't click Chrome's permission prompt).
