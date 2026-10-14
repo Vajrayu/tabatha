@@ -2343,7 +2343,7 @@ function onKeyDown(e) {
   // Typing in any field other than the search box (a group name, a bookmark, Settings), or pressing a
   // button in the panel, a card or a menu: the key belongs to that field or button, not to the switcher.
   const target = e.target instanceof Element ? e.target : null;
-  const own = target && target.closest('#panel, .pop, .menu');
+  const own = target && target.closest('#panel, .pop, .menu, .promo'); // .promo: the Pro and coffee buttons
   if (target && target !== el.search && target.matches('input, select, textarea')) {
     if (e.key === 'Escape') {
       e.preventDefault(); e.stopPropagation();
@@ -2542,7 +2542,7 @@ function listen() {
   for (const b of el.panel.querySelectorAll('.ptab')) on(b, () => { state.ptab = b.dataset.ptab; updateView({ ptab: state.ptab }).catch(() => {}); renderPanel(); });
   // Clicking empty space (not a card, chip, button, panel, dialog or the search box) cancels.
   el.app.addEventListener('click', (e) => {
-    if (!e.target.closest('.card, .chip, button, .search, .modal-back, .foot, .tools, .panel, .acts, .corner, .toast, .wins')) finish('cancel');
+    if (!e.target.closest('.card, .chip, button, .search, .modal-back, .foot, .tools, .panel, .acts, .promo, .toast, .wins')) finish('cancel');
   });
   window.addEventListener('mousemove', (e) => {
     state.mouseReady = true;

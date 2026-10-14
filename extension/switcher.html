@@ -17,8 +17,15 @@
         <input id="search" type="search" data-i18n-placeholder="searchPlaceholder" data-i18n-aria="searchAria" autocomplete="off" spellcheck="false" aria-controls="open-grid closed-grid">
         <span id="count" class="count" aria-live="polite"></span>
       </label>
-      <div class="hint" aria-hidden="true">
-        <kbd>←</kbd><kbd>→</kbd> <span data-i18n="hintMove">move</span> · <kbd>Enter</kbd> <span data-i18n="hintOpen">open</span> · <kbd data-mac="⌘⌫">Del</kbd> <span data-i18n="hintClose">close tab</span> · <kbd data-mac="⌥S">Alt+S</kbd> <span data-i18n="hintStar">star</span> · <kbd>Esc</kbd> <span data-i18n="hintExit">exit</span><span id="hint-win" hidden> · <kbd data-mac="⌥W">Alt+W</kbd> <span data-i18n="hintWindow">window</span></span>
+      <div class="promo">
+        <span id="peek" class="ybit-clip" aria-hidden="true"><span class="ybit-peek"></span></span>
+        <button id="pro" class="pixbtn pro" type="button" hidden data-i18n-title="proTitle" data-i18n-aria="proBtn">
+        <svg viewBox="0 0 12 12" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><g fill="#1B2A4A"><rect x="5" y="0" width="2" height="2"/><rect x="4" y="2" width="4" height="2"/><rect x="0" y="4" width="12" height="2"/><rect x="2" y="6" width="8" height="2"/><rect x="2" y="8" width="3" height="2"/><rect x="7" y="8" width="3" height="2"/><rect x="1" y="10" width="2" height="2"/><rect x="9" y="10" width="2" height="2"/></g></svg>
+        <span class="full" data-i18n="proBtn">Pro · join the waitlist</span><span class="short" aria-hidden="true">Pro</span>
+      </button>
+        <button id="coffee" class="pixbtn coffee" type="button" data-i18n-title="coffeeTitle" data-i18n-aria="coffee">
+        <svg viewBox="0 0 12 12" width="18" height="18" shape-rendering="crispEdges" aria-hidden="true"><g fill="#1B2A4A"><rect x="3" y="0" width="1" height="2"/><rect x="4" y="2" width="1" height="1"/><rect x="6" y="0" width="1" height="2"/><rect x="7" y="2" width="1" height="1"/><rect x="1" y="4" width="8" height="1"/><rect x="1" y="5" width="1" height="5"/><rect x="8" y="5" width="1" height="5"/><rect x="2" y="10" width="6" height="1"/><rect x="9" y="5" width="2" height="1"/><rect x="10" y="6" width="1" height="2"/><rect x="9" y="8" width="2" height="1"/></g><rect x="2" y="5" width="6" height="2" fill="#7A4E2D"/><rect x="2" y="7" width="6" height="3" fill="#FFF8E7"/><rect x="2" y="7" width="2" height="1" fill="#FF9EC7"/></svg>
+      </button>
       </div>
     </header>
 
@@ -105,15 +112,8 @@
       <button id="help-btn" class="link" type="button" data-i18n="help" data-i18n-title="helpTitle">Help</button>
       <button id="feedback-btn" class="link" type="button" data-i18n="feedback" hidden>Feedback</button>
     </div>
-    <div class="corner">
-      <span id="peek" class="ybit-clip" aria-hidden="true"><span class="ybit-peek"></span></span>
-      <button id="pro" class="pixbtn pro" type="button" hidden data-i18n-title="proTitle">
-        <svg viewBox="0 0 12 12" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><g fill="#1B2A4A"><rect x="5" y="0" width="2" height="2"/><rect x="4" y="2" width="4" height="2"/><rect x="0" y="4" width="12" height="2"/><rect x="2" y="6" width="8" height="2"/><rect x="2" y="8" width="3" height="2"/><rect x="7" y="8" width="3" height="2"/><rect x="1" y="10" width="2" height="2"/><rect x="9" y="10" width="2" height="2"/></g></svg>
-        <span data-i18n="proBtn">Pro · join the waitlist</span>
-      </button>
-      <button id="coffee" class="pixbtn coffee" type="button" data-i18n-title="coffeeTitle">
-        <svg viewBox="0 0 12 12" width="18" height="18" shape-rendering="crispEdges" aria-hidden="true"><g fill="#1B2A4A"><rect x="3" y="0" width="1" height="2"/><rect x="4" y="2" width="1" height="1"/><rect x="6" y="0" width="1" height="2"/><rect x="7" y="2" width="1" height="1"/><rect x="1" y="4" width="8" height="1"/><rect x="1" y="5" width="1" height="5"/><rect x="8" y="5" width="1" height="5"/><rect x="2" y="10" width="6" height="1"/><rect x="9" y="5" width="2" height="1"/><rect x="10" y="6" width="1" height="2"/><rect x="9" y="8" width="2" height="1"/></g><rect x="2" y="5" width="6" height="2" fill="#7A4E2D"/><rect x="2" y="7" width="6" height="3" fill="#FFF8E7"/><rect x="2" y="7" width="2" height="1" fill="#FF9EC7"/></svg><span data-i18n="coffee">Buy me a coffee</span>
-      </button>
+    <div class="foot-hint hint" aria-hidden="true">
+        <kbd>←</kbd><kbd>→</kbd> <span data-i18n="hintMove">move</span> · <kbd>Enter</kbd> <span data-i18n="hintOpen">open</span> · <kbd data-mac="⌘⌫">Del</kbd> <span data-i18n="hintClose">close tab</span> · <kbd data-mac="⌥S">Alt+S</kbd> <span data-i18n="hintStar">star</span> · <kbd>Esc</kbd> <span data-i18n="hintExit">exit</span><span id="hint-win" hidden> · <kbd data-mac="⌥W">Alt+W</kbd> <span data-i18n="hintWindow">window</span></span>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     <div id="modal" class="modal-back" hidden>

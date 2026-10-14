@@ -17,6 +17,7 @@ _On top of 1.3.4 (live 13 Oct 2026). No new permissions. New notes kept on the c
 - **Toolbar split:** what you see (Starred, sort, Group) on the left; things to do (duplicates, capture, the panel) on the right.
 - **The window list is a slim side navbar:** one line per window with its tab count, the chosen one marked with an amber bar; icons only on a very narrow window.
 - **The panel's "Saved groups" and "Bookmarks" are tabs, not buttons.**
+- **The Pro waitlist and Buy me a coffee buttons moved to the top right; the key hints are in the footer.** Nobody looks at the footer during a quick Alt+Q. The coffee is an icon now, and on narrow windows Pro shortens to "Pro". Y-bit's daily peek comes from under the Pro button.
 - **New installs open Tabatha when Chrome starts** (Settings can turn it off). Existing users keep their setting.
 
 ## Faster and clickable on dark-mode pages
