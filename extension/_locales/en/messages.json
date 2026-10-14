@@ -1091,6 +1091,12 @@
  "capRefused_other": {
   "message": "$1 pages Chrome won’t let me photograph (like the Web Store)."
  },
+ "capNoPrev_one": {
+  "message": "$1 of them has no preview yet."
+ },
+ "capNoPrev_other": {
+  "message": "$1 of them have no preview yet."
+ },
  "capDone_one": {
   "message": "Done: $1 preview."
  },

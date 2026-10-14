@@ -1277,6 +1277,18 @@
  "capRefused_other": {
   "message": "$1 страницы Chrome не даёт мне сфотографировать (например, Web Store)."
  },
+ "capNoPrev_one": {
+  "message": "У $1 из них пока нет превью."
+ },
+ "capNoPrev_few": {
+  "message": "У $1 из них пока нет превью."
+ },
+ "capNoPrev_many": {
+  "message": "У $1 из них пока нет превью."
+ },
+ "capNoPrev_other": {
+  "message": "У $1 из них пока нет превью."
+ },
  "capDone_one": {
   "message": "Готово: $1 превью."
  },

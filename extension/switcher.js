@@ -2035,7 +2035,8 @@ function capPlan(scoped) {
   const todo = bare.filter(canCapture).sort((x, y) => order.get(x.id) - order.get(y.id));
   const sleeping = bare.filter((x) => x.discarded).length;
   const refused = bare.filter((x) => !x.discarded && !canCapture(x)).length;
-  return { todo, sleeping, refused, wins: new Set(todo.map((x) => x.windowId)).size, here: todo.filter((x) => x.windowId === CTX.srcWin) };
+  // total/wins: every tab the card is about (with or without a preview), for the heading; the tier follows todo.length.
+  return { todo, sleeping, refused, total: pool.length, wins: new Set(pool.map((x) => x.windowId)).size, here: todo.filter((x) => x.windowId === CTX.srcWin) };
 }
 // More than half of the open tabs Tabatha could capture have no preview (an updater gets the card then).
 function mostlyBare() {
@@ -2047,30 +2048,30 @@ function mostlyBare() {
 function offerCapture({ scoped = false, first = false, walk = null } = {}) {
   const plan = capPlan(scoped);
   if (!plan || !plan.todo.length) return false;
-  const n = plan.todo.length, w = plan.wins;
+  const n = plan.todo.length, w = plan.wins, all = plan.total; // n picks the tier, times and buttons; all is what the heading counts
   const answered = () => (first ? updateOnboard({ cap: VERSION }).catch(() => {}) : Promise.resolve());
   const later = async () => { await answered(); closeDialog(); if (walk !== null) startWalk(walk); };
   const go = (tabs) => async () => { await answered(); runCapture(tabs.map((x) => x.id), { scoped, walk }); };
   let head, body;
   const btns = [];
   if (n <= 10) {
-    head = t('capH1', tabsNoun(n)); body = t('capB1', capTime(n));
+    head = t('capH1', tabsNoun(all)); body = t('capB1', capTime(n));
     btns.push([t('capThem'), go(plan.todo)]);
   } else if (n <= 40) {
-    head = w > 1 ? t('capH2', tabsNoun(n), tn('capWins', w)) : t('capH1', tabsNoun(n)); body = t('capB2', capTime(n));
+    head = w > 1 ? t('capH2', tabsNoun(all), tn('capWins', w)) : t('capH1', tabsNoun(all)); body = t('capB2', capTime(n));
     btns.push([t('capAll'), go(plan.todo)]);
   } else if (n <= 100) {
-    head = w > 1 ? t('capH3', tabsNoun(n), tn('capWins', w)) : t('capH3One', tabsNoun(n)); body = t('capB3', capTime(n));
+    head = w > 1 ? t('capH3', tabsNoun(all), tn('capWins', w)) : t('capH3One', tabsNoun(all)); body = t('capB3', capTime(n));
     btns.push([t('capAllTime', capTime(n, true)), go(plan.todo)]);
     if (w > 1 && plan.here.length && plan.here.length * 2 < n) btns.push([t('capHere', plan.here.length), go(plan.here)]);
   } else {
-    head = t(n <= 300 ? 'capH4' : 'capH5', tabsNoun(n)); body = t(n <= 300 ? 'capB4' : 'capB5', capTime(n), RECENT_FIRST);
+    head = t(n <= 300 ? 'capH4' : 'capH5', tabsNoun(all)); body = t(n <= 300 ? 'capB4' : 'capB5', capTime(n), RECENT_FIRST);
     btns.push([t('capRecent', RECENT_FIRST, capTime(RECENT_FIRST, true)), go(plan.todo.slice(0, RECENT_FIRST))]);
     btns.push([t('capAllN', n, capTime(n, true)), go(plan.todo)]);
   }
   const title = h('h3', '', head);
   title.id = 'dlg-title';
-  const nodes = [title, para(body)];
+  const nodes = [title, ...(n < all ? [h('p', 'capcount', tn('capNoPrev', n))] : []), para(body)]; // "12 of them have no preview yet." only when some already have one
   const notes = [];
   if (plan.sleeping) notes.push(tn('capSleeping', plan.sleeping));
   if (plan.refused) notes.push(tn('capRefused', plan.refused));

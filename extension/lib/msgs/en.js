@@ -364,6 +364,8 @@ export default {
 "capSleeping_other": "$1 sleeping tabs stay asleep (showing them would wake them).",
 "capRefused_one": "$1 page Chrome won’t let me photograph (like the Web Store).",
 "capRefused_other": "$1 pages Chrome won’t let me photograph (like the Web Store).",
+"capNoPrev_one": "$1 of them has no preview yet.",
+"capNoPrev_other": "$1 of them have no preview yet.",
 "capDone_one": "Done: $1 preview.",
 "capDone_other": "Done: $1 previews."
 };

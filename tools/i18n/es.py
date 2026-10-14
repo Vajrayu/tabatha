@@ -222,6 +222,7 @@ M = {
  "capSleeping_other": "$1 pestañas dormidas siguen dormidas (mostrarlas las despertaría).",
  "capRefused_one": "$1 página que Chrome no me deja fotografiar (como la Web Store).",
  "capRefused_other": "$1 páginas que Chrome no me deja fotografiar (como la Web Store).",
+ "capNoPrev_one": "$1 de ellas no tiene vista previa todavía.", "capNoPrev_other": "$1 de ellas no tienen vista previa todavía.",
  "capDone_one": "Listo: $1 vista previa.",
  "capDone_other": "Listo: $1 vistas previas.",
 }

@@ -259,6 +259,7 @@ M = {
  "capRefused_few": "$1 страницы Chrome не даёт мне сфотографировать (например, Web Store).",
  "capRefused_many": "$1 страниц Chrome не даёт мне сфотографировать (например, Web Store).",
  "capRefused_other": "$1 страницы Chrome не даёт мне сфотографировать (например, Web Store).",
+ "capNoPrev_one": "У $1 из них пока нет превью.", "capNoPrev_few": "У $1 из них пока нет превью.", "capNoPrev_many": "У $1 из них пока нет превью.", "capNoPrev_other": "У $1 из них пока нет превью.",
  "capDone_one": "Готово: $1 превью.",
  "capDone_few": "Готово: $1 превью.",
  "capDone_many": "Готово: $1 превью.",

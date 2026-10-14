@@ -37,7 +37,9 @@ await T.ctx.addInitScript((sleepy) => {
 
 await T.tap(a); await a.waitForTimeout(400);
 let card = await T.capCard(a);
-T.log('a new install\'s first open shows the capture card (before the tour)', !!card && /^You have 5 tabs open\./.test(card.text), card && card.text);
+// 8 tabs are open (this page, five visited ones, the sleeping one, chrome://version); 5 of them need a preview.
+T.log('a new install\'s first open shows the capture card (before the tour)', !!card && /^You have 8 tabs open\./.test(card.text), card && card.text);
+T.log('…the heading counts every open tab, and a line says how many have no preview yet', !!card && card.text.startsWith('You have 8 tabs open.5 of them have no preview yet.Give me about 5 seconds'), card && card.text);
 T.log('…with the 1–10 tier: "Give me about 5 seconds…", Capture them · Later', !!card && card.text.includes('Give me about 5 seconds and they’ll all have previews.') && JSON.stringify(card.buttons) === '["Capture them","Later"]', card && JSON.stringify(card.buttons));
 T.log('…counts awake, capturable tabs only, and mentions the sleeping tab and the refused page', !!card && card.text.includes('1 sleeping tab stays asleep (showing it would wake it).') && card.text.includes('1 page Chrome won’t let me photograph (like the Web Store).'), card && card.text);
 T.log('…"Capture them" is the default (focused, Enter)', (await f().evaluate(() => document.activeElement.textContent)) === 'Capture them');
@@ -78,10 +80,19 @@ T.log('shown once: no card and no walkthrough on the next open', (await title())
 // The toolbar's "N without preview · Capture" opens the same card; Later there just closes it.
 await f().evaluate(() => document.getElementById('sweep-btn').click()); await a.waitForTimeout(300);
 card = await T.capCard(a);
-T.log('the toolbar\'s Capture opens the same card', !!card && /^You have 5 tabs open\./.test(card.text), card && card.text);
+T.log('the toolbar\'s Capture opens the same card', !!card && /^You have 8 tabs open\.5 of them/.test(card.text), card && card.text);
 await a.keyboard.press('Escape'); await a.waitForTimeout(300);
 T.log('…Esc there is Later: the card closes, Tabatha stays, no walkthrough', (await T.isOpen(a)) && (await title()) === null);
 await a.keyboard.press('Escape'); await a.waitForTimeout(400);
+
+// A search that leaves only tabs without a preview: all of them need one, so no "N of them" line.
+await T.tap(a); await a.waitForTimeout(400);
+await a.keyboard.type('gamma', { delay: 40 }); await a.waitForTimeout(400);
+await f().evaluate(() => document.getElementById('sweep-btn').click()); await a.waitForTimeout(300);
+card = await T.capCard(a);
+T.log('when every tab the card is about needs a preview, there is no "of them" line', !!card && card.text.startsWith('You have 1 tab open.') && !/of them/.test(card.text), card && card.text);
+await a.keyboard.press('Escape'); await a.waitForTimeout(300);
+await a.keyboard.press('Escape'); await a.waitForTimeout(300); await a.keyboard.press('Escape'); await a.waitForTimeout(400);
 
 // Later on a new install: straight to the walkthrough.
 await ev(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: false, cap: '' } }));

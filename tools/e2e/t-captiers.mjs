@@ -1,7 +1,9 @@
 // 1.3.5 (part C): the capture card changes with the tab count (the table in the plan), with real tabs: 5, 20 in one
 // window, 30, 80, 180 and 500 (in two windows). The time is about 0.6 s a tab, rounded to something human. Above
 // 100 tabs the default is "Your 50 most recent", which runs only those 50; Stop ends early and Tabatha says how
-// many it got. The card also reads right in Russian and Spanish.
+// many it got. The card also reads right in Russian and Spanish. The heading counts ALL open tabs and windows (read live
+// from Chrome here), while the tier, time and buttons follow N, the tabs needing a preview; "N of them have no preview yet."
+// shows only when N is smaller than the total.
 import { launch } from './lib.mjs';
 
 const T = await launch(process.env.EXT, { viewport: { width: 1440, height: 900 } });
@@ -33,52 +35,64 @@ async function card() {
   return null;
 }
 const closeAll = async () => { dbg('close'); for (let i = 0; i < 3; i++) { await a.keyboard.press('Escape'); await a.waitForTimeout(250); } await a.waitForTimeout(400); };
-const check = (name, c, text, buttons) => T.log(name, !!c && text.every((x) => c.text.includes(x)) && JSON.stringify(c.buttons) === JSON.stringify(buttons), c ? c.text + ' / ' + JSON.stringify(c.buttons) : 'no card');
+// Tabs and windows Chrome has right now (normal windows): what the heading must count.
+const live = () => ev(async () => { const ts = await chrome.tabs.query({ windowType: 'normal' }); return { total: ts.length, wins: new Set(ts.map((x) => x.windowId)).size }; });
+// head(total, wins) builds the expected heading; `n` is how many tabs need a preview (the tier), and the extra line is
+// expected exactly when n < total.
+async function check(name, c, head, n, text, buttons, line = (k) => `${k} of them have no preview yet.`) {
+  const { total, wins } = await live();
+  const h = head(total, wins);
+  const extra = line(n);
+  const ok = !!c && c.text.startsWith(h) && text.every((x) => c.text.includes(x)) && JSON.stringify(c.buttons) === JSON.stringify(buttons)
+    && (n < total ? c.text.includes(extra) && c.text.indexOf(extra) > c.text.indexOf(h) && c.text.indexOf(extra) < c.text.indexOf(text[text.length - 1]) // the line sits between the heading and the body
+      : !/ of them have no preview| из них пока нет|de ellas no tien/.test(c.text));
+  T.log(name, ok, c ? `[${total} tabs, ${wins} windows, N=${n}] ` + c.text + ' / ' + JSON.stringify(c.buttons) : 'no card');
+}
 
 await add(5, w1); await a.waitForTimeout(1500);
 let c = await card();
-check('5 tabs: "You have 5 tabs open." · about 5 seconds · Capture them · Later', c,
-  ['You have 5 tabs open.', 'Give me about 5 seconds and they’ll all have previews.'], ['Capture them', 'Later']);
+await check('5 tabs need one (6 open): heading counts all 6 · about 5 seconds · Capture them · Later', c, (k) => `You have ${k} tabs open.`, 5,
+  ['Give me about 5 seconds and they’ll all have previews.'], ['Capture them', 'Later']);
 await closeAll();
 
 await add(15, w1); await a.waitForTimeout(1500);
 c = await card();
-check('20 tabs in one window: no window part in the heading', c,
-  ['You have 20 tabs open.', 'About 15 seconds to get a preview for each. I’ll flip through them once; hands off Chrome meanwhile.'], ['Capture all', 'Later']);
+await check('20 need one (21 open, one window): no window part in the heading', c, (k) => `You have ${k} tabs open.`, 20,
+  ['About 15 seconds to get a preview for each. I’ll flip through them once; hands off Chrome meanwhile.'], ['Capture all', 'Later']);
 await closeAll();
 
 w2 = await ev(async (u) => (await chrome.windows.create({ url: u, focused: false })).id, T.url('beta'));
 await add(10, w2); await a.waitForTimeout(1500);
 c = await card();
-check('30 tabs in 2 windows: "You have 30 tabs open in 2 windows." · about 20 seconds · Capture all · Later', c,
-  ['You have 30 tabs open in 2 windows.', 'About 20 seconds to get a preview for each. I’ll flip through them once; hands off Chrome meanwhile.'], ['Capture all', 'Later']);
+await check('30 need one (32 open in 2 windows): "You have 32 tabs open in 2 windows." · about 20 seconds · Capture all · Later', c, (k, w) => `You have ${k} tabs open in ${w} windows.`, 30,
+  ['About 20 seconds to get a preview for each. I’ll flip through them once; hands off Chrome meanwhile.'], ['Capture all', 'Later']);
 await closeAll();
 await lang('ru');
 c = await card();
-check('…in Russian', c, ['У вас открыто 30 вкладок в 2 окнах.', 'Примерно 20 секунд'], ['Сделать все', 'Позже']);
+await check('…in Russian', c, (k, w) => `У вас открыто ${k} вкладки в ${w} окнах.`, 30, ['Примерно 20 секунд'], ['Сделать все', 'Позже'], (k) => `У ${k} из них пока нет превью.`);
 await closeAll();
 await lang('es');
 c = await card();
-check('…in Spanish', c, ['Tienes 30 pestañas abiertas en 2 ventanas.', 'Cerca de 20 segundos'], ['Capturar todas', 'Más tarde']);
+await check('…in Spanish', c, (k, w) => `Tienes ${k} pestañas abiertas en ${w} ventanas.`, 30, ['Cerca de 20 segundos'], ['Capturar todas', 'Más tarde'], (k) => `${k} de ellas no tienen vista previa todavía.`);
 await closeAll();
 await lang('en');
 
 await add(50, w2); await a.waitForTimeout(2500);
 c = await card();
-check('80 tabs: "80 tabs in 2 windows. A healthy collection." · about 50 seconds · Capture all · ~50 s · Just this window (20) · Later', c,
-  ['80 tabs in 2 windows. A healthy collection.', 'About 50 seconds of flipping, and you can stop any time.'], ['Capture all · ~50 s', 'Just this window (20)', 'Later']);
+await check('80 need one (82 open): "82 tabs in 2 windows. A healthy collection." · about 50 seconds · Capture all · ~50 s · Just this window (20) · Later', c, (k, w) => `${k} tabs in ${w} windows. A healthy collection.`, 80,
+  ['About 50 seconds of flipping, and you can stop any time.'], ['Capture all · ~50 s', 'Just this window (20)', 'Later']);
 await closeAll();
 
 await add(33, w1); await add(67, w2); await a.waitForTimeout(4000);
 c = await card();
-check('180 tabs: "180 tabs. Respect." · about 2 minutes · Your 50 most recent · ~30 s · All 180 · ~2 min · Later', c,
-  ['180 tabs. Respect.', 'All of them takes about 2 minutes. I’d start with the 50 you used last; the rest get previews as you visit them.'], ['Your 50 most recent · ~30 s', 'All 180 · ~2 min', 'Later']);
+await check('180 need one (182 open): "182 tabs. Respect." · about 2 minutes · Your 50 most recent · ~30 s · All 180 · ~2 min · Later', c, (k) => `${k} tabs. Respect.`, 180,
+  ['All of them takes about 2 minutes. I’d start with the 50 you used last; the rest get previews as you visit them.'], ['Your 50 most recent · ~30 s', 'All 180 · ~2 min', 'Later']);
 await closeAll();
 
 await add(107, w1); await add(213, w2); await a.waitForTimeout(8000);
 c = await card();
-check('500 tabs: "500 tabs. I’ve seen browsers give up for less." · about 5 minutes · Your 50 most recent · All 500 · ~5 min · Later', c,
-  ['500 tabs. I’ve seen browsers give up for less.', 'All of them would take about 5 minutes. Let’s start with the 50 you used last; the others fill in as you go.'], ['Your 50 most recent · ~30 s', 'All 500 · ~5 min', 'Later']);
+await check('500 need one (502 open): "502 tabs. I’ve seen browsers give up for less." · about 5 minutes · Your 50 most recent · All 500 · ~5 min · Later', c, (k) => `${k} tabs. I’ve seen browsers give up for less.`, 500,
+  ['All of them would take about 5 minutes. Let’s start with the 50 you used last; the others fill in as you go.'], ['Your 50 most recent · ~30 s', 'All 500 · ~5 min', 'Later']);
 
 // "Your 50 most recent" (the default): only those 50 run; Stop ends early; Tabatha says how many.
 await a.keyboard.press('Enter');

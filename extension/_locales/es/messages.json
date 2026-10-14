@@ -1091,6 +1091,12 @@
  "capRefused_other": {
   "message": "$1 páginas que Chrome no me deja fotografiar (como la Web Store)."
  },
+ "capNoPrev_one": {
+  "message": "$1 de ellas no tiene vista previa todavía."
+ },
+ "capNoPrev_other": {
+  "message": "$1 de ellas no tienen vista previa todavía."
+ },
  "capDone_one": {
   "message": "Listo: $1 vista previa."
  },
