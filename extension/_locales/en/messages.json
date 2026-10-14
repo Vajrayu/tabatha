@@ -552,7 +552,7 @@
   "message": "Many at once"
  },
  "tourManyBody": {
-  "message": "Tick tabs with the box (or Ctrl+click). Then close, copy, group or bookmark them together from the bar at the bottom."
+  "message": "Tick tabs with the box (or Ctrl+click). Then close, copy, group or bookmark them together from the bar that appears at the top."
  },
  "tour4Title": {
   "message": "Tab groups"

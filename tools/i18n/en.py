@@ -78,7 +78,7 @@ M = {
  "tour1Title": "Press $1", "tour1Say": "That’s it.", "tour1Body": "Every open tab, with a preview.",
  "tour2Title": "Move", "keyPick": "pick", "keyOpen": "open", "keyClose": "close tab", "keyLeave": "leave",
  "tour3Title": "Search", "tour3Body": "Just type, anywhere in Tabatha. It finds open tabs and ones you closed in the last 7 days.",
- "tourManyTitle": "Many at once", "tourManyBody": "Tick tabs with the box (or Ctrl+click). Then close, copy, group or bookmark them together from the bar at the bottom.",
+ "tourManyTitle": "Many at once", "tourManyBody": "Tick tabs with the box (or Ctrl+click). Then close, copy, group or bookmark them together from the bar that appears at the top.",
  "tour4Title": "Tab groups", "tour4Say": "Optional.", "tour4Body": "Your groups become sections. Closed ones stay saved until you remove them.", "tour4On": "Groups are on.",
  "tour5Title": "Anything off?", "tour5Say": "I read every one.", "tour5Body": "Tell me what’s broken or missing. I’ll fix it.",
  "turnOn": "Turn on", "tellMe": "Tell me", "back": "Back", "skip": "Skip", "next": "Next", "done": "Done",

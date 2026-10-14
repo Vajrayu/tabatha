@@ -71,7 +71,7 @@ M = {
  "tour1Title": "Pulsa $1", "tour1Say": "Eso es todo.", "tour1Body": "Todas tus pestañas abiertas, con vista previa.",
  "tour2Title": "Moverse", "keyPick": "elegir", "keyOpen": "abrir", "keyClose": "cerrar pestaña", "keyLeave": "salir",
  "tour3Title": "Buscar", "tour3Body": "Escribe sin más, en cualquier parte de Tabatha. Encuentra pestañas abiertas y las cerradas en los últimos 7 días.",
- "tourManyTitle": "Varias a la vez", "tourManyBody": "Marca pestañas con la casilla (o Ctrl+clic). Luego ciérralas, cópialas, agrúpalas o guárdalas desde la barra de abajo.",
+ "tourManyTitle": "Varias a la vez", "tourManyBody": "Marca pestañas con la casilla (o Ctrl+clic). Luego ciérralas, cópialas, agrúpalas o guárdalas desde la barra que aparece arriba.",
  "tour4Title": "Grupos de pestañas", "tour4Say": "Opcional.", "tour4Body": "Tus grupos se convierten en secciones. Los cerrados se quedan guardados hasta que los quites.", "tour4On": "Los grupos están activados.",
  "tour5Title": "¿Algo no va bien?", "tour5Say": "Leo todos.", "tour5Body": "Cuéntame qué falla o qué falta. Lo arreglaré.",
  "turnOn": "Activar", "tellMe": "Contármelo", "back": "Atrás", "skip": "Saltar", "next": "Siguiente", "done": "Listo",

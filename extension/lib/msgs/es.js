@@ -184,7 +184,7 @@ export default {
 "tour3Title": "Buscar",
 "tour3Body": "Escribe sin más, en cualquier parte de Tabatha. Encuentra pestañas abiertas y las cerradas en los últimos 7 días.",
 "tourManyTitle": "Varias a la vez",
-"tourManyBody": "Marca pestañas con la casilla (o Ctrl+clic). Luego ciérralas, cópialas, agrúpalas o guárdalas desde la barra de abajo.",
+"tourManyBody": "Marca pestañas con la casilla (o Ctrl+clic). Luego ciérralas, cópialas, agrúpalas o guárdalas desde la barra que aparece arriba.",
 "tour4Title": "Grupos de pestañas",
 "tour4Say": "Opcional.",
 "tour4Body": "Tus grupos se convierten en secciones. Los cerrados se quedan guardados hasta que los quites.",

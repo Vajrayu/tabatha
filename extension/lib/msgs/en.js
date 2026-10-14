@@ -184,7 +184,7 @@ export default {
 "tour3Title": "Search",
 "tour3Body": "Just type, anywhere in Tabatha. It finds open tabs and ones you closed in the last 7 days.",
 "tourManyTitle": "Many at once",
-"tourManyBody": "Tick tabs with the box (or Ctrl+click). Then close, copy, group or bookmark them together from the bar at the bottom.",
+"tourManyBody": "Tick tabs with the box (or Ctrl+click). Then close, copy, group or bookmark them together from the bar that appears at the top.",
 "tour4Title": "Tab groups",
 "tour4Say": "Optional.",
 "tour4Body": "Your groups become sections. Closed ones stay saved until you remove them.",
