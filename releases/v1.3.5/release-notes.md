@@ -17,6 +17,10 @@ _On top of 1.3.4 (live 13 Oct 2026). No new permissions. New notes kept on the c
 - **Toolbar split:** what you see (Starred, sort, Group) on the left; things to do (duplicates, capture, the panel) on the right.
 - **The window list is a slim side navbar:** one line per window with its tab count, the chosen one marked with an amber bar; icons only on a very narrow window.
 - **The panel's "Saved groups" and "Bookmarks" are tabs, not buttons.**
+- **Windows have a ⋯ menu:** rename (the name lasts until Chrome quits), select its tabs, bookmark the window, make a tab group of it, delete it (second click).
+- **Every section has a ⋯ menu**, not only real tab groups: when you group by Site, Last used or under "Ungrouped": select its tabs, bookmark them, make a tab group (not when they already are one), move to a new window, put to sleep, close them (second click). "No grouping" has no sections, so no menu.
+- **Group: Tab groups asks for the tab-groups permission** when it isn't on yet, and only switches if you allow it.
+- **One left edge:** the New tab button, the toolbar, the window list and the footer line up.
 - **The Pro waitlist and Buy me a coffee buttons moved to the top right; the key hints are in the footer.** Nobody looks at the footer during a quick Alt+Q. The coffee is an icon now, and on narrow windows Pro shortens to "Pro". Y-bit's daily peek comes from under the Pro button.
 - **New installs open Tabatha when Chrome starts** (Settings can turn it off). Existing users keep their setting.
 

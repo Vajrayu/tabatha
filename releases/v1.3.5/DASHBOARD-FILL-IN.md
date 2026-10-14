@@ -1,6 +1,6 @@
 # Chrome Web Store dashboard: fill-in sheet for Tabatha 1.3.5
 
-An update with a new capture-previews card, a walkthrough of what changed, the Group menu and a faster open with hundreds of tabs. **No permission changes.** **The descriptions DID change this time** (one new line near the top, in all three languages): paste them. The Privacy tab answers stay as they are. Submit once, after the steps below.
+An update with a new capture-previews card, a walkthrough of what changed, the Group menu, ⋯ menus on windows and sections, the Pro and coffee buttons at the top right, and a faster open with hundreds of tabs. **No permission changes.** **The descriptions DID change this time** (two new lines near the top, in all three languages): paste them. The Privacy tab answers stay as they are. Submit once, after the steps below.
 
 ## 0. Before you open the dashboard
 - [ ] You tried the build by hand (load `extension/` unpacked, with the store copy switched off): a first open on a profile with many tabs (capture card, then the walkthrough), Group menu, window list, and Alt+Q on a page Dark Reader recolours, on your 400-tab profile.
@@ -19,7 +19,7 @@ An update with a new capture-previews card, a walkthrough of what changed, the G
 - **Promo tiles:** from `store-assets/`: `promo-small-440x280.png` and `promo-marquee-1400x560.png`.
 
 ## 3. Privacy tab
-- **Nothing to change.** Same purpose, same permission justifications, same data-use answers. (1.3.5 stores locally: the version updated from until the walkthrough is shown, and whether the capture card was answered; in memory only: the last capture run's count and the sites where Tabatha had to open as a window. All listed in PRIVACY.md; none leaves the computer.)
+- **Nothing to change.** Same purpose, same permission justifications, same data-use answers. (1.3.5 stores locally: the version updated from until the walkthrough is shown, and whether the capture card was answered; in memory only: the names you give windows (until Chrome quits), the last capture run's count and the sites where Tabatha had to open as a window. All listed in PRIVACY.md; none leaves the computer.)
 
 ## 4. Submit
 - Submit for review. Then tell Claude, so the commit gets the `v1.3.5` tag and the trackers say "submitted". (`v1.3.4` is already tagged locally on `ea76d7c`; the tag still has to be pushed, with your OK.)
