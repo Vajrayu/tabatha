@@ -32,7 +32,8 @@ export async function launch(ext, { profile, args = [], viewport = { width: 1280
   const tap = async (p) => { await p.bringToFront(); await p.keyboard.down('Alt'); await p.keyboard.press('KeyQ'); await p.waitForTimeout(1300); await p.keyboard.up('Alt'); await p.waitForTimeout(500); };
   const log = (n, ok, x = '') => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); if (!ok) process.exitCode = 1; };
   // Skip the first-run tour/flyout (they'd swallow keys): call after open().
-  const skipFirstRun = () => sw.evaluate(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true } }));
+  // …and the "What's new" card (a test that wants it removes `wnSeen`).
+  const skipFirstRun = () => sw.evaluate(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true }, wnSeen: chrome.runtime.getManifest().version }));
   const close = async () => { await ctx.close(); srv.close(); };
   return { ctx, sw, url, open, frame, isOpen, tap, log, skipFirstRun, close, port };
 }

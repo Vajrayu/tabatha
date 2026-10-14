@@ -309,5 +309,21 @@ export default {
 "tourPanelBody": "Tus grupos de pestañas y los marcadores de Chrome están en este panel. Los grupos cerrados se guardan hasta que los elimines.",
 "tourSetTitle": "Ajustes",
 "tourSetBody": "El idioma, y abrir Tabatha al iniciar Chrome.",
-"actMore": "Más"
+"actMore": "Más",
+"groupBy": "Agrupar",
+"groupByTitle": "Ordenar las pestañas en secciones",
+"groupTabGroups": "Grupos de pestañas",
+"groupSite": "Sitio",
+"groupRecent": "Último uso",
+"groupNone": "Sin agrupar",
+"recentHour": "Última hora",
+"recentToday": "Hoy",
+"recentWeek": "Esta semana",
+"recentOlder": "Antes",
+"whatsNewTitle": "Novedades de Tabatha $1",
+"gotIt": "Entendido",
+"wn1": "Ordenar y Agrupar funcionan juntos: agrupa tus pestañas por sitio o por cuándo las usaste.",
+"wn2": "Una lista de ventanas más estrecha a la izquierda, y más sitio para las tarjetas.",
+"wn3": "Cierra la pestaña en la que estás y Tabatha sigue abierta, en la de al lado.",
+"wn4": "Capturar desde una ventana te devuelve a esa misma ventana."
 };

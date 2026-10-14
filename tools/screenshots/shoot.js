@@ -49,8 +49,8 @@ function extCopy() {
   while (!sw) { const w = await ctx.waitForEvent('serviceworker'); if (w.url().endsWith('/background.js')) sw = w; }
   await sleep(1500);
   const bg = (fn, arg) => sw.evaluate(fn, arg);
-  // No first-run flyout or tour; English UI; no review question.
-  await bg(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true }, prefs: { lang: 'en', startup: false } }));
+  // No first-run flyout, tour or What's new card; English UI; no review question.
+  await bg(() => chrome.storage.local.set({ onb: { at: 1, flyout: true, tour: true }, wnSeen: chrome.runtime.getManifest().version, prefs: { lang: 'en', startup: false } }));
 
   const initial = ctx.pages();
   const w1 = await bg(async ({ urls, W, H }) => (await chrome.windows.create({ url: urls, width: W, height: H + 139, left: 0, top: 0 })).id, { urls: WIN1.map(U), W, H });

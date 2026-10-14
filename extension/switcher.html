@@ -33,8 +33,13 @@
           <button type="button" role="radio" data-sort="newest" data-i18n="sortNewest" data-i18n-title="sortNewestTitle">Newest</button>
           <button type="button" role="radio" data-sort="oldest" data-i18n="sortOldest" data-i18n-title="sortOldestTitle">Oldest</button>
           <button type="button" role="radio" data-sort="name" data-i18n="sortName" data-i18n-title="sortNameTitle">A–Z</button>
-          <button type="button" role="radio" data-sort="site" data-i18n="sortSite" data-i18n-title="sortSiteTitle">By site</button>
         </div>
+        <!-- Group by: sections (tab groups, site, last used, none). Works together with the sort above. -->
+        <button id="group-by" class="chip" type="button" aria-haspopup="menu" data-i18n-title="groupByTitle">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/><rect x="2" y="9.5" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+          <span class="label"><span data-i18n="groupBy">Group</span>: <b id="group-by-v"></b></span>
+          <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+        </button>
       </div>
       <div class="setup">
         <button id="groups-btn" class="act accent" type="button" hidden data-i18n-title="groupsOnTitle">

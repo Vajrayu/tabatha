@@ -94,8 +94,9 @@ kbd + kbd { margin-left: 2px; }
 
 /* ---------- toolbar: windows · star filter + sort · setup ---------- */
 .tools { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; padding: 4px 44px 6px; }
-.view { display: flex; align-items: center; gap: 10px; flex: none; margin-left: auto; }
-.setup { display: flex; align-items: center; gap: 10px; flex: none; }
+.view { display: flex; align-items: center; gap: 10px; flex: none; } /* left: what you see (starred, sort, group by) */
+.setup { display: flex; align-items: center; gap: 10px; flex: none; margin-left: auto; } /* right: things to do (duplicates, capture, panel) */
+#group-by b { font-weight: 650; color: var(--fg); }
 .setup:empty, .setup:not(:has(> :not([hidden]))) { display: none; }
 .seg { display: inline-flex; height: 30px; border: 1px solid var(--line); border-radius: 15px; padding: 2px; gap: 2px; }
 .seg button {
@@ -142,18 +143,21 @@ main {
 .with-panel main { padding-right: 20px; }
 .with-wins main { padding-left: 16px; }
 /* window list on the left */
-.wins { flex: 0 0 196px; width: 196px; min-width: 0; margin: 8px 0 12px 24px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
-.win { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px; border: 1px solid transparent; border-radius: 10px; background: none; color: var(--fg-2); cursor: pointer; text-align: left; }
+.wins { flex: 0 0 168px; width: 168px; min-width: 0; margin: 8px 0 12px 20px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  border-right: 1px solid var(--line); padding-right: 10px; }
+/* the window list is a side navbar: one line per window, its name and tab count; the chosen one has an amber bar */
+.win { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; height: 34px; padding: 0 8px 0 12px; border: 0; border-radius: 7px; background: none; color: var(--fg-2); font: inherit; cursor: pointer; text-align: left; }
 .win:hover { background: var(--fill); color: var(--fg); }
-.win[aria-pressed="true"] { background: rgba(255,209,102,.1); border-color: rgba(255,209,102,.6); color: var(--fg); }
-.wpic { flex: none; width: 64px; height: 40px; border-radius: 5px; overflow: hidden; background: #1d2027; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,.35); }
-.wpic img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
-.wpic img.wfav { width: 18px; height: 18px; object-fit: contain; }
-.win[aria-pressed="true"] .wpic { box-shadow: 0 0 0 2px #FFD166; }
-.wtext { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.wlabel { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wsub { font-size: 11px; color: var(--fg-3); }
-@media (max-width: 1000px) { .wins { flex-basis: 84px; width: 84px; } .wtext { display: none; } }
+.win:focus-visible { outline: 2px solid #FFD166; outline-offset: -2px; }
+.win[aria-pressed="true"] { background: rgba(255,209,102,.1); color: var(--fg); }
+.win[aria-pressed="true"]::before { content: ''; position: absolute; left: 0; top: 7px; bottom: 7px; width: 3px; border-radius: 2px; background: #FFD166; }
+.wico { flex: none; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; color: var(--fg-3); }
+.wico img { width: 16px; height: 16px; }
+.wico svg { width: 15px; height: 15px; }
+.wlabel { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wn { flex: none; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--fg-3); }
+.win[aria-pressed="true"] .wn { color: #FFD166; }
+@media (max-width: 1000px) { .wins { flex-basis: 52px; width: 52px; } .wlabel, .wn { display: none; } .win { justify-content: center; padding: 0; } } /* very narrow: icons only, the name is in the tooltip */
 section { max-width: 1640px; margin: 0 auto; }
 .section-h {
   font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
@@ -334,10 +338,12 @@ section { max-width: 1640px; margin: 0 auto; }
 .panel { flex: 0 0 330px; width: 330px; min-width: 0; overflow: hidden; margin: 8px 24px 12px 0; display: flex; flex-direction: column; min-height: 0;
   border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
 @media (max-width: 1000px) { .panel { flex-basis: 280px; } }
-.ptabs { display: flex; align-items: center; gap: 4px; padding: 8px 8px 6px; border-bottom: 1px solid var(--line); }
-.ptab { border: 0; background: none; color: var(--fg-3); font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 14px; cursor: pointer; }
-.ptab:hover { color: var(--fg); background: var(--fill); }
-.ptab[aria-selected="true"] { color: #1B2A4A; background: #FFD166; }
+.ptabs { display: flex; align-items: flex-end; gap: 14px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
+/* tabs, not buttons: plain text, the chosen one underlined in amber */
+.ptab { border: 0; border-bottom: 2px solid transparent; background: none; color: var(--fg-3); font-size: 12.5px; font-weight: 600; padding: 8px 2px 7px; margin-bottom: -1px; border-radius: 0; cursor: pointer; }
+.ptab:hover { color: var(--fg); }
+.ptab:focus-visible { outline: 2px solid #FFD166; outline-offset: 2px; }
+.ptab[aria-selected="true"] { color: var(--fg); border-bottom-color: #FFD166; }
 .ptab .n { font-weight: 400; opacity: .75; }
 .ptabs .grow { flex: 1; }
 .pane { flex: 1; min-width: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 6px 6px 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent; }
@@ -491,7 +497,7 @@ html.window .foot { left: 22px; bottom: 16px; }
 @media (prefers-reduced-motion: reduce) { .card.closing { transition: none; } }
 /* Narrow windows (a laptop, the popup window): the window list and the panel give the cards more room. */
 @media (max-width: 1240px) {
-  .wins { flex-basis: 160px; width: 160px; margin-left: 16px; }
+  .wins { flex-basis: 148px; width: 148px; margin-left: 12px; }
   .panel { flex-basis: 280px; width: 280px; margin-right: 16px; }
   main { padding-left: 24px; padding-right: 24px; }
 }

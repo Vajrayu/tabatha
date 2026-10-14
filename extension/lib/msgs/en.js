@@ -309,5 +309,21 @@ export default {
 "tourPanelBody": "Your tab groups and Chrome bookmarks live in this panel. Closed groups stay saved until you delete them.",
 "tourSetTitle": "Settings",
 "tourSetBody": "Language, and opening Tabatha when Chrome starts.",
-"actMore": "More"
+"actMore": "More",
+"groupBy": "Group",
+"groupByTitle": "Put the tabs into sections",
+"groupTabGroups": "Tab groups",
+"groupSite": "Site",
+"groupRecent": "Last used",
+"groupNone": "No grouping",
+"recentHour": "Last hour",
+"recentToday": "Earlier today",
+"recentWeek": "This week",
+"recentOlder": "Older",
+"whatsNewTitle": "What’s new in Tabatha $1",
+"gotIt": "Got it",
+"wn1": "Sort and Group work together: group your tabs by site or by when you last used them.",
+"wn2": "A slimmer window list on the left, so the cards get more room.",
+"wn3": "Close the tab you’re on and Tabatha stays open, on the tab next to it.",
+"wn4": "Capture from one window comes back to that window."
 };

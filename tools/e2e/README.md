@@ -17,6 +17,7 @@ node t-acts.mjs      # quick actions, duplicates, the bookmarks panel (also t-nu
 node t-ui.mjs        # 12 Oct Windows review: close animation, scroll kept, actions bar on top, menus close on a 2nd click, duplicates icon, cards a row, the Alt+Q note
 node t-closehere.mjs # closing the tab Tabatha is on (the first card) reopens Tabatha next door
 node t-scope.mjs     # ticking in the duplicates view gives the usual actions; Capture from one window comes back to it
+node t-group.mjs     # 1.3.5: Group by (site, last used, none) with the sort, remembered; toolbar split; window navbar; panel tabs; What's new once; startup on for new installs
 node t-attack.mjs    # what a hostile page can't do: fake Alt+Q, frame the switcher, spam launch tokens, hide the overlay to trick clicks
 node t-audit.mjs     # 12 Oct audit: bookmarklets, open-and-remove, deleting the group under Tabatha, reopen with a refused page, double-click reopen, menu keys, storage access
 ```

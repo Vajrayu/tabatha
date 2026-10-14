@@ -22,10 +22,13 @@ T.log('A–Z sorts by title', JSON.stringify(byName) === JSON.stringify([...byNa
 await f().click('#sort [data-sort="newest"]'); await a.waitForTimeout(300);
 T.log('Newest puts the last opened tab first', (await titles())[0] === (await ev(async () => { const t = await chrome.tabs.query({}); return t.sort((x, y) => y.id - x.id)[0].title; })));
 
-await f().click('#sort [data-sort="site"]'); await a.waitForTimeout(300);
+// 1.3.5: "Site" is a grouping (Group: … menu), and works together with the sort.
+await f().locator('#group-by').evaluate((x) => x.click()); await a.waitForTimeout(200);
+await f().locator('.menu .mi', { hasText: 'Site' }).evaluate((x) => x.click()); await a.waitForTimeout(300);
 const heads = await f().$$eval('#open-grid .ghead .gname', (x) => x.map((n) => n.textContent));
-T.log('By site makes one section for the site with many tabs', heads[0].startsWith('localhost'), heads.join());
-T.log('sort choice is remembered', (await ev(() => chrome.storage.local.get('view').then((o) => o.view.sort))) === 'site');
+T.log('Group: Site makes one section for the site with many tabs', heads[0].startsWith('localhost'), heads.join());
+const v = await ev(() => chrome.storage.local.get('view').then((o) => o.view));
+T.log('sort and grouping are both remembered (Newest + Site)', v.sort === 'newest' && v.group === 'site', JSON.stringify({ sort: v.sort, group: v.group }));
 
 // Collapse the site section, reopen the switcher: it stays collapsed.
 await f().click('#open-grid .ghead'); await a.waitForTimeout(300);
@@ -47,7 +50,8 @@ T.log('Alt+S stars the selected tab', (await f().$eval('.card[aria-selected="tru
 T.log('star count updates', (await f().$eval('#star-n', (n) => n.textContent)) === '1');
 await f().click('#star-filter'); await a.waitForTimeout(300);
 const starred = await titles();
-T.log('Starred filter shows only starred tabs', starred.length === 1 && starred[0] === selTitle, starred.join());
+// Stars belong to the page (its address), so every open tab of that page shows.
+T.log('Starred filter shows only starred tabs', starred.length >= 1 && starred.every((x) => x === selTitle), starred.join());
 await f().click('#star-filter'); await a.waitForTimeout(300);
 
 // Per-card capture of a tab in the same window: the switcher closes, the tab is captured, the switcher comes back.
