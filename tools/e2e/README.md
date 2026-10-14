@@ -20,6 +20,7 @@ node t-scope.mjs     # ticking in the duplicates view gives the usual actions; C
 node t-group.mjs     # 1.3.5: Group by (site, last used, none) with the sort, remembered; toolbar split; window navbar; panel tabs; the update walkthrough once; startup on for new installs
 node t-walk.mjs      # 1.3.5: the walkthrough built from the current UI: 1.3.3→ and 1.3.4→ show only what changed (New/Moved/Changed) + the fixes card; oldest update kept; skipped steps; once; replay; before the review question
 node t-capcard.mjs   # 1.3.5: the capture card on a new install (counts, sleeping/refused lines, Enter = Capture), most-recent-first run at ~0.6 s a tab, "Done: N previews.", then the walkthrough; Later; updaters; the toolbar opens it; cards without a preview
+node t-update.mjs    # 1.3.5: Chrome's REAL update event (old version from git, folder swapped, same profile). SKIPS on Chrome 153: it fires no onInstalled for a command-line unpacked extension (no manifest/version kept in the profile); the checks run if a Chrome ever does
 node t-captiers.mjs  # 1.3.5: the card's wording for 5, 20 (one window), 30, 80, 180 and 500 real tabs, in en/ru/es; "Your 50 most recent" runs 50; Stop
 node t-attack.mjs    # what a hostile page can't do: fake Alt+Q, frame the switcher, spam launch tokens, hide the overlay to trick clicks
 node t-audit.mjs     # 12 Oct audit: bookmarklets, open-and-remove, deleting the group under Tabatha, reopen with a refused page, double-click reopen, menu keys, storage access
