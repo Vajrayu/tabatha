@@ -14,14 +14,15 @@ An update with a new capture-previews card, a walkthrough of what changed, the G
 - There should be **no permission warning**: the permissions are exactly 1.3.4's.
 
 ## 2. Store listing tab
-- **Paste the descriptions (required this time):** **Appendix A** (English), **B** (Russian: pick Russian in the language list at the top of the Store listing tab) and **C** (Spanish). Copy only what's inside each box. The only change from 1.3.4 is one line after the first paragraph (see `store-listing.md`, "Listing history").
-- Screenshots: see `store-assets/` in this folder if regenerated (toolbar with Group, the window list, the capture card); otherwise the 1.3.4 ones stay.
+- **Descriptions (required this time):** paste **Appendix A** (English), **B** (Russian: pick Russian in the language list at the top of the Store listing tab) and **C** (Spanish). Copy only what's inside each box. The appendices are copied from `store-listing.md` word for word, so they include both new lines near the top: the previews line and "why every site" (Chrome's "read and change all your data on all websites" wording, explained). `store-listing.md`, "Listing history" says what changed.
+- **Screenshots:** remove the old ones first, then upload these 6 from `store-assets/screenshots/` in this order (1280×800, no alpha): `captioned-01-overview.png`, `captioned-02-search.png`, `captioned-03-actions.png`, `captioned-04-bookmarks.png`, `captioned-05-group.png`, `captioned-06-capture.png`.
+- **Promo tiles:** from `store-assets/`: `promo-small-440x280.png` and `promo-marquee-1400x560.png`.
 
 ## 3. Privacy tab
 - **Nothing to change.** Same purpose, same permission justifications, same data-use answers. (1.3.5 stores locally: the version updated from until the walkthrough is shown, and whether the capture card was answered; in memory only: the last capture run's count and the sites where Tabatha had to open as a window. All listed in PRIVACY.md; none leaves the computer.)
 
 ## 4. Submit
-- Submit for review. Then tell Claude, so the commit gets the `v1.3.5` tag and the trackers say "submitted". (`v1.3.4` is still to be tagged, since 1.3.4 is live.)
+- Submit for review. Then tell Claude, so the commit gets the `v1.3.5` tag and the trackers say "submitted". (`v1.3.4` is already tagged locally on `ea76d7c`; the tag still has to be pushed, with your OK.)
 
 ---
 ## Appendix A: Description (English)
@@ -29,6 +30,8 @@ An update with a new capture-previews card, a walkthrough of what changed, the G
 Too many tabs? Tabatha is a visual tab switcher for Chrome. Press Alt+Q to see live previews of every open tab, search across all your windows and reopen the tabs you just closed. It's Alt+Tab for your browser tabs, and a simple tab manager that never sends your tabs anywhere.
 
 Previews appear as you visit your tabs, or capture them all with one click.
+
+Chrome will say Tabatha can "read and change all your data on all websites". It needs that to take a small screenshot of each tab for its preview and to show the switcher on top of the page. It doesn't read or change your pages, and nothing leaves your computer.
 
 HOW IT WORKS
 • Tap Alt+Q and Tabatha stays open. No need to keep holding anything: use the arrow keys, type to search, or click with the mouse. Enter opens a tab, Esc or a click outside closes Tabatha.
@@ -100,6 +103,8 @@ Open source: https://github.com/Vajrayu/tabatha
 
 Превью появляются, когда вы открываете вкладки, или сделайте их все одним кликом.
 
+Chrome сообщит, что Tabatha может «читать и изменять все ваши данные на всех сайтах». Это нужно, чтобы делать небольшой снимок каждой вкладки для превью и показывать переключатель поверх страницы. Tabatha не читает и не меняет ваши страницы, и ничего не покидает ваш компьютер.
+
 КАК ЭТО РАБОТАЕТ
 • Нажмите Alt+Q, и Tabatha останется открытой. Ничего не нужно удерживать: стрелки, поиск с клавиатуры или мышь. Enter открывает вкладку, Esc или клик мимо закрывает Tabatha.
 • Привыкли к Alt+Tab? Удерживайте Alt и нажимайте Q, чтобы листать вкладки в порядке недавнего использования, затем отпустите.
@@ -169,6 +174,8 @@ Chrome позволяет сделать скриншот вкладки и по
 ¿Demasiadas pestañas? Tabatha es un cambiador visual de pestañas para Chrome. Pulsa Alt+Q para ver vistas previas en vivo de todas tus pestañas abiertas, buscar en todas tus ventanas y recuperar las pestañas que acabas de cerrar. Es Alt+Tab para las pestañas del navegador, y un gestor de pestañas sencillo que nunca envía tus pestañas a ningún sitio.
 
 Las vistas previas aparecen a medida que visitas tus pestañas, o captúralas todas con un clic.
+
+Chrome dirá que Tabatha puede «leer y cambiar todos tus datos en todos los sitios web». Lo necesita para hacer una pequeña captura de cada pestaña para su vista previa y para mostrar el cambiador encima de la página. No lee ni cambia tus páginas, y nada sale de tu ordenador.
 
 CÓMO FUNCIONA
 • Pulsa Alt+Q y Tabatha se queda abierta. No hace falta mantener nada pulsado: usa las flechas, escribe para buscar o haz clic. Intro abre una pestaña; Esc o un clic fuera cierra Tabatha.
