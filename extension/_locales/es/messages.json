@@ -1102,5 +1102,47 @@
  },
  "capDone_other": {
   "message": "Listo: $1 vistas previas."
+ },
+ "winMenu": {
+  "message": "Opciones de la ventana"
+ },
+ "winName": {
+  "message": "Nombre de la ventana"
+ },
+ "winNamePh": {
+  "message": "p. ej. Trabajo"
+ },
+ "wmRename": {
+  "message": "Cambiar nombre"
+ },
+ "wmBookmark": {
+  "message": "Guardar la ventana en marcadores"
+ },
+ "wmGroup": {
+  "message": "Crear un grupo de pestañas"
+ },
+ "wmDelete": {
+  "message": "Eliminar ventana"
+ },
+ "wmDeleteSure_one": {
+  "message": "¿Cerrar esta ventana y su $1 pestaña? Haz clic otra vez"
+ },
+ "wmDeleteSure_other": {
+  "message": "¿Cerrar esta ventana y sus $1 pestañas? Haz clic otra vez"
+ },
+ "sectionMenu": {
+  "message": "Opciones de la sección"
+ },
+ "smBookmark": {
+  "message": "Guardar estas pestañas en marcadores"
+ },
+ "smClose": {
+  "message": "Cerrar estas pestañas"
+ },
+ "smCloseSure_one": {
+  "message": "¿Cerrar $1 pestaña? Haz clic otra vez"
+ },
+ "smCloseSure_other": {
+  "message": "¿Cerrar $1 pestañas? Haz clic otra vez"
  }
 }

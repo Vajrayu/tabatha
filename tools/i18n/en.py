@@ -236,4 +236,18 @@ M = {
  "capNoPrev_one": "$1 of them has no preview yet.", "capNoPrev_other": "$1 of them have no preview yet.",
  "capDone_one": "Done: $1 preview.",
  "capDone_other": "Done: $1 previews.",
+ # window menu, section menu, window names (1.3.5, after the review of 14 Oct)
+ "winMenu": "Window options",
+ "winName": "Window name", "winNamePh": "e.g. Work",
+ "wmRename": "Rename",
+ "wmBookmark": "Bookmark the window",
+ "wmGroup": "Make a tab group",
+ "wmDelete": "Delete window",
+ "wmDeleteSure_one": "Close this window and its $1 tab? Click again",
+ "wmDeleteSure_other": "Close this window and its $1 tabs? Click again",
+ "sectionMenu": "Section options",
+ "smBookmark": "Bookmark these tabs",
+ "smClose": "Close these tabs",
+ "smCloseSure_one": "Close $1 tab? Click again",
+ "smCloseSure_other": "Close $1 tabs? Click again",
 }

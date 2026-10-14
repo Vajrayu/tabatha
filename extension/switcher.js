@@ -19,7 +19,7 @@
 
 import { MSG, KEY, FRAME_MSG, LIMITS, COFFEE_URL, REVIEW_URL, feedbackUrl, HELP_URL, SHOW_COFFEE, SHOW_PRO, siteUrl } from './lib/constants.js';
 import { ybit } from './lib/ybit.js';
-import { getNoCapture, getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, updateReview, getOnboard, updateOnboard, getCaptureNote, getStars, toggleStar, getView, updateView, setResume, takeResume, getPrefs, updatePrefs, getWnFrom, clearWnFrom, takeSwept } from './lib/store.js';
+import { getNoCapture, getMru, getPreviews, getClosedLog, getSlept, consumeLaunch, updateReview, getOnboard, updateOnboard, getCaptureNote, getStars, toggleStar, getView, updateView, setResume, takeResume, getPrefs, updatePrefs, getWnFrom, clearWnFrom, takeSwept, getWinNames, setWinName } from './lib/store.js';
 import { reviewPrompt, dayOf } from './lib/review.js';
 import { t, tn, timeAgo, localizePage, loadLang, setLang } from './lib/i18n.js';
 import * as marks from './lib/bookmarks.js';
@@ -183,6 +183,7 @@ async function load() {
   // Windows in "most recently used" order, the current one first. Numbers
   // follow the order the windows were opened in, so "Window 2" stays
   // "Window 2" however you move between them.
+  const names = await getWinNames().catch(() => ({})); // names you gave windows (until Chrome quits)
   const order = [CTX.srcWin];
   for (const t of tabs) if (!order.includes(t.windowId)) order.push(t.windowId);
   const byAge = order.filter((id) => id !== CTX.srcWin).sort((a, b) => a - b);
@@ -192,7 +193,8 @@ async function load() {
       const active = wt.find((t) => t.active) || wt[0];
       return {
         id,
-        label: id === CTX.srcWin ? t('thisWindow') : t('windowN', byAge.indexOf(id) + 2),
+        label: names[id] || (id === CTX.srcWin ? t('thisWindow') : t('windowN', byAge.indexOf(id) + 2)),
+        named: !!names[id],
         count: wt.length,
         activeTitle: active ? active.title || '' : '',
         activeId: active ? active.id : null,
@@ -432,6 +434,7 @@ function renderWindows() {
   if (!multi) return el.wins.replaceChildren();
   const rows = [{ id: 'all', label: t('allWindows'), count: state.tabs.length, activeTitle: '' }, ...state.windows];
   el.wins.replaceChildren(...rows.map((w) => {
+    const row = h('div', 'winrow');
     const b = h('button', 'win');
     b.type = 'button';
     b.setAttribute('aria-pressed', String(state.scope === w.id));
@@ -448,8 +451,51 @@ function renderWindows() {
       setScope(w.id);
       el.search.focus();
     });
-    return b;
+    row.append(b);
+    if (w.id !== 'all') row.append(panelBtn('more wmore', 'more', t('winMenu'), (ev) => windowMenu(w, ev.currentTarget)));
+    return row;
   }));
+}
+
+// What you can do with a window: name it, tick its tabs, bookmark it, make a tab group of it, close it.
+function windowMenu(w, anchor) {
+  const tabs = state.tabs.filter((x) => x.windowId === w.id);
+  menu(anchor, [
+    { label: t('wmRename'), fn: () => renameWindow(w, anchor) },
+    { label: t('gmSelect'), fn: () => { tabs.forEach((x) => state.picked.add(x.id)); refresh(); } },
+    { label: t('wmBookmark'), fn: () => bookmarkTabs(tabs, w.label) },
+    { label: t('wmGroup'), fn: () => groupPopover(tabs, anchor, w.named ? w.label : '') },
+    null,
+    { label: t('wmDelete'), danger: true, sure: tn('wmDeleteSure', tabs.length), fn: async () => { await chrome.windows.remove(w.id); if (!state.done) setTimeout(() => reload(), 600); } },
+  ]);
+}
+// A small card with just a name. Empty = back to "Window N". The name lasts until Chrome quits.
+function renameWindow(w, anchor) {
+  document.querySelectorAll('.pop, .menu').forEach((x) => x.remove());
+  const pop = h('form', 'pop');
+  const name = h('input');
+  name.value = w.named ? w.label : '';
+  name.placeholder = t('winNamePh');
+  name.maxLength = 40;
+  name.setAttribute('aria-label', t('winName'));
+  const row = h('div', 'row');
+  const ok = h('button', 'btn primary small', t('save'));
+  ok.type = 'submit';
+  row.append(h('span', 'grow'), button(t('cancel'), 'quiet small', () => pop.remove()), ok);
+  pop.append(h('label', '', t('winName')), name, row);
+  pop.addEventListener('click', (e) => e.stopPropagation());
+  pop.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); pop.remove(); el.search.focus(); } });
+  pop.addEventListener('submit', async (e) => {
+    e.preventDefault(); pop.remove();
+    try { await setWinName(w.id, name.value); await reload(); } catch (err) { toast(t('actFailed'), err); }
+    el.search.focus({ preventScroll: true });
+  });
+  el.app.append(pop);
+  const r = anchor.getBoundingClientRect();
+  pop.style.left = Math.max(12, Math.min(window.innerWidth - 302, r.left)) + 'px';
+  const ph = pop.offsetHeight;
+  pop.style.top = (r.bottom + 6 + ph > window.innerHeight - 8 ? Math.max(8, r.top - ph - 8) : r.bottom + 6) + 'px';
+  setTimeout(() => { name.focus(); name.select(); }, 0);
 }
 
 // "Window 2" on a card from another window. Narrow cards leave it out (the title needs the room; the window
@@ -660,6 +706,7 @@ function renderSection(sec, startIndex) {
     const hrow = h('div', 'hrow');
     hrow.append(head);
     if (sec.gid !== undefined && state.groupInfo.has(sec.gid)) hrow.append(panelBtn('more', 'more', t('groupMenu'), (ev) => liveGroupMenu(sec.gid, ev.currentTarget)));
+    else if (sec.gid === undefined && sec.entries.length) hrow.append(panelBtn('more', 'more', t('sectionMenu'), (ev) => sectionMenu(sec, ev.currentTarget))); // site, last used, ungrouped
     box.append(hrow);
   }
   if (!sec.collapsed) {
@@ -819,8 +866,13 @@ function setGroup(group) {
   refresh();
   toTop();
 }
+// "Tab groups" needs the optional tab-groups permission: choosing it asks (Chrome's own prompt) if it isn't on yet,
+// and the view only changes if it is allowed.
 function groupMenu(anchor) {
-  menu(anchor, ['groups', 'site', 'recent', 'none'].map((g) => ({ label: (state.group === g ? '✓ ' : '\u2003') + t(GROUP_LABEL[g]), fn: () => setGroup(g) })));
+  menu(anchor, ['groups', 'site', 'recent', 'none'].map((g) => ({ label: (state.group === g ? '✓ ' : '\u2003') + t(GROUP_LABEL[g]), fn: async () => {
+    if (g === 'groups' && !state.groupsOn && !(await enableGroups())) return;
+    setGroup(g);
+  } })));
 }
 
 function toggleStarFilter() {
@@ -1178,11 +1230,11 @@ async function moveToWindow(tabs) {
 }
 
 // Group: a small card asks for a name (the search word to start with) and one of Chrome's colours.
-function groupPopover(tabs, anchor) {
+function groupPopover(tabs, anchor, suggest = '') {
   const ids = tabs.filter((x) => !x.pinned).map((x) => x.id); // Chrome can't group pinned tabs
   if (!ids.length) return toast(t('groupPinned'));
   const win = tabs.find((x) => !x.pinned).windowId;
-  nameColorPopover(anchor, { title: state.query.trim().slice(0, 40), color: 'blue', okLabel: tn('groupCreate', ids.length), note: state.groupsOn ? '' : t('groupNeedsPerm') }, async (title, color) => {
+  nameColorPopover(anchor, { title: (suggest || state.query.trim()).slice(0, 40), color: 'blue', okLabel: tn('groupCreate', ids.length), note: state.groupsOn ? '' : t('groupNeedsPerm') }, async (title, color) => {
     // Naming and colouring a group needs the optional tab-groups permission: ask once, here.
     if (!state.groupsOn) await enableGroups();
     const gid = await chrome.tabs.group({ tabIds: ids, createProperties: { windowId: win } });
@@ -1526,6 +1578,23 @@ function nameColorPopover(anchor, { title, color, okLabel, note: fine }, save) {
   const ph = pop.offsetHeight;
   pop.style.top = (r.bottom + 6 + ph > window.innerHeight - 8 ? Math.max(8, r.top - ph - 8) : r.bottom + 6) + 'px';
   setTimeout(() => { name.focus(); name.select(); }, 0);
+}
+
+// What you can do with a section that is not a Chrome tab group (a site, a time span, "Ungrouped"): the group menu's
+// actions minus rename/recolour and ungroup. "Make a tab group" is left out when its tabs already are one group.
+function sectionMenu(sec, anchor) {
+  const tabs = sec.entries.filter((e) => e.kind === 'tab').map((e) => e.tab);
+  if (!tabs.length) return;
+  const one = tabs[0].groupId >= 0 && tabs.every((x) => x.groupId === tabs[0].groupId);
+  menu(anchor, [
+    { label: t('gmSelect'), fn: () => { tabs.forEach((x) => state.picked.add(x.id)); refresh(); } },
+    { label: t('smBookmark'), fn: () => bookmarkTabs(tabs, sec.title) },
+    ...(one ? [] : [{ label: t('wmGroup'), fn: () => groupPopover(tabs, anchor, sec.site ? sec.title : '') }]),
+    { label: t('gmWindow'), fn: () => moveToWindow(tabs) },
+    { label: t('gmSleep'), fn: () => sleepTabs(tabs) },
+    null,
+    { label: t('smClose'), danger: true, sure: tn('smCloseSure', tabs.length), fn: () => closeMany(tabs) },
+  ]);
 }
 
 // What you can do with an open Chrome tab group.
@@ -1885,17 +1954,18 @@ function whenTapMode(fn) {
 // Asks for the optional tabGroups permission (needs a click). Granting it makes Chrome
 // tab groups appear as sections, and lets Tabatha keep groups after they are closed.
 async function enableGroups() {
-  if (state.groupsOn) return;
+  if (state.groupsOn) return true;
   asking = true;
   let ok = false;
   try { ok = await chrome.permissions.request({ permissions: ['tabGroups'] }); } catch {}
   asking = false;
   window.focus();
-  if (!ok || state.done) return;
+  if (!ok || state.done) return false;
   chrome.runtime.sendMessage({ type: MSG.GROUPS }).catch(() => {});
   await load();
   refresh();
   if (state.modal === 'tour') tourStep(tourAt); // redraw the step: it now says the groups are on
+  return true;
 }
 
 // ---- the walkthrough: one list of steps, always written against today's interface (part D of the 1.3.5 plan).

@@ -356,6 +356,25 @@ export function updateOnboard(patch) {
   });
 }
 
+// ---------- window names (storage.session) ----------
+// Names the user gave windows in the switcher. Memory only: Chrome gives windows new ids on restart, so a name lasts until
+// Chrome quits. An empty name removes it (the window is "This window" / "Window N" again).
+export async function getWinNames() {
+  const v = (await S.get(KEY.WIN_NAMES))[KEY.WIN_NAMES];
+  const out = {};
+  if (v && typeof v === 'object' && !Array.isArray(v)) for (const [k, n] of Object.entries(v)) if (isId(+k) && typeof n === 'string' && n.trim()) out[k] = n.slice(0, 40);
+  return out;
+}
+export function setWinName(id, name) {
+  if (!isId(id)) return Promise.resolve();
+  return serial(async () => {
+    const cur = await getWinNames();
+    const n = String(name || '').trim().slice(0, 40);
+    if (n) cur[id] = n; else delete cur[id];
+    await S.set({ [KEY.WIN_NAMES]: cur });
+  });
+}
+
 // ---------- the update walkthrough (storage.local) ----------
 // The version Tabatha was updated from, kept until the walkthrough for it has been shown. If Chrome
 // updates Tabatha twice before it is opened, the older version is kept, so nothing is skipped.

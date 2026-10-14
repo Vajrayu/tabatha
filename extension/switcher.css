@@ -1,4 +1,5 @@
 :root {
+  --gutter: 22px; /* one left and right edge for the header, toolbar, window list, panel and footer */
   --fg: #fff;
   --fg-2: rgba(255,255,255,.72);
   --fg-3: rgba(255,255,255,.5);
@@ -28,7 +29,7 @@ button { font: inherit; color: inherit; }
 
 /* ---------- pixel buttons: Pro waitlist, buy me a coffee (Yuvsualy style) ---------- */
 /* Top right of the first row: Pro waitlist, then the coffee cup as an icon. Above the toolbar so Y-bit can peek down from under them. */
-.promo { position: relative; z-index: 3; display: flex; align-items: center; gap: 18px; justify-self: end; padding-right: 5px; }
+.promo { position: relative; z-index: 3; display: flex; align-items: center; gap: 18px; justify-self: end; }
 .pixbtn {
   --ink: #1B2A4A; --shade: #B7791F; --px: 2px; --sh: 3px; /* amber shadow: an ink one vanishes on the dark overlay */
   --face: #FFD166; --band: #FFB60D;
@@ -68,8 +69,8 @@ button { font: inherit; color: inherit; }
 .pixbtn.wide { display: flex; justify-content: center; width: calc(100% - 10px); margin: 4px 5px 10px; padding: 10px 12px 12px; font-size: 14px; }
 
 /* ---------- header ---------- */
-.bar { --side: 290px; display: grid; grid-template-columns: minmax(var(--side), 1fr) minmax(0, 560px) minmax(var(--side), 1fr); align-items: center; gap: 16px; padding: 20px 44px 10px; }
-.bar .ghost { justify-self: start; }
+.bar { --side: 290px; display: grid; grid-template-columns: minmax(var(--side), 1fr) minmax(0, 560px) minmax(var(--side), 1fr); align-items: center; gap: 16px; padding: 20px var(--gutter) 10px; }
+.bar .ghost { justify-self: start; padding-left: 13px; } /* its + lines up with the star and the window icons below */
 @media (max-width: 1259px) { .bar { --side: 140px; } }
 .ghost {
   display: inline-flex; align-items: center; gap: 9px; flex: none;
@@ -90,8 +91,8 @@ button { font: inherit; color: inherit; }
 .search input::-webkit-search-cancel-button { filter: grayscale(1) brightness(3); opacity: .7; cursor: pointer; }
 .count { font-size: 12px; color: var(--fg-3); white-space: nowrap; }
 .hint { color: var(--fg-3); font-size: 12px; white-space: nowrap; flex: none; }
-.foot-hint { position: fixed; right: 47px; bottom: 22px; z-index: 2; }
-html.window .foot-hint { right: 22px; bottom: 19px; }
+.foot-hint { position: fixed; right: var(--gutter); bottom: 22px; z-index: 2; }
+html.window .foot-hint { bottom: 19px; }
 kbd {
   font: inherit; font-size: 11px; padding: 1px 5px; border-radius: 4px;
   background: var(--fill-2); color: rgba(255,255,255,.85);
@@ -100,7 +101,7 @@ kbd + kbd { margin-left: 2px; }
 @media (max-width: 1100px) { .hint { display: none; } .foot { max-width: calc(100% - 100px); } } /* narrow: the key hints go (the walkthrough teaches the keys); the footer links get the room */
 
 /* ---------- toolbar: windows · star filter + sort · setup ---------- */
-.tools { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; padding: 4px 44px 6px; }
+.tools { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; padding: 4px var(--gutter) 6px; }
 .view { display: flex; align-items: center; gap: 10px; flex: none; } /* left: what you see (starred, sort, group by) */
 .setup { display: flex; align-items: center; gap: 10px; flex: none; margin-left: auto; } /* right: things to do (duplicates, capture, panel) */
 #group-by b { font-weight: 650; color: var(--fg); }
@@ -150,10 +151,10 @@ main {
 .with-panel main { padding-right: 20px; }
 .with-wins main { padding-left: 16px; }
 /* window list on the left */
-.wins { flex: 0 0 168px; width: 168px; min-width: 0; margin: 8px 0 12px 20px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+.wins { flex: 0 0 168px; width: 168px; min-width: 0; margin: 8px 0 12px var(--gutter); display: flex; flex-direction: column; gap: 2px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
   border-right: 1px solid var(--line); padding-right: 10px; }
 /* the window list is a side navbar: one line per window, its name and tab count; the chosen one has an amber bar */
-.win { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; height: 34px; padding: 0 8px 0 12px; border: 0; border-radius: 7px; background: none; color: var(--fg-2); font: inherit; cursor: pointer; text-align: left; }
+.win { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; height: 34px; padding: 0 8px 0 13px; border: 0; border-radius: 7px; background: none; color: var(--fg-2); font: inherit; cursor: pointer; text-align: left; }
 .win:hover { background: var(--fill); color: var(--fg); }
 .win:focus-visible { outline: 2px solid #FFD166; outline-offset: -2px; }
 .win[aria-pressed="true"] { background: rgba(255,209,102,.1); color: var(--fg); }
@@ -163,8 +164,14 @@ main {
 .wico svg { width: 15px; height: 15px; }
 .wlabel { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wn { flex: none; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--fg-3); }
+/* a window's ⋯ menu button takes the place of its tab count while you point at the row */
+.winrow { position: relative; display: flex; }
+.winrow .win { flex: 1; }
+.winrow .wmore { position: absolute; right: 4px; top: 5px; opacity: 0; }
+.winrow:hover .wmore, .winrow .wmore:focus-visible { opacity: 1; }
+.winrow:hover .win .wn, .winrow:has(.wmore:focus-visible) .win .wn { visibility: hidden; }
 .win[aria-pressed="true"] .wn { color: #FFD166; }
-@media (max-width: 1000px) { .wins { flex-basis: 52px; width: 52px; } .wlabel, .wn { display: none; } .win { justify-content: center; padding: 0; } } /* very narrow: icons only, the name is in the tooltip */
+@media (max-width: 1000px) { .wins { flex-basis: 52px; width: 52px; } .wlabel, .wn, .winrow .wmore { display: none; } .win { justify-content: center; padding: 0; } } /* very narrow: icons only, the name is in the tooltip */
 section { max-width: 1640px; margin: 0 auto; }
 .section-h {
   font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
@@ -352,7 +359,7 @@ section { max-width: 1640px; margin: 0 auto; }
 .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; background: var(--gc, #9aa0a6); }
 .gsec.grouped { border-left: 3px solid var(--gc, #9aa0a6); padding-left: 10px; border-radius: 2px; }
 /* ---------- right panel (saved groups, bookmarks), like a layers panel ---------- */
-.panel { flex: 0 0 330px; width: 330px; min-width: 0; overflow: hidden; margin: 8px 24px 12px 0; display: flex; flex-direction: column; min-height: 0;
+.panel { flex: 0 0 330px; width: 330px; min-width: 0; overflow: hidden; margin: 8px var(--gutter) 12px 0; display: flex; flex-direction: column; min-height: 0;
   border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
 @media (max-width: 1000px) { .panel { flex-basis: 280px; } }
 .ptabs { display: flex; align-items: flex-end; gap: 14px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
@@ -423,8 +430,8 @@ section { max-width: 1640px; margin: 0 auto; }
 #panel-btn.on svg { color: #1B2A4A; }
 
 /* ---------- footer links ---------- */
-.foot { position: fixed; left: 44px; bottom: 18px; z-index: 2; display: flex; align-items: center; gap: 16px; max-width: calc(100% - 600px); flex-wrap: wrap; }
-html.window .foot { left: 22px; bottom: 16px; }
+.foot { position: fixed; left: var(--gutter); bottom: 18px; z-index: 2; display: flex; align-items: center; gap: 16px; max-width: calc(100% - 600px); flex-wrap: wrap; }
+html.window .foot { bottom: 16px; }
 .link { background: none; border: 0; padding: 4px 2px; color: var(--fg-3); font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
 .link:hover, .link:focus-visible { color: var(--fg); outline: none; text-decoration: underline; }
 .link.strong { color: #FFD166; font-weight: 600; }
@@ -478,7 +485,7 @@ html.window .foot { left: 22px; bottom: 16px; }
 .tour-hl { outline: 3px solid #FFD166; outline-offset: 3px; border-radius: 8px; }
 
 /* ---------- alert bar: a quiet note, not a warning ---------- */
-.alert { margin: 0 44px 6px; padding: 6px 12px; border-radius: 8px; background: var(--fill); border: 1px solid var(--line); color: var(--fg-2); font-size: 12.5px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.alert { margin: 0 var(--gutter) 6px; padding: 6px 12px; border-radius: 8px; background: var(--fill); border: 1px solid var(--line); color: var(--fg-2); font-size: 12.5px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .alert::before { content: 'i'; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--fg-3); color: var(--fg-3); font: italic 700 11px/13px Georgia, serif; text-align: center; }
 .alert .btn { background: none; border: 0; padding: 2px 4px; color: #FFD166; font-size: 12.5px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .alert .btn:hover, .alert .btn:focus-visible { background: none; color: #fff; }
@@ -520,8 +527,8 @@ html.window .foot { left: 22px; bottom: 16px; }
 @media (prefers-reduced-motion: reduce) { .card.closing { transition: none; } }
 /* Narrow windows (a laptop, the popup window): the window list and the panel give the cards more room. */
 @media (max-width: 1240px) {
-  .wins { flex-basis: 148px; width: 148px; margin-left: 12px; }
-  .panel { flex-basis: 280px; width: 280px; margin-right: 16px; }
+  .wins { flex-basis: 148px; width: 148px; }
+  .panel { flex-basis: 280px; width: 280px; }
   main { padding-left: 24px; padding-right: 24px; }
 }
 /* Off-screen cards skip layout and painting until they're scrolled to (hundreds of tabs stay fast).

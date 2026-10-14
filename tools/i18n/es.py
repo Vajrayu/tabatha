@@ -225,4 +225,18 @@ M = {
  "capNoPrev_one": "$1 de ellas no tiene vista previa todavía.", "capNoPrev_other": "$1 de ellas no tienen vista previa todavía.",
  "capDone_one": "Listo: $1 vista previa.",
  "capDone_other": "Listo: $1 vistas previas.",
+ # window menu, section menu, window names (1.3.5, after the review of 14 Oct)
+ "winMenu": "Opciones de la ventana",
+ "winName": "Nombre de la ventana", "winNamePh": "p. ej. Trabajo",
+ "wmRename": "Cambiar nombre",
+ "wmBookmark": "Guardar la ventana en marcadores",
+ "wmGroup": "Crear un grupo de pestañas",
+ "wmDelete": "Eliminar ventana",
+ "wmDeleteSure_one": "¿Cerrar esta ventana y su $1 pestaña? Haz clic otra vez",
+ "wmDeleteSure_other": "¿Cerrar esta ventana y sus $1 pestañas? Haz clic otra vez",
+ "sectionMenu": "Opciones de la sección",
+ "smBookmark": "Guardar estas pestañas en marcadores",
+ "smClose": "Cerrar estas pestañas",
+ "smCloseSure_one": "¿Cerrar $1 pestaña? Haz clic otra vez",
+ "smCloseSure_other": "¿Cerrar $1 pestañas? Haz clic otra vez",
 }

@@ -1300,5 +1300,59 @@
  },
  "capDone_other": {
   "message": "Готово: $1 превью."
+ },
+ "winMenu": {
+  "message": "Параметры окна"
+ },
+ "winName": {
+  "message": "Название окна"
+ },
+ "winNamePh": {
+  "message": "например, Работа"
+ },
+ "wmRename": {
+  "message": "Переименовать"
+ },
+ "wmBookmark": {
+  "message": "Добавить окно в закладки"
+ },
+ "wmGroup": {
+  "message": "Создать группу вкладок"
+ },
+ "wmDelete": {
+  "message": "Удалить окно"
+ },
+ "wmDeleteSure_one": {
+  "message": "Закрыть окно и его $1 вкладку? Нажмите ещё раз"
+ },
+ "wmDeleteSure_few": {
+  "message": "Закрыть окно и его $1 вкладки? Нажмите ещё раз"
+ },
+ "wmDeleteSure_many": {
+  "message": "Закрыть окно и его $1 вкладок? Нажмите ещё раз"
+ },
+ "wmDeleteSure_other": {
+  "message": "Закрыть окно и его $1 вкладки? Нажмите ещё раз"
+ },
+ "sectionMenu": {
+  "message": "Параметры раздела"
+ },
+ "smBookmark": {
+  "message": "Добавить эти вкладки в закладки"
+ },
+ "smClose": {
+  "message": "Закрыть эти вкладки"
+ },
+ "smCloseSure_one": {
+  "message": "Закрыть $1 вкладку? Нажмите ещё раз"
+ },
+ "smCloseSure_few": {
+  "message": "Закрыть $1 вкладки? Нажмите ещё раз"
+ },
+ "smCloseSure_many": {
+  "message": "Закрыть $1 вкладок? Нажмите ещё раз"
+ },
+ "smCloseSure_other": {
+  "message": "Закрыть $1 вкладки? Нажмите ещё раз"
  }
 }

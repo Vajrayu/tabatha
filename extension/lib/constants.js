@@ -39,6 +39,7 @@ export const KEY = Object.freeze({
   NUDGE: 'nudge',             // storage.local: { day, runs, shown, last, never } the "use Alt+Q" nudge (never sent anywhere)
   LAST_OPEN: 'lastOpen',      // storage.session: when the switcher last opened
   PREFS: 'prefs',             // storage.local: { lang: 'auto'|'en'|'ru'|'es', startup: boolean } Settings
+  WIN_NAMES: 'winnames',      // storage.session: { windowId: name } the names you gave windows (memory only: window ids don't survive a restart)
   PEEK: 'peek',               // storage.local: the day Y-bit last peeked from behind the corner buttons
   SHORTCUT_LATER: 'scLater',  // storage.local: when the user said "Not now" to the Alt+Q-isn't-set note
   WN_FROM: 'wnFrom',          // storage.local: the version Tabatha was updated from, until its walkthrough has been shown (the oldest, if several updates came first)

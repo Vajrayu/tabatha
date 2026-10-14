@@ -1102,5 +1102,47 @@
  },
  "capDone_other": {
   "message": "Done: $1 previews."
+ },
+ "winMenu": {
+  "message": "Window options"
+ },
+ "winName": {
+  "message": "Window name"
+ },
+ "winNamePh": {
+  "message": "e.g. Work"
+ },
+ "wmRename": {
+  "message": "Rename"
+ },
+ "wmBookmark": {
+  "message": "Bookmark the window"
+ },
+ "wmGroup": {
+  "message": "Make a tab group"
+ },
+ "wmDelete": {
+  "message": "Delete window"
+ },
+ "wmDeleteSure_one": {
+  "message": "Close this window and its $1 tab? Click again"
+ },
+ "wmDeleteSure_other": {
+  "message": "Close this window and its $1 tabs? Click again"
+ },
+ "sectionMenu": {
+  "message": "Section options"
+ },
+ "smBookmark": {
+  "message": "Bookmark these tabs"
+ },
+ "smClose": {
+  "message": "Close these tabs"
+ },
+ "smCloseSure_one": {
+  "message": "Close $1 tab? Click again"
+ },
+ "smCloseSure_other": {
+  "message": "Close $1 tabs? Click again"
  }
 }
