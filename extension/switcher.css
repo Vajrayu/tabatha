@@ -495,6 +495,8 @@ html.window .foot { bottom: 16px; }
   box-shadow: 0 -3px 0 #1B2A4A, 0 3px 0 #1B2A4A, -3px 0 0 #1B2A4A, 3px 0 0 #1B2A4A, 7px 7px 0 #1B2A4A; position: relative; }
 .dialog.manual .num { position: absolute; top: 0; left: 0; width: 30px; height: 30px; display: grid; place-items: center; background: #1B2A4A; color: #fff; font: 700 16px ui-monospace, "SF Mono", Menlo, monospace; }
 .dialog.manual h3 { font-size: 28px; font-weight: 700; margin: 0 0 8px; letter-spacing: -.01em; }
+.dialog.manual ul, .dialog.manual li { color: #1B2A4A; }
+.dialog.manual .news li.more { color: #4a5a7a; }
 .dialog.manual p { color: #1B2A4A; font-size: 16px; line-height: 1.4; margin: 0 0 10px; }
 .dialog.manual kbd { background: #FFF8E7; color: #1B2A4A; font-weight: 700; border-radius: 0; font-size: 14px; padding: 3px 9px;
   box-shadow: 0 -2px 0 #1B2A4A, 0 2px 0 #1B2A4A, -2px 0 0 #1B2A4A, 2px 0 0 #1B2A4A, 2px 4px 0 #1B2A4A; margin: 0 4px 0 2px; }

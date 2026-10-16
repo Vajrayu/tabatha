@@ -59,6 +59,8 @@ let steps = await walk();
 T.log('1.3.3 → 1.3.5: Group by (new), window list (changed), actions bar (moved), panel tabs (changed), then the fixes',
   show(steps) === 'Sort and group [New] · Your windows [Changed] · Many at once [Moved] · Groups and bookmarks [Changed] · Also fixed since you last looked', show(steps));
 const fixes = steps.length ? steps[steps.length - 1].items : [];
+const contrast = await f().evaluate(() => { const rgb = (s) => s.match(/\d+/g).slice(0, 3).map(Number); const lum = (c) => { const v = c.map((x) => { x /= 255; return x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4; }); return .2126 * v[0] + .7152 * v[1] + .0722 * v[2]; }; const li = document.querySelector('#dialog .news li'); const bg = rgb(getComputedStyle(document.getElementById('dialog')).backgroundColor); const fg = rgb(getComputedStyle(li).color); const [a, b] = [lum(fg), lum(bg)].sort((x, y) => y - x); return +((a + .05) / (b + .05)).toFixed(1); });
+T.log('…and its text is readable on the card (contrast at least 4.5:1)', contrast >= 4.5, String(contrast));
 T.log('…the fixes card lists 1.3.5 then 1.3.4: six lines and "and 1 more"', fixes.length === 7 && fixes[0].startsWith('On dark-mode pages') && fixes[3].startsWith('Closing the tab') && fixes[6] === 'and 1 more', fixes.join(' | '));
 await done();
 T.log('Esc ends it, Tabatha stays open', (await T.isOpen(a)) && (await f().evaluate(() => document.getElementById('modal').hidden)));

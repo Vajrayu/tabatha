@@ -2710,6 +2710,9 @@ function getLaunch() {
   }
   window.focus();
   el.search.focus({ preventScroll: true });
+  // The Pro button shows on every open once the walkthrough has been seen, including a reopen after a capture run or a
+  // close of the current tab (those skip firstRun).
+  if (resume) getOnboard().then((o) => { el.pro.hidden = !SHOW_PRO || !o.tour; }).catch(() => {});
   if (!resume) firstRun();
   // Back from the capture card's run: the walkthrough it was in front of comes next.
   else if (resume.walk === '' || (typeof resume.walk === 'string' && /^\d+(\.\d+){0,3}$/.test(resume.walk))) whenTapMode(() => startWalk(resume.walk));

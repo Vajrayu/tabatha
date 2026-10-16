@@ -21,6 +21,10 @@ const after = await tabs();
 const host = await overlayOn();
 T.log('closing it closes that tab', !after.some((x) => x.url.endsWith('alpha.html')));
 T.log('…and Tabatha opens again on the tab next to it (it used to vanish)', !!host, host ? host.url() : 'not open anywhere');
+if (host) {
+  await host.waitForTimeout(500);
+  T.log('…and the Pro waitlist button is still there (it used to disappear after a quick action)', await T.frame(host).evaluate(() => !document.getElementById('pro').hidden && document.getElementById('pro').getBoundingClientRect().width > 0));
+}
 // 2. "Close" in the actions bar with the current tab ticked, while searching.
 if (host) {
   const g = T.frame(host);
